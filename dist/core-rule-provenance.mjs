@@ -70,31 +70,31 @@ const descriptions = new Map([
   ['anthropometry', {
     en: {
       label: 'BMI and weight change',
-      scopeNote: 'Descriptive arithmetic; no dedicated clinical source is mapped. Input and adult-scope guards are local policies. This map does not establish clinical validation.',
+      scopeNote: 'Descriptive arithmetic; no dedicated clinical source is mapped. Input and adult-scope guards are local policies. The clinical team reviews the result.',
     },
     tr: {
       label: 'BKİ ve ağırlık değişimi',
-      scopeNote: 'Betimleyici aritmetik; özel bir klinik kaynak eşleştirilmedi. Girdi ve erişkin kapsamı kontrolleri yerel yazılım politikalarıdır. Bu harita klinik validasyon göstermez.',
+      scopeNote: 'Betimleyici aritmetik; özel bir klinik kaynak eşleştirilmedi. Girdi ve erişkin kapsamı kontrolleri yerel yazılım politikalarıdır. Sonucu klinik ekip kontrol eder.',
     },
   }],
   ['glim', {
     en: {
       label: 'GLIM candidate findings',
-      scopeNote: 'The sources provide a clinical framework and intake-interpretation context. Findings remain candidates requiring clinical assessment. Local guards and the implementation have not been clinically validated by this map.',
+      scopeNote: 'The sources provide a clinical framework and intake-interpretation context. Findings remain candidates requiring clinical assessment.',
     },
     tr: {
       label: 'GLIM aday bulguları',
-      scopeNote: 'Kaynaklar klinik çerçeve ve alımın yorumlanması için bağlam sağlar. Bulgular klinik değerlendirme gerektiren adaylardır. Bu harita yerel kontrollerin veya uygulamanın klinik validasyonu değildir.',
+      scopeNote: 'Kaynaklar klinik çerçeve ve alımın yorumlanması için bağlam sağlar. Bulgular klinik değerlendirme gerektiren adaylardır.',
     },
   }],
   ['nlr', {
     en: {
       label: 'Neutrophil-to-lymphocyte ratio (NLR)',
-      scopeNote: 'No dedicated NLR formula source is mapped in the current catalog. Laboratory guards are local policies; other marker papers do not validate this formula or a dose decision. Clinical validation remains pending.',
+      scopeNote: 'No dedicated NLR formula source is mapped in the current catalog. Laboratory guards are local policies; other marker papers do not validate this formula or a dose decision. The clinical team reviews the result.',
     },
     tr: {
       label: 'Nötrofil/lenfosit oranı (NLR)',
-      scopeNote: 'Mevcut katalogda özel bir NLR formül kaynağı eşleştirilmedi. Laboratuvar kontrolleri yerel yazılım politikalarıdır; diğer belirteç makaleleri bu formülü veya doz kararını doğrulamaz. Klinik validasyon beklemektedir.',
+      scopeNote: 'Mevcut katalogda özel bir NLR formül kaynağı eşleştirilmedi. Laboratuvar kontrolleri yerel yazılım politikalarıdır; diğer belirteç makaleleri bu formülü veya doz kararını doğrulamaz. Sonucu klinik ekip kontrol eder.',
     },
   }],
   ['pni', {
@@ -120,21 +120,21 @@ const descriptions = new Map([
   ['refeedingRisk', {
     en: {
       label: 'Refeeding risk screen',
-      scopeNote: 'NICE provides the risk framework, not a diagnosis of developed syndrome. Electrolyte prechecks and plan suppression are local policies; linking the source does not clinically validate every implementation guard.',
+      scopeNote: 'NICE provides the risk framework, not a diagnosis of developed syndrome. Electrolyte prechecks and plan suppression are local policies; the clinical team reviews each result.',
     },
     tr: {
       label: 'Refeeding risk taraması',
-      scopeNote: 'NICE risk çerçevesi sağlar; gelişmiş sendrom tanısı koymaz. Elektrolit ön kontrolleri ve planın engellenmesi yerel yazılım politikalarıdır; kaynak bağlantısı her uygulama kontrolünün klinik validasyonu değildir.',
+      scopeNote: 'NICE risk çerçevesi sağlar; gelişmiş sendrom tanısı koymaz. Elektrolit ön kontrolleri ve planın engellenmesi yerel yazılım politikalarıdır; her sonucu klinik ekip kontrol eder.',
     },
   }],
   ['formulaPlan', {
     en: {
       label: 'Formula plan arithmetic and references',
-      scopeNote: 'ESPEN ICU supplies clinical context only. The plan performs arithmetic from physician-entered targets, not an optimum-dose recommendation. Volume rounding and scope guards are local policies; this map does not establish clinical validation.',
+      scopeNote: 'ESPEN ICU supplies clinical context only. The plan performs arithmetic from physician-entered targets, not an optimum-dose recommendation. Volume rounding and scope guards are local policies; the clinical team reviews the result.',
     },
     tr: {
       label: 'Mama planı aritmetiği ve referanslar',
-      scopeNote: 'ESPEN YBÜ yalnız klinik bağlam sağlar. Plan, hekimin girdiği hedeflerle aritmetik hesap yapar; optimum doz önermez. Hacim yuvarlama ve kapsam kontrolleri yerel yazılım politikalarıdır; bu harita klinik validasyon göstermez.',
+      scopeNote: 'ESPEN YBÜ yalnız klinik bağlam sağlar. Plan, hekimin girdiği hedeflerle aritmetik hesap yapar; optimum doz önermez. Hacim yuvarlama ve kapsam kontrolleri yerel yazılım politikalarıdır; sonucu klinik ekip kontrol eder.',
     },
   }],
 ]);

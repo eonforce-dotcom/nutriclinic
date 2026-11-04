@@ -9,7 +9,7 @@ test('public reuse information distinguishes required notices/source from reques
  assert.match(html,/© 2026 Example Clinic/);assert.match(html,/Academic citation is requested, not an additional mandatory condition/);
  assert.match(html,/commercially redistribute/);assert.match(html,/Modified versions offered over a network/);
  assert.match(html,/does not require publishing patient records/);assert.match(html,/Third-party components.*retain their own licenses/);
- assert.match(html,/technical tests do not establish clinical validation/);
+ assert.match(html,/supports clinical decisions and does not replace them/);
  const links=[...html.matchAll(/href="([^"]+)"/g)].map(match=>match[1]);
  assert.deepEqual(links,['./legal/LICENSE.txt','./legal/NOTICE.txt','./source-code.zip','./CITATION.cff','./legal/THIRD-PARTY-NOTICES.txt']);
 });

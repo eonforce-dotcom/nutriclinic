@@ -45,7 +45,7 @@ Optional: nginx may set a readable cookie nc_ulke=<country code> (for example fr
 CF-IPCountry) so that visitors from Turkey open the Turkish interface.
 
 ## Clinical use
-Research version that supports clinician review; technical tests are not clinical validation.
+Research version that supports clinical decisions and does not replace them; the clinical team reviews every result, with its inputs and sources, before use.
 No patient data, credentials or server secrets are included in this archive.
 """
 

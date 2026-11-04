@@ -44,11 +44,11 @@ Duman G. NutriClinic: clinical nutrition workspace [software]. Version 0.3.23.
 
 Clinical use
 ------------
-NutriClinic is a research version that supports clinician review. Technical
-tests are not clinical validation. It does not make a definitive diagnosis of
-malnutrition, sarcopenia or anabolic/catabolic state and does not set an
-automatic optimal amino-acid dose. Inputs, sources and results must be checked
-by the clinical team.
+NutriClinic is a research version. It supports clinical decisions and does not
+replace them; the clinical team reviews every result, with its inputs and
+sources, before use. It does not make a definitive diagnosis of malnutrition,
+sarcopenia or anabolic/catabolic state and does not set an automatic optimal
+amino-acid dose.
 
 -----------------------------------------------------------------------------
 Türkçe özet

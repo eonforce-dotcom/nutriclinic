@@ -197,7 +197,7 @@ test('enabled intervals without supplied comparison cannot gain an inferred norm
   const html = reportAppendixMarkup(data);
   assert.equal(cell(html,'Supplied comparison status'),'Missing / not assessed');
   assert.equal(cell(html,'Patient applicability confirmation'),'Missing / not assessed');
-  assert.match(html,/does not establish muscle anabolism, an optimal dose or clinical validation/);
+  assert.match(html,/does not establish muscle anabolism or an optimal dose/);
   assert.ok(!html.includes('Within entered bounds'));
   const absent = reportAppendixMarkup({...data,labReferences:null});
   assert.match(absent,/No enabled laboratory interval supplied/);

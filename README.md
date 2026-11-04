@@ -4,7 +4,7 @@ Clinician-supervised workspace for adult ICU and ward nutrition assessment.
 
 NutriClinic brings anthropometry, GLIM, ESPEN and NRS 2002 support, sarcopenia (EWGSOP2) and dysphagia records, laboratory import with clinic reference intervals, energy and protein planning, daily intake follow-up and a source-traceable evidence library together in one browser application. The interface opens in English and offers Turkish.
 
-> **Research version, not clinically validated.** NutriClinic supports clinician review. It does not make a definitive diagnosis of malnutrition, sarcopenia or anabolic/catabolic state and does not set an automatic optimal amino-acid dose. Technical tests are not clinical validation; inputs, sources and results must be checked by the clinical team.
+> **NutriClinic supports clinical decisions and does not replace them.** The clinical team reviews every result, with its inputs and sources, before use. NutriClinic does not make a definitive diagnosis of malnutrition, sarcopenia or anabolic/catabolic state and does not set an automatic optimal amino-acid dose.
 
 - Live service: <https://sahnoroloji.org/nutriclinic/>
 - Version: 0.3.23 (4 November 2026)
@@ -64,5 +64,7 @@ Third-party component: Mozilla PDF.js (Apache-2.0); see [dist/legal/THIRD-PARTY-
 ## Citation
 
 If you use NutriClinic in research or teaching, please cite it; GitHub's "Cite this repository" button reads [CITATION.cff](CITATION.cff). Citation is requested; it is not an additional condition of the license.
+
+Author: Gökay Duman, ORCID [0000-0003-3782-1665](https://orcid.org/0000-0003-3782-1665).
 
 > Duman G. NutriClinic: clinical nutrition workspace [software]. Version 0.3.23. 2026. Available from: https://sahnoroloji.org/nutriclinic/

@@ -17,7 +17,7 @@ const copy = {
   credit:'Authorship and citation', creditText:'Please retain the applicable authorship and legal notices. Academic citation is requested, not an additional mandatory condition of AGPLv3.', citationPending:'The academic citation will be completed when the author details are confirmed.', citation:'Academic citation file',
   third:'Third-party software', thirdText:'Mozilla PDF.js (Apache-2.0) reads laboratory PDFs in the browser; the desktop package also bundles the Node.js runtime. These components keep their own copyright, license and attribution terms.',
   licenseFile:'Read AGPLv3', noticeFile:'Copyright and attribution notice', thirdFile:'Third-party notices',
-  warranty:'Use and validation limits', warrantyText:'The software is provided without warranty under the license. It supports clinician review; technical tests do not establish clinical validation. It does not establish a definitive anabolic or catabolic diagnosis or an automatic optimal amino-acid dose.',
+  warranty:'Intended use and limits', warrantyText:'The software is provided without warranty under the license. It supports clinical decisions and does not replace them; the clinical team reviews every result, with its inputs and sources, before use. It does not establish a definitive anabolic or catabolic diagnosis or an automatic optimal amino-acid dose.',
  },
  tr:{
   title:'Hakkında ve Lisanslar', close:'Kapat', help:'NutriClinic, yeniden kullanım koşulları, yazar bilgileri, kaynak kodu ve akademik atıf hakkında bilgi alın.',
@@ -29,7 +29,7 @@ const copy = {
   credit:'Yazar bilgileri ve atıf', creditText:'İlgili yazar ve yasal bildirimleri koruyun. Akademik atıf rica edilir; AGPLv3 koşullarına ek bir zorunluluk değildir.', citationPending:'Akademik atıf, yazar bilgileri doğrulandığında tamamlanacaktır.', citation:'Akademik atıf dosyası',
   third:'Üçüncü taraf yazılımlar', thirdText:'Laboratuvar PDF dosyaları tarayıcıda Mozilla PDF.js (Apache-2.0) ile okunur; masaüstü paketinde ayrıca Node.js çalışma ortamı bulunur. Bu bileşenler kendi telif, lisans ve atıf koşullarını korur.',
   licenseFile:'AGPLv3 metnini oku', noticeFile:'Telif ve atıf bildirimi', thirdFile:'Üçüncü taraf bildirimleri',
-  warranty:'Kullanım ve doğrulama sınırları', warrantyText:'Yazılım, lisans koşulları kapsamında garanti verilmeden sunulur. Hekim değerlendirmesini destekler; teknik testler klinik validasyon oluşturmaz. Kesin anabolik veya katabolik tanı ya da otomatik optimum aminoasit dozu belirlemez.',
+  warranty:'Kullanım amacı ve sınırlar', warrantyText:'Yazılım, lisans koşulları kapsamında garanti verilmeden sunulur. Klinik kararı destekler, yerine geçmez; klinik ekip her sonucu girdileri ve kaynaklarıyla birlikte kullanmadan önce kontrol eder. Kesin anabolik veya katabolik tanı ya da otomatik optimum aminoasit dozu belirlemez.',
  },
 };
 

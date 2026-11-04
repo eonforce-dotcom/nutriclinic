@@ -611,7 +611,7 @@ function render() {
   $("sideContext").textContent =
     `${state.context === "icu" ? "Yoğun bakım" : state.context === "ward" ? "Servis" : "Ortam seçilmedi"} · ${state.demo ? "Sentetik örnek" : "Oturum verisi"}`;
   $("modeNotice").innerHTML = state.demo
-    ? '<span class="notice-icon">i</span><div><strong>Sentetik örnek olgu görüntüleniyor.</strong> Gerçek hasta verisi içermez. Hesaplamalar klinik doğrulama bekleyen araştırma yazılımına aittir.</div>'
+    ? '<span class="notice-icon">i</span><div><strong>Sentetik örnek olgu görüntüleniyor.</strong> Gerçek hasta verisi içermez. Hesaplamalar araştırma yazılımına aittir; klinik kararı destekler, yerine geçmez.</div>'
     : `<span class="notice-icon">i</span><div data-no-i18n><strong>${getLocale()==='tr'?'Hekim denetimli değerlendirme':'Physician-supervised assessment'}</strong> ${getLocale()==='tr'?editionText('Girdiler bu bilgisayara otomatik kaydedilir; kayıt durumunu üstte kontrol edin. Yeniden açınca klinik onayları gözden geçirin.','Girdiler sunucuya otomatik kaydedilir; kayıt durumunu üstte kontrol edin. Yeniden açınca klinik onayları gözden geçirin.'):editionText('Entries save automatically on this computer; check the save status above. Review clinical confirmations when reopening.','Entries save automatically to the server; check the save status above. Review clinical confirmations when reopening.')}</div>`;
   $("metricBmi").textContent = fmt(result.bmi);
   $("metricLoss").textContent =
