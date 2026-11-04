@@ -1,0 +1,27 @@
+.clinical-grid { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,1fr); gap: 24px; align-items: start; }
+.clinical-intro { padding: 23px 26px; background: #e9effb; border: 1px solid #d3dff6; border-radius: 16px; margin-bottom: 22px; }
+.clinical-intro h2 { color: #30558a; font-size: 26px; }
+.clinical-intro p { color: #425d7b; font-size: 13px; margin-bottom: 0; }
+.criteria-card { padding: 23px; background: #fffefa; border: 1px solid #d6e3dd; border-top: 4px solid #5c8d86; border-radius: 15px; margin-bottom: 18px; overflow-wrap: anywhere; }
+.criteria-card[data-status="incomplete"] { border-top-color: #b68d43; }
+.criteria-card[data-status="review"] { border-top-color: #9a6d9f; }
+.criteria-card[data-status="met"] { border-top-color: #2f6ba7; }
+.criteria-card h3 { margin: 9px 0 13px; font-size: 19px; }
+.criteria-card p,.criteria-card li { font-size: 12px; line-height: 1.85; }
+.criteria-card ul { padding-left: 18px; }
+.criteria-status { font-size: 10px; font-weight: 650; color: #5d6374; text-transform: uppercase; letter-spacing: .7px; }
+.criterion-value { display: inline-block; padding: 4px 8px; border-radius: 5px; background: #eef3ed; color: #244f58; font-variant-numeric: tabular-nums; margin: 3px 7px 3px 0; }
+.organ-scores {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:16px 0;}
+.organ-scores span {padding:9px;background:#edf1f8;border-radius:8px;font-size:10px;color:#36536e;}
+.organ-scores strong {display:block;font-size:19px;margin-top:5px;}
+.condition-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 14px; }
+.condition-grid .check-field { margin: 0; padding: 11px 0; }
+.clinical-grid summary { cursor: pointer; color: #295e6c; font-weight: 650; }
+.clinical-grid .card .fields { margin-top: 17px; }
+.clinical-grid .input-wrap select { width: 100%; }
+.clinical-grid .input-wrap input[type="date"] { padding-right: 12px; }
+.scfa-note { background: #f3edfa; border-top-color: #8d63a6; }
+.clinical-report { white-space: pre-wrap; font-size: 11px; overflow-wrap: anywhere; }
+@media(max-width:1100px) { .clinical-grid { grid-template-columns: minmax(0,1fr); }.clinical-grid .fields { grid-template-columns: 1fr 1fr; } }
+@media(max-width:650px) { .clinical-intro { padding: 21px; }.clinical-grid { gap: 12px; }.criteria-card { padding: 21px; }.clinical-grid .fields,.condition-grid { grid-template-columns: 1fr; } }
+@media print { #view-criteria,#view-dysphagia,#view-context {display:none!important;} }

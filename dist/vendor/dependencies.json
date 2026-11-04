@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "nutriclinic-vendored-dependencies-1",
+  "reviewedAt": "2026-10-28T18:15:47.815Z",
+  "components": [
+    {
+      "name": "pdfjs-dist",
+      "version": "6.2.108",
+      "purl": "pkg:npm/pdfjs-dist@6.2.108",
+      "purpose": "Local browser PDF text extraction only; no scripting/viewer/annotation layer is instantiated",
+      "repository": "https://github.com/mozilla/pdf.js",
+      "license": "Apache-2.0",
+      "tarball": "https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-6.2.108.tgz",
+      "integrity": "sha512-YxFb+SQcodN2rnX9Tn3dHYlqfb7NjlzzfONPpJd+AKoKtUjEdevTfbC07d5TcczzOK6261auRkP/M8OBHs9vFQ==",
+      "registrySignatureVerified": true,
+      "attestationSignatureVerified": false,
+      "optionalPackagesBundled": false,
+      "files": {
+        "pdf.mjs": {
+          "sha256": "487bde1bcf89e041f791173d0509a1dc18d0feb6655d78395e1611f9da0de17d",
+          "bytes": 853537,
+          "sourceMember": "package/build/pdf.mjs"
+        },
+        "pdf.worker.mjs": {
+          "sha256": "1a7607f28cfbc63f0e4e0a41927c89f991e353e4f3fb4565ecfd621ac5975089",
+          "bytes": 2222991,
+          "sourceMember": "package/build/pdf.worker.mjs"
+        },
+        "PDFJS-LICENSE.txt": {
+          "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+          "bytes": 10174,
+          "sourceMember": "package/LICENSE"
+        }
+      }
+    }
+  ],
+  "npmRuntimeOrDevelopmentDependencies": 0,
+  "scope": "Vendored third-party code still requires upstream/security review. Registry signatures/hashes do not certify absence of malicious code."
+}

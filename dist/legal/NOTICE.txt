@@ -1,0 +1,68 @@
+NutriClinic - clinical nutrition workspace
+Copyright (C) 2026 Gökay Duman
+Dr. Gökay Duman · Neurology
+
+SPDX-License-Identifier: AGPL-3.0-only
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License, version 3, as published by
+the Free Software Foundation (AGPL-3.0-only). The full license text is in
+LICENSE.txt next to this file.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+Corresponding source
+--------------------
+The running service offers its complete corresponding source code at
+https://sahnoroloji.org/nutriclinic/source-code.zip (also linked from
+"About & licenses" in the application). The source contains software only:
+no patient records, credentials or server secrets.
+
+If you run a modified version for users over a network, AGPLv3 section 13
+requires you to offer those users the corresponding source of your version.
+
+What this license covers
+------------------------
+The original NutriClinic software: the browser application (HTML, CSS and
+JavaScript modules) and the Python record service. Third-party components keep
+their own licenses; see THIRD-PARTY-NOTICES.txt. Cited publications, guidelines
+and other external works keep their own copyright and are not licensed by this
+notice.
+
+Attribution
+-----------
+Keep this notice, the copyright line and the license notice in copies and
+modified versions, and mark modified versions as changed (AGPLv3 sections 4,
+5 and 7). Academic citation is requested (see CITATION.cff) but is not an
+additional condition of the license.
+
+Suggested citation:
+Duman G. NutriClinic: clinical nutrition workspace [software]. Version 0.3.23.
+2026. Available from: https://sahnoroloji.org/nutriclinic/
+
+Clinical use
+------------
+NutriClinic is a research version that supports clinician review. Technical
+tests are not clinical validation. It does not make a definitive diagnosis of
+malnutrition, sarcopenia or anabolic/catabolic state and does not set an
+automatic optimal amino-acid dose. Inputs, sources and results must be checked
+by the clinical team.
+
+-----------------------------------------------------------------------------
+Türkçe özet
+-----------------------------------------------------------------------------
+NutriClinic - klinik beslenme çalışma alanı
+Telif hakkı (C) 2026 Gökay Duman · Dr. Gökay Duman, Nöroloji
+
+Bu yazılım GNU Affero Genel Kamu Lisansı sürüm 3 (AGPL-3.0-only) ile
+ücretsiz ve açık kaynak olarak sunulur. Kullanılabilir, kopyalanabilir,
+değiştirilebilir ve yeniden dağıtılabilir; bu bildirim, telif satırı ve lisans
+bildirimi korunmalı, değiştirilen sürümler değiştirildiği belirtilerek ve aynı
+lisansla paylaşılmalıdır. Değiştirilmiş sürümü internet üzerinden kullandıran
+kişi, kullanıcılarına kendi sürümünün kaynak kodunu sunmalıdır.
+
+Kaynak kodu: https://sahnoroloji.org/nutriclinic/source-code.zip
+Akademik atıf rica edilir (CITATION.cff); lisansa ek bir zorunluluk değildir.
+Yazılım garantisiz sunulur ve hekim değerlendirmesinin yerini tutmaz.

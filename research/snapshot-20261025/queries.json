@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "nutriklinik-focused-search-plan-v1",
+  "version": "0.1.1",
+  "cutoff": "2026-10-25",
+  "scope": "Focused 2026 candidate discovery, not a systematic review",
+  "databasesExecuted": [
+    "PubMed"
+  ],
+  "filters": {
+    "language": false,
+    "adult": false,
+    "human": false,
+    "design": false,
+    "freeFullText": false
+  },
+  "queries": [
+    {
+      "id": "icu-energyProtein",
+      "population": "icu",
+      "topic": "energyProtein",
+      "query": "(\"Critical Illness\"[mh] OR \"Intensive Care Units\"[mh] OR critically ill[tiab] OR critical illness[tiab] OR intensive care[tiab] OR ICU[tiab]) AND (protein intake[tiab] OR protein dose[tiab] OR high protein[tiab] OR higher protein[tiab] OR energy intake[tiab] OR energy target*[tiab] OR nutritional support[tiab] OR oral nutritional supplement*[tiab] OR indirect calorimetry[tiab]) AND (2026/01/01:2026/10/25[dp]) AND (1800/01/01:2026/10/25[crdt])"
+    },
+    {
+      "id": "icu-metabolic",
+      "population": "icu",
+      "topic": "metabolic",
+      "query": "(\"Critical Illness\"[mh] OR \"Intensive Care Units\"[mh] OR critically ill[tiab] OR critical illness[tiab] OR intensive care[tiab] OR ICU[tiab]) AND ((cataboli*[tiab] OR anaboli*[tiab] OR nitrogen balance[tiab] OR urea creatinine ratio[tiab] OR protein turnover[tiab] OR muscle protein synthesis[tiab]) AND (nutrition*[tiab] OR protein[tiab] OR muscle[tiab])) AND (2026/01/01:2026/10/25[dp]) AND (1800/01/01:2026/10/25[crdt])"
+    },
+    {
+      "id": "icu-aminoAcids",
+      "population": "icu",
+      "topic": "aminoAcids",
+      "query": "(\"Critical Illness\"[mh] OR \"Intensive Care Units\"[mh] OR critically ill[tiab] OR critical illness[tiab] OR intensive care[tiab] OR ICU[tiab]) AND (glutamin*[tiab] OR leucine[tiab] OR branched chain amino acid*[tiab] OR BCAA[tiab] OR hydroxymethylbutyrate[tiab] OR hydroxy methylbutyrate[tiab] OR HMB[tiab]) AND (2026/01/01:2026/10/25[dp]) AND (1800/01/01:2026/10/25[crdt])"
+    },
+    {
+      "id": "ward-energyProtein",
+      "population": "ward",
+      "topic": "energyProtein",
+      "query": "(\"Inpatients\"[mh] OR hospitali*[tiab] OR inpatient*[tiab] OR medical ward*[tiab] OR rehabilitation[tiab]) AND (protein intake[tiab] OR protein dose[tiab] OR high protein[tiab] OR higher protein[tiab] OR energy intake[tiab] OR energy target*[tiab] OR nutritional support[tiab] OR oral nutritional supplement*[tiab] OR indirect calorimetry[tiab]) AND (2026/01/01:2026/10/25[dp]) AND (1800/01/01:2026/10/25[crdt])"
+    },
+    {
+      "id": "ward-metabolic",
+      "population": "ward",
+      "topic": "metabolic",
+      "query": "(\"Inpatients\"[mh] OR hospitali*[tiab] OR inpatient*[tiab] OR medical ward*[tiab] OR rehabilitation[tiab]) AND ((cataboli*[tiab] OR anaboli*[tiab] OR nitrogen balance[tiab] OR urea creatinine ratio[tiab] OR protein turnover[tiab] OR muscle protein synthesis[tiab]) AND (nutrition*[tiab] OR protein[tiab] OR muscle[tiab])) AND (2026/01/01:2026/10/25[dp]) AND (1800/01/01:2026/10/25[crdt])"
+    },
+    {
+      "id": "ward-aminoAcids",
+      "population": "ward",
+      "topic": "aminoAcids",
+      "query": "(\"Inpatients\"[mh] OR hospitali*[tiab] OR inpatient*[tiab] OR medical ward*[tiab] OR rehabilitation[tiab]) AND (glutamin*[tiab] OR leucine[tiab] OR branched chain amino acid*[tiab] OR BCAA[tiab] OR hydroxymethylbutyrate[tiab] OR hydroxy methylbutyrate[tiab] OR HMB[tiab]) AND (2026/01/01:2026/10/25[dp]) AND (1800/01/01:2026/10/25[crdt])"
+    },
+    {
+      "id": "icu-energyProtein-amendment01",
+      "population": "icu",
+      "topic": "energyProtein",
+      "query": "(\"Critical Illness\"[mh] OR \"Intensive Care Units\"[mh] OR \"Respiration, Artificial\"[mh] OR critically ill[tiab] OR critical illness[tiab] OR intensive care[tiab] OR critical care[tiab] OR ICU[tiab] OR mechanical ventilation[tiab] OR mechanically ventilated[tiab] OR prolonged mechanical ventilation[tiab] OR ventilated patients[tiab]) AND (\"Nutritional Support\"[mh] OR \"Enteral Nutrition\"[mh] OR \"Parenteral Nutrition\"[mh] OR ((protein[tiab]) AND (intake[tiab] OR dose*[tiab] OR provision[tiab] OR delivery[tiab] OR requirement*[tiab] OR supplement*[tiab])) OR ((energy[tiab] OR calori*[tiab]) AND (intake[tiab] OR target*[tiab] OR provision[tiab] OR delivery[tiab] OR restrict*[tiab])) OR high protein[tiab] OR higher protein[tiab] OR nutritional support[tiab] OR nutrition therapy[tiab] OR oral nutritional supplement*[tiab] OR indirect calorimetry[tiab] OR enteral nutrition[tiab] OR parenteral nutrition[tiab] OR enteral feeding[tiab] OR parenteral feeding[tiab] OR tube feeding[tiab]) AND (2026/01/01:2026/10/25[dp]) AND (1800/01/01:2026/10/25[crdt])"
+    },
+    {
+      "id": "icu-metabolic-amendment01",
+      "population": "icu",
+      "topic": "metabolic",
+      "query": "(\"Critical Illness\"[mh] OR \"Intensive Care Units\"[mh] OR \"Respiration, Artificial\"[mh] OR critically ill[tiab] OR critical illness[tiab] OR intensive care[tiab] OR critical care[tiab] OR ICU[tiab] OR mechanical ventilation[tiab] OR mechanically ventilated[tiab] OR prolonged mechanical ventilation[tiab] OR ventilated patients[tiab]) AND ((cataboli*[tiab] OR anaboli*[tiab] OR nitrogen balance[tiab] OR urea creatinine ratio[tiab] OR urea to creatinine ratio[tiab] OR urea-to-creatinine ratio[tiab] OR blood urea nitrogen creatinine ratio[tiab] OR BUN creatinine ratio[tiab] OR BUN to creatinine ratio[tiab] OR UCR[tiab] OR protein catabolic rate[tiab] OR protein turnover[tiab] OR protein breakdown[tiab] OR muscle protein synthesis[tiab] OR protein synthesis rate[tiab] OR fractional synthesis rate[tiab] OR fractional synthetic rate[tiab] OR FSR[tiab] OR urea nitrogen appearance[tiab] OR urinary urea nitrogen[tiab] OR urine urea nitrogen[tiab] OR UUN[tiab] OR tracer*[tiab] OR stable isotope*[tiab]) AND (nutrition*[tiab] OR protein[tiab] OR muscle[tiab] OR nitrogen[tiab] OR urea[tiab] OR creatinine[tiab])) AND (2026/01/01:2026/10/25[dp]) AND (1800/01/01:2026/10/25[crdt])"
+    },
+    {
+      "id": "icu-aminoAcids-amendment01",
+      "population": "icu",
+      "topic": "aminoAcids",
+      "query": "(\"Critical Illness\"[mh] OR \"Intensive Care Units\"[mh] OR \"Respiration, Artificial\"[mh] OR critically ill[tiab] OR critical illness[tiab] OR intensive care[tiab] OR critical care[tiab] OR ICU[tiab] OR mechanical ventilation[tiab] OR mechanically ventilated[tiab] OR prolonged mechanical ventilation[tiab] OR ventilated patients[tiab]) AND (\"Amino Acids\"[mh] OR glutamin*[tiab] OR leucine[tiab] OR branched chain amino acid*[tiab] OR branched-chain amino acid*[tiab] OR BCAA[tiab] OR hydroxymethylbutyrate[tiab] OR hydroxy methylbutyrate[tiab] OR hydroxy beta methylbutyrate[tiab] OR beta hydroxy beta methylbutyrate[tiab] OR HMB[tiab] OR amino acid*[tiab] OR essential amino acid*[tiab] OR EAA[tiab] OR whey[tiab]) AND (2026/01/01:2026/10/25[dp]) AND (1800/01/01:2026/10/25[crdt])"
+    },
+    {
+      "id": "ward-energyProtein-amendment01",
+      "population": "ward",
+      "topic": "energyProtein",
+      "query": "(\"Inpatients\"[mh] OR hospitali*[tiab] OR inpatient*[tiab] OR medical ward*[tiab] OR rehabilitation[tiab] OR noncritically ill[tiab] OR non-critically ill[tiab] OR medical inpatient*[tiab]) AND (\"Nutritional Support\"[mh] OR \"Enteral Nutrition\"[mh] OR \"Parenteral Nutrition\"[mh] OR ((protein[tiab]) AND (intake[tiab] OR dose*[tiab] OR provision[tiab] OR delivery[tiab] OR requirement*[tiab] OR supplement*[tiab])) OR ((energy[tiab] OR calori*[tiab]) AND (intake[tiab] OR target*[tiab] OR provision[tiab] OR delivery[tiab] OR restrict*[tiab])) OR high protein[tiab] OR higher protein[tiab] OR nutritional support[tiab] OR nutrition therapy[tiab] OR oral nutritional supplement*[tiab] OR indirect calorimetry[tiab] OR enteral nutrition[tiab] OR parenteral nutrition[tiab] OR enteral feeding[tiab] OR parenteral feeding[tiab] OR tube feeding[tiab]) AND (2026/01/01:2026/10/25[dp]) AND (1800/01/01:2026/10/25[crdt])"
+    },
+    {
+      "id": "ward-metabolic-amendment01",
+      "population": "ward",
+      "topic": "metabolic",
+      "query": "(\"Inpatients\"[mh] OR hospitali*[tiab] OR inpatient*[tiab] OR medical ward*[tiab] OR rehabilitation[tiab] OR noncritically ill[tiab] OR non-critically ill[tiab] OR medical inpatient*[tiab]) AND ((cataboli*[tiab] OR anaboli*[tiab] OR nitrogen balance[tiab] OR urea creatinine ratio[tiab] OR urea to creatinine ratio[tiab] OR urea-to-creatinine ratio[tiab] OR blood urea nitrogen creatinine ratio[tiab] OR BUN creatinine ratio[tiab] OR BUN to creatinine ratio[tiab] OR UCR[tiab] OR protein catabolic rate[tiab] OR protein turnover[tiab] OR protein breakdown[tiab] OR muscle protein synthesis[tiab] OR protein synthesis rate[tiab] OR fractional synthesis rate[tiab] OR fractional synthetic rate[tiab] OR FSR[tiab] OR urea nitrogen appearance[tiab] OR urinary urea nitrogen[tiab] OR urine urea nitrogen[tiab] OR UUN[tiab] OR tracer*[tiab] OR stable isotope*[tiab]) AND (nutrition*[tiab] OR protein[tiab] OR muscle[tiab] OR nitrogen[tiab] OR urea[tiab] OR creatinine[tiab])) AND (2026/01/01:2026/10/25[dp]) AND (1800/01/01:2026/10/25[crdt])"
+    },
+    {
+      "id": "ward-aminoAcids-amendment01",
+      "population": "ward",
+      "topic": "aminoAcids",
+      "query": "(\"Inpatients\"[mh] OR hospitali*[tiab] OR inpatient*[tiab] OR medical ward*[tiab] OR rehabilitation[tiab] OR noncritically ill[tiab] OR non-critically ill[tiab] OR medical inpatient*[tiab]) AND (\"Amino Acids\"[mh] OR glutamin*[tiab] OR leucine[tiab] OR branched chain amino acid*[tiab] OR branched-chain amino acid*[tiab] OR BCAA[tiab] OR hydroxymethylbutyrate[tiab] OR hydroxy methylbutyrate[tiab] OR hydroxy beta methylbutyrate[tiab] OR beta hydroxy beta methylbutyrate[tiab] OR HMB[tiab] OR amino acid*[tiab] OR essential amino acid*[tiab] OR EAA[tiab] OR whey[tiab]) AND (2026/01/01:2026/10/25[dp]) AND (1800/01/01:2026/10/25[crdt])"
+    }
+  ],
+  "amendment": {
+    "id": "amendment01",
+    "reason": "Post-pilot lexical gap review: ventilation/provision/caloric/EN-PN, UCR/BUN-Cr/UUN/PCR/tracer/FSR, generic AA/EAA/whey variants",
+    "independentHumanSearchReview": false,
+    "retainsOriginalQueries": true
+  }
+}

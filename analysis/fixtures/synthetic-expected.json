@@ -1,0 +1,279 @@
+{
+  "schema": "nutriklinik-synthetic-agreement-expected-v1",
+  "dataClass": "synthetic",
+  "syntheticOnly": true,
+  "clinicalValidation": false,
+  "clinicalPass": null,
+  "expectedFrom": "Independent hand algebra and logical-ledger counts; not implementation output",
+  "rawRows": 22,
+  "logicalWindows": 20,
+  "globalPatientCounts": {
+    "total": 9,
+    "screened": 8,
+    "eligible": 7,
+    "enrolled": 6
+  },
+  "settings": {
+    "icu": {
+      "counts": {
+        "patients": 4,
+        "admissions": 6,
+        "planned": 16,
+        "attempted": 15,
+        "complete": 14,
+        "candidateObserved": 12,
+        "referenceAvailable": 13,
+        "pairs": 6,
+        "logicalWindows": 16,
+        "revisionGroups": 17,
+        "duplicateRows": 1,
+        "unresolvedRevisions": 0,
+        "unknownAttempted": 0,
+        "unknownComplete": 0
+      },
+      "contributingPatients": 3,
+      "exclusions": [
+        {
+          "key": "P4|A1|W-MISSING-C",
+          "reasons": [
+            "candidate_unavailable"
+          ]
+        },
+        {
+          "key": "P4|A1|W-SUPPRESSED",
+          "reasons": [
+            "candidate_expected_suppression"
+          ]
+        },
+        {
+          "key": "P4|A1|W-FAILED",
+          "reasons": [
+            "candidate_execution_failure"
+          ]
+        },
+        {
+          "key": "P4|A1|W-INCOMPLETE",
+          "reasons": [
+            "incomplete_collection"
+          ]
+        },
+        {
+          "key": "P4|A1|W-SHIFTED",
+          "reasons": [
+            "candidate_interval_mismatch"
+          ]
+        },
+        {
+          "key": "P4|A1|W-OVERLAP-A",
+          "reasons": [
+            "overlap"
+          ]
+        },
+        {
+          "key": "P4|A2|W-OVERLAP-B",
+          "reasons": [
+            "overlap"
+          ]
+        },
+        {
+          "key": "P4|A1|W-MISSING-R",
+          "reasons": [
+            "reference_unavailable"
+          ]
+        },
+        {
+          "key": "P4|A1|W-UNRELIABLE-R",
+          "reasons": [
+            "reference_unreliable"
+          ]
+        },
+        {
+          "key": "P4|A1|W-DEATH",
+          "reasons": [
+            "not_attempted",
+            "incomplete_collection",
+            "candidate_unavailable",
+            "reference_unavailable"
+          ]
+        }
+      ],
+      "reasonCounts": {
+        "candidate_unavailable": 2,
+        "candidate_expected_suppression": 1,
+        "candidate_execution_failure": 1,
+        "incomplete_collection": 2,
+        "candidate_interval_mismatch": 1,
+        "overlap": 2,
+        "not_attempted": 1,
+        "reference_unavailable": 2,
+        "reference_unreliable": 1
+      },
+      "pairs": [
+        {
+          "patientId": "P1",
+          "admissionId": "A1",
+          "windowId": "W01",
+          "revisionId": "R1",
+          "difference": 0,
+          "mean": 0
+        },
+        {
+          "patientId": "P1",
+          "admissionId": "A1",
+          "windowId": "W02",
+          "revisionId": "R1",
+          "difference": 2,
+          "mean": -3
+        },
+        {
+          "patientId": "P1",
+          "admissionId": "A2",
+          "windowId": "W03",
+          "revisionId": "R1",
+          "difference": 4,
+          "mean": 1
+        },
+        {
+          "patientId": "P2",
+          "admissionId": "A1",
+          "windowId": "W01",
+          "revisionId": "R1",
+          "difference": 4,
+          "mean": 4
+        },
+        {
+          "patientId": "P2",
+          "admissionId": "A1",
+          "windowId": "W02",
+          "revisionId": "R1",
+          "difference": 6,
+          "mean": 1
+        },
+        {
+          "patientId": "P3",
+          "admissionId": "A1",
+          "windowId": "W01",
+          "revisionId": "R1",
+          "difference": 8,
+          "mean": -1
+        }
+      ],
+      "bias": {
+        "eligibleWindow": 4,
+        "patientWeighted": 5
+      },
+      "anova": {
+        "N": 6,
+        "n": 3,
+        "withinSS": 10,
+        "betweenSS": 30,
+        "MSW": 3.3333333333333335,
+        "MSB": 15,
+        "divisor": 1.8333333333333333,
+        "varianceBetween": 6.363636363636363,
+        "varianceTotal": 9.696969696969697,
+        "loa": {
+          "lower": -2.1034317222263397,
+          "upper": 10.10343172222634
+        }
+      },
+      "exactRationals": {
+        "MSW": "10/3",
+        "MSB": "15",
+        "divisor": "11/6",
+        "varianceBetween": "70/11",
+        "varianceTotal": "320/33"
+      }
+    },
+    "ward": {
+      "counts": {
+        "patients": 2,
+        "admissions": 2,
+        "planned": 4,
+        "attempted": 4,
+        "complete": 4,
+        "candidateObserved": 4,
+        "referenceAvailable": 4,
+        "pairs": 4,
+        "logicalWindows": 4,
+        "revisionGroups": 4,
+        "duplicateRows": 0,
+        "unresolvedRevisions": 0,
+        "unknownAttempted": 0,
+        "unknownComplete": 0
+      },
+      "contributingPatients": 2,
+      "exclusions": [],
+      "reasonCounts": {},
+      "pairs": [
+        {
+          "patientId": "Q1",
+          "admissionId": "A1",
+          "windowId": "W01",
+          "revisionId": "R1",
+          "difference": 1,
+          "mean": -2.5
+        },
+        {
+          "patientId": "Q1",
+          "admissionId": "A1",
+          "windowId": "W02",
+          "revisionId": "R1",
+          "difference": 1,
+          "mean": 0.5
+        },
+        {
+          "patientId": "Q2",
+          "admissionId": "A1",
+          "windowId": "W01",
+          "revisionId": "R1",
+          "difference": 3,
+          "mean": 0.5
+        },
+        {
+          "patientId": "Q2",
+          "admissionId": "A1",
+          "windowId": "W02",
+          "revisionId": "R1",
+          "difference": 3,
+          "mean": 3.5
+        }
+      ],
+      "bias": {
+        "eligibleWindow": 2,
+        "patientWeighted": 2
+      },
+      "anova": {
+        "N": 4,
+        "n": 2,
+        "withinSS": 0,
+        "betweenSS": 4,
+        "MSW": 0,
+        "MSB": 4,
+        "divisor": 2,
+        "varianceBetween": 2,
+        "varianceTotal": 2,
+        "loa": {
+          "lower": -0.7718585822512662,
+          "upper": 4.771858582251266
+        }
+      }
+    }
+  },
+  "bootstrap": {
+    "seed": 20261025,
+    "replicates": 1000,
+    "exactCiOracle": false,
+    "note": "No CI limits or valid/failed replicate totals derived from implementation output are stored here."
+  },
+  "assertions": {
+    "trueObservedZeroKey": "P1|A1|W01",
+    "unselectedRevisionKey": "P1|A1|W01|R0",
+    "identicalReimportKey": "P1|A1|W01|R1",
+    "referenceConstruct": "whole-body-nitrogen-balance",
+    "referenceUnit": "g N/24h",
+    "referenceIndependence": "explicit synthetic assertion only; not clinical verification",
+    "clinicalAcceptanceMargin": null,
+    "clinicalSampleSize": null
+  }
+}

@@ -1,0 +1,19 @@
+/* Readable, dismissible help beside the original navigation control. */
+.navigation-help-row { display: grid; grid-template-columns: minmax(0,1fr) 30px; gap: 3px; min-width: 0; align-items: stretch; }
+.navigation-help-row .nav { width: 100%; }
+.navigation-help-toggle { align-self: center; width: 30px; min-height: 42px; padding: 0; color: #cce5e0; background: #ffffff0b; border: 1px solid #ffffff22; border-radius: 9px; font: inherit; font-weight: 700; cursor: help; }
+.navigation-help-toggle:hover, .navigation-help-toggle[aria-expanded="true"] { color: #173e39; background: #dcf4e8; border-color: #c7e9d9; }
+.navigation-help-toggle:focus-visible { outline: 3px solid #9bc5ff; outline-offset: 2px; }
+.navigation-help-tooltip { position: fixed; z-index: 100; box-sizing: border-box; width: 345px; max-width: calc(100vw - 20px); max-height: calc(100vh - 20px); overflow-y: auto; padding: 17px 19px; background: #fffefa; color: #173c40; border: 1px solid #aacdc4; border-left: 4px solid #168277; border-radius: 12px; box-shadow: 0 8px 30px #17384130; font-size: 13px; line-height: 1.65; pointer-events: auto; }
+.navigation-help-tooltip[hidden] { display: none !important; }
+.navigation-help-tooltip > strong { display: block; font-size: 15px; font-weight: 700; line-height: 1.4; margin-bottom: 9px; color: #154c43; }
+.navigation-help-tooltip p { color: #304e53; font-size: 13px; line-height: 1.65; margin: 0 0 9px; }
+.navigation-help-tooltip p:last-child { margin-bottom: 0; }
+@media (max-width:650px) {
+ .navigation-help-row { grid-column: 1 / -1; grid-template-columns: minmax(0,1fr) 44px; gap: 5px; }
+ .navigation-help-toggle { width: 44px; min-height: 44px; cursor: pointer; }
+ .navigation-help-row .nav { font-size: 12px; }
+ .navigation-help-tooltip { width: calc(100vw - 20px); }
+}
+@media (forced-colors:active) { .navigation-help-toggle, .navigation-help-tooltip { border: 1px solid CanvasText; } }
+@media print { .navigation-help-toggle, .navigation-help-tooltip { display: none !important; } }

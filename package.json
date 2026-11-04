@@ -1,0 +1,11 @@
+{
+  "name": "nutriclinic",
+  "version": "0.3.23",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "verify:vendor": "node verify-vendor.mjs",
+    "start": "node server.mjs"
+  }
+}

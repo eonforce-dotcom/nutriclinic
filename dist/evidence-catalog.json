@@ -1,0 +1,2392 @@
+{
+  "schemaVersion": "0.1.1",
+  "literatureCutoff": "2026-10-26",
+  "lineageScope": "Focused 18-record audit; not a unique-trial or participant total",
+  "records": [
+    {
+      "id": "aha-stroke-2026",
+      "title": "2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke",
+      "year": 2026,
+      "kind": "AHA/ASA kılavuzu",
+      "url": "https://www.ahajournals.org/doi/10.1161/STR.0000000000000513",
+      "doi": "10.1161/STR.0000000000000513",
+      "access": "Dizin üzerinden kısmi metin",
+      "summary": "Beslenme taraması tercihen ilk 48 saatte; gereken hastada enteral beslenme ilk 7 günde önerilir. Disfajide başlangıçta nazogastrik yol, güvenli yutamama 2–3 haftadan uzun bekleniyorsa gastrostomi değerlendirilebilir.",
+      "application": "İnmede yutma değerlendirmesi, alım yeterliliği ve öngörülen disfaji süresi kaydedilir; beslenme yolu hekimce belirlenir.",
+      "limitations": "Yayıncı tam metni erişim hatası verdi; resmi dizindeki 5.2–5.3 bölümleri incelendi. İnme dışındaki nörolojik hastalıklara doğrudan genellenmez."
+    },
+    {
+      "id": "espen-icu-2023",
+      "title": "ESPEN practical and partially revised guideline: Clinical nutrition in the intensive care unit",
+      "year": 2023,
+      "kind": "ESPEN kılavuzu",
+      "url": "https://www.espen.org/files/ESPEN-Guidelines/ESPEN_practical_and_partially_revised_guideline_Clinical_nutrition_in_the_intensive_care_unit.pdf",
+      "doi": "10.1016/j.clnu.2023.07.011",
+      "access": "Tam metin",
+      "summary": "Enerji değerlendirmesinde indirekt kalorimetri tercih edilir. Erken akut fazda hipokalorik yaklaşım ve proteinin progresif verilmesi önerilir; 1.3 g/kg/gün protein bir referans seçeneğidir.",
+      "application": "Ölçülen ve tahmini enerji ayrı gösterilir. Hastalık fazı, ölçüm yöntemi ve hekim hedefi olmadan otomatik doz oluşturulmaz.",
+      "limitations": "2024–2025 protein RCT sonuçlarından önce yayımlanmıştır. Öneriler bireysel hasta reçetesi veya bütün hastalarda kanıtlanmış optimum doz anlamına gelmez."
+    },
+    {
+      "id": "espen-neurology-2018",
+      "title": "ESPEN guideline clinical nutrition in neurology",
+      "year": 2018,
+      "kind": "ESPEN kılavuzu",
+      "url": "https://www.espen.org/files/ESPEN-Guidelines/ESPEN-guideline_clinical_nutrition_in_neurology.pdf",
+      "doi": "10.1016/j.clnu.2017.09.003",
+      "access": "Tam metin",
+      "summary": "Nörolojik hastalıklarda disfaji ve malnütrisyon değerlendirmesi önemlidir. Akut inmede gerektiğinde nazogastrik beslenme; Parkinson hastalığında levodopa–protein etkileşimine göre bireysel zamanlama ele alınır.",
+      "application": "Yutma durumu, tanı ve beslenme ile etkileşen ilaçlar program girdisidir. Protein dağılımı toplam gereksinim gözetilerek klinisyen tarafından düzenlenir.",
+      "limitations": "Eski tarihli olmakla birlikte Ağustos 2026 ESPEN dizininde nöroloji başlığı altında listelenmektedir. Hastalıklar arasında kanıt miktarı ve öneri gücü farklıdır."
+    },
+    {
+      "id": "eso-dysphagia-2021",
+      "title": "European Stroke Organisation and European Society for Swallowing Disorders guideline for the diagnosis and treatment of post-stroke dysphagia",
+      "year": 2021,
+      "kind": "ESO/ESSD kılavuzu",
+      "url": "https://eso-stroke.org/wp-content/uploads/Manuscript_PSD_ESO_guideline_03092021.pdf",
+      "doi": "10.1177/23969873211039721",
+      "access": "Tam metin",
+      "summary": "Oral takviye tüm inme hastalarına rutin verilmez; oral alabilen malnütrisyonlu veya riskli hastada düşünülebilir. Disfajide kıvam değişikliği uygun yutma değerlendirmesine dayanmalıdır.",
+      "application": "Kıvamlı diyet veya koyulaştırılmış sıvı kullanılırken besin alımı ve sıvı dengesi izlenir. Yetersiz oral alımda enteral yol değerlendirilir.",
+      "limitations": "Birçok önerinin kanıt kalitesi düşüktür. Kıvamlı sıvı aspirasyon pnömonisini kesin önler şeklinde sunulmamalı; kıvam yazılımdan tek başına seçilmemelidir."
+    },
+    {
+      "id": "effort-protein-2023",
+      "title": "The effect of higher protein dosing in critically ill patients with high nutritional risk (EFFORT Protein)",
+      "year": 2023,
+      "kind": "Çok merkezli randomize çalışma",
+      "url": "https://www.sciencedirect.com/science/article/pii/S0140673622024692",
+      "doi": "10.1016/S0140-6736(22)02469-2",
+      "access": "Tam metin · VETİS",
+      "summary": "Analiz edilen 1301 ventilatör hastasında yüksek protein reçetesi hastaneden canlı taburculuğu hızlandırmadı. Akut böbrek hasarı ve yüksek organ yetmezliği skorlu alt gruplarda zarar sinyali görüldü.",
+      "application": "Katabolizma göstergesi yükseldi diye rutin yüksek protein hedefi üretilmez; böbrek fonksiyonu ve organ yetmezliği hekim değerlendirmesine sunulur.",
+      "limitations": "Reçete hedefi gerçekleşen dozla aynı değildir. AKI alt grup sinyali kesin bireysel zarar tahmini değildir. Özgün tam metnin hasta seçimi, yöntem, sonuç ve tartışması SBÜ VETİS üzerinden incelendi.",
+      "studyLineage": {
+        "evidenceId": "effort-protein-2023",
+        "auditDate": "2026-10-24",
+        "independentParticipantTotal": null,
+        "familyId": "effort-protein-nct03160547",
+        "linkStatus": "verified",
+        "analysisRole": {
+          "en": "Parent randomized treatment report",
+          "tr": "Ana randomize tedavi yayını"
+        },
+        "reportsParentRandomization": true,
+        "randomizedExposureForQuestion": true,
+        "participantOverlap": {
+          "en": "Parent report of this trial. Publication year is not the date of a new randomization.",
+          "tr": "Bu deneyin ana yayınıdır. Yayın yılı yeni bir randomizasyon tarihi değildir."
+        },
+        "sourceUrls": [
+          "https://pubmed.ncbi.nlm.nih.gov/36708732/",
+          "https://clinicaltrials.gov/api/v2/studies/NCT03160547"
+        ],
+        "basis": {
+          "en": "Original trial abstract and official registry identify NCT03160547.",
+          "tr": "Özgün deney özeti ve resmî kayıt NCT03160547’yi belirtir."
+        },
+        "family": {
+          "title": {
+            "en": "EFFORT Protein · ICU",
+            "tr": "EFFORT Protein · YBÜ"
+          },
+          "registry": {
+            "id": "NCT03160547",
+            "url": "https://clinicaltrials.gov/study/NCT03160547"
+          },
+          "parent": {
+            "doi": "10.1016/S0140-6736(22)02469-2",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/36708732/"
+          },
+          "dates": {
+            "actualStart": "2017-11-21",
+            "firstSubmitted": "2017-05-17",
+            "firstPosted": "2017-05-19"
+          },
+          "note": {
+            "en": "Different population/intervention from ward EFFORT. Registry start and published recruitment dates differ; no explanation is inferred.",
+            "tr": "Servis EFFORT’tan farklı popülasyon/müdahaledir. Kayıt başlangıcı ile yayımlanan katılım tarihleri farklıdır; neden uydurulmaz."
+          }
+        }
+      }
+    },
+    {
+      "id": "precise-2024",
+      "title": "Effect of high versus standard protein provision on functional recovery in people with critical illness (PRECISe)",
+      "year": 2024,
+      "kind": "Çift kör çok merkezli randomize çalışma",
+      "url": "https://orbi.uliege.be/handle/2268/328391",
+      "doi": "10.1016/S0140-6736(24)01304-7",
+      "access": "Tam metin",
+      "summary": "935 hastada 2.0 ve 1.3 g/kg/gün hedefleri karşılaştırıldı. Yüksek protein kolunda yaşam kalitesi daha düşük ve gastrointestinal intolerans daha fazlaydı; fonksiyonel yarar gösterilmedi.",
+      "application": "Yüksek protein otomatik varsayılan yapılmaz. Tolerans, gerçekleşen alım ve fonksiyonel izlem birlikte değerlendirilir.",
+      "limitations": "Nörolojik kabul tanıları yaklaşık yüzde 16 idi; nörolojiye özgü etkiyi kanıtlamaz. Düşük BMI gibi dışlama ölçütleri genellenebilirliği sınırlar.",
+      "studyLineage": {
+        "evidenceId": "precise-2024",
+        "auditDate": "2026-10-24",
+        "independentParticipantTotal": null,
+        "familyId": "precise-nct04633421",
+        "linkStatus": "verified",
+        "analysisRole": {
+          "en": "Parent randomized treatment report",
+          "tr": "Ana randomize tedavi yayını"
+        },
+        "reportsParentRandomization": true,
+        "randomizedExposureForQuestion": true,
+        "participantOverlap": {
+          "en": "One parent trial; its protocol and SAP are related documents, not additional trials or participants.",
+          "tr": "Tek ana deney; protokolü ve SAP ilişkili belgelerdir, ek deney veya katılımcı değildir."
+        },
+        "sourceUrls": [
+          "https://clinicaltrials.gov/api/v2/studies/NCT04633421",
+          "https://link.springer.com/article/10.1186/s13063-023-07380-3",
+          "https://cdn.clinicaltrials.gov/large-docs/21/NCT04633421/SAP_000.pdf"
+        ],
+        "basis": {
+          "en": "Original results article, original protocol/SAP and official registry verify NCT04633421. Historical registry versions and independent lock/unblinding chronology are not fully audited.",
+          "tr": "Özgün sonuç yayını, protokol/SAP ve resmî kayıt NCT04633421’i doğrular. Tarihsel kayıt sürümleri ve bağımsız veri kilitleme/körlük açılması kronolojisi tam denetlenmedi."
+        },
+        "family": {
+          "title": {
+            "en": "PRECISe · individual randomization",
+            "tr": "PRECISe · bireysel randomizasyon"
+          },
+          "registry": {
+            "id": "NCT04633421",
+            "url": "https://clinicaltrials.gov/study/NCT04633421"
+          },
+          "parent": {
+            "doi": "10.1016/S0140-6736(24)01304-7",
+            "url": "https://doi.org/10.1016/S0140-6736(24)01304-7"
+          },
+          "dates": {
+            "firstSubmitted": "2020-10-23",
+            "firstPosted": "2020-11-18",
+            "actualStart": "2020-11-19"
+          },
+          "randomizationUnit": "individual-participant",
+          "protocol": {
+            "url": "https://link.springer.com/article/10.1186/s13063-023-07380-3",
+            "publishedDate": "2023-06-19",
+            "access": "original-full-text"
+          },
+          "sap": {
+            "url": "https://cdn.clinicaltrials.gov/large-docs/21/NCT04633421/SAP_000.pdf",
+            "version": "1.0",
+            "coverMonth": "2023-11",
+            "registryDocumentDate": "2023-11-30",
+            "uploadedDate": "2024-01-14",
+            "signatureDates": [
+              "2024-01-12",
+              "2024-01-14"
+            ],
+            "access": "original-pdf-relevant-sections"
+          },
+          "note": {
+            "en": "Two treatment groups; individual, centre-stratified randomization. The published protocol followed recruitment start. Registry, protocol and SAP dates do not independently establish when every analysis was prespecified.",
+            "tr": "İki tedavi grubu; merkezle tabakalanmış bireysel randomizasyon. Yayımlanan protokol katılım başlangıcından sonradır. Kayıt, protokol ve SAP tarihleri her analizin ne zaman önceden belirlendiğini bağımsız olarak kanıtlamaz."
+          },
+          "methodsNote": {
+            "en": "Follow-up anchor differs: ICU admission in the protocol/SAP/current registry versus randomization in the results paper. This remains unresolved; it is not labelled a proven outcome switch.",
+            "tr": "İzlem başlangıcı farklıdır: protokol/SAP/güncel kayıtta YBÜ yatışı, sonuç yayınında randomizasyon. Fark çözümlenmedi; kanıtlanmış sonlanım değişikliği olarak etiketlenmez."
+          },
+          "prespecificationStatus": "documents-identified-historical-comparison-incomplete"
+        }
+      }
+    },
+    {
+      "id": "target-protein-2025",
+      "title": "Augmented Enteral Protein During Critical Illness: The TARGET Protein Randomized Clinical Trial",
+      "year": 2025,
+      "kind": "Küme randomize çapraz geçişli çalışma",
+      "url": "https://jamanetwork.com/journals/jama/fullarticle/2835302",
+      "doi": "10.1001/jama.2025.9110",
+      "access": "Tam metin",
+      "summary": "3397 hastada protein içeriği artırılmış enteral formül, 90. günde canlı ve indeks hastane dışında geçirilen günleri artırmadı.",
+      "application": "Daha proteinli ürünün kendiliğinden daha iyi olduğu varsayılmaz. Ürün konsantrasyonu, verilen hacim ve gerçekleşen toplam protein ayrı hesaplanır.",
+      "limitations": "Küme tasarımı ve gerçekleşen dozlar yorumda önemlidir. Sonuç, bütün protein dozları veya servis rehabilitasyonu için evrensel etki tahmini değildir.",
+      "studyLineage": {
+        "evidenceId": "target-protein-2025",
+        "auditDate": "2026-10-25",
+        "independentParticipantTotal": null,
+        "familyId": "target-protein-actrn12621001484831",
+        "linkStatus": "verified",
+        "analysisRole": {
+          "en": "Parent cluster-randomized treatment report",
+          "tr": "Ana küme randomize tedavi yayını"
+        },
+        "reportsParentRandomization": true,
+        "randomizedExposureForQuestion": true,
+        "relatedStudies": [
+          {
+            "familyId": "epic-nct05124860",
+            "relation": "explicit-partial-participant-overlap",
+            "overlapCount": null
+          }
+        ],
+        "participantOverlap": {
+          "en": "One parent trial; analysis-plan publications do not add independent patients. The EPIC calorimetry paper explicitly reports an overlapping Australian subset, with unknown overlap count. Its 433 patients and regional 138 are not independent additions to TARGET.",
+          "tr": "Tek ana deney; analiz planı yayınları bağımsız hasta eklemez. EPIC kalorimetri yayını, kişi sayısı bilinmeyen örtüşen bir Avustralya alt grubunu açıkça bildirir. Oradaki 433 hasta ve bölgesel 138 kişi TARGET’a bağımsız eklenmez."
+        },
+        "sourceUrls": [
+          "https://jamanetwork.com/journals/jama/fullarticle/2835302",
+          "https://www.anzctr.org.au/Trial/Registration/TrialReview.aspx?ACTRN=12621001484831",
+          "https://link.springer.com/article/10.1186/s13063-025-08759-0",
+          "https://link.springer.com/article/10.1186/s13054-026-06102-w"
+        ],
+        "basis": {
+          "en": "The prior identity audit used original JAMA results, official ANZCTR and published SAP; corrupted supplement extraction was not a full review. The 25 October addition uses the original EPIC Discussion for partial overlap and does not claim a new review of all TARGET documents.",
+          "tr": "Önceki kimlik denetimi özgün JAMA sonucu, resmî ANZCTR ve yayımlanmış SAP’yi kullandı; bozuk ek metin çıkarımı tam inceleme değildi. 25 Ekim eklemesi, kısmi örtüşme için özgün EPIC tartışmasını kullanır; tüm TARGET belgelerinin yeniden incelendiğini iddia etmez."
+        },
+        "family": {
+          "title": {
+            "en": "TARGET Protein · ICU cluster sequence",
+            "tr": "TARGET Protein · YBÜ küme sırası"
+          },
+          "registry": {
+            "id": "ACTRN12621001484831",
+            "url": "https://www.anzctr.org.au/Trial/Registration/TrialReview.aspx?ACTRN=12621001484831"
+          },
+          "parent": {
+            "doi": "10.1001/jama.2025.9110",
+            "url": "https://jamanetwork.com/journals/jama/fullarticle/2835302"
+          },
+          "dates": {
+            "submitted": "2021-09-23",
+            "registered": "2021-11-01",
+            "recruitmentStart": "2022-05-23",
+            "recruitmentEnd": "2023-08-23"
+          },
+          "randomizationUnit": "icu-cluster-treatment-sequence",
+          "protocol": {
+            "url": "https://doi.org/10.1016/j.ccrj.2023.08.001",
+            "year": 2023,
+            "access": "indexed-original-methods"
+          },
+          "sap": {
+            "url": "https://link.springer.com/article/10.1186/s13063-025-08759-0",
+            "receivedDate": "2024-08-01",
+            "publishedDate": "2025-02-06",
+            "supersedesEarlierPlan": true,
+            "access": "original-full-text"
+          },
+          "note": {
+            "en": "Eight ICU clusters, four treatment periods. Patients keep their original formula across period changes; this is not a within-patient crossover. Distinct from the earlier TARGET energy trial.",
+            "tr": "Sekiz YBÜ kümesi, dört tedavi dönemi. Hasta dönem değişiminde ilk formülünü sürdürür; hasta içi çapraz geçiş değildir. Önceki TARGET enerji deneyinden ayrıdır."
+          },
+          "methodsNote": {
+            "en": "The published SAP explicitly supersedes the protocol/registry analysis plan. Registry GEE and the revised quantile mixed model are separate versions. Enrollment counts (3412 registry; 3411 enrolled/3397 analyzed in results) and final follow-up dates differ; no reconciliation is inferred.",
+            "tr": "Yayımlanan SAP önceki protokol/kayıt analiz planının yerini açıkça alır. Kayıttaki GEE ile revize kantil karma model ayrı sürümlerdir. Katılım sayısı (kayıt3412; sonuçlarda3411 katılım/3397 analiz) ve son izlem tarihi farklıdır; açıklama uydurulmaz."
+          },
+          "prespecificationStatus": "revised-sap-identified-historical-comparison-incomplete"
+        }
+      }
+    },
+    {
+      "id": "espen-kidney-2024",
+      "title": "ESPEN practical guideline on clinical nutrition in hospitalized patients with acute or chronic kidney disease",
+      "year": 2024,
+      "kind": "ESPEN kılavuzu",
+      "url": "https://www.espen.org/files/ESPEN-Guidelines/ESPEN_practical_guideline_on_clinical_nutrition_in_hospitalized_patients_with_acute_or_chronic_kidney_disease-text.pdf",
+      "doi": "10.1016/j.clnu.2024.08.002",
+      "access": "Tam metin",
+      "summary": "Bütün AKI veya CKD hastalarına rutin renal formül önerilmez. Ürün seçimi enerji/protein oranı, sıvı dengesi ve elektrolit bozukluklarına göre bireyselleştirilir.",
+      "application": "AKI, CKD ve böbrek replasman tedavisi ayrı kaydedilir. Sıvı, potasyum ve fosfor gereksinimi ürün seçimiyle birlikte incelenir.",
+      "limitations": "Böbrek hastalığı popülasyonu heterojendir ve birçok öneri uzman görüşü içerir. Yüksek üre tek başına katabolizma tanısı veya protein artış endikasyonu değildir."
+    },
+    {
+      "id": "glim-2025",
+      "title": "GLIM malnütrisyon tanısı: beş yıllık güncelleme",
+      "year": 2025,
+      "kind": "Uluslararası konsensus güncellemesi",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/40223699/",
+      "doi": "10.1002/jpen.2756",
+      "access": "Özet",
+      "summary": "Malnütrisyon için en az bir fenotipik ve bir etiyolojik ölçüt gerekir. Fenotipler istemsiz kilo kaybı, düşük BKİ ve düşük kas kitlesidir. Tanıyı dışlamak için tüm ölçütler değerlendirilmelidir.",
+      "application": "Kilo kaybı >%5/6 ay veya >%10/daha uzun süre; BKİ <70 yaşta <20, ≥70 yaşta <22 kg/m² destekleyici ölçütlerdir. Bölgesel referans ve klinisyen değerlendirmesi kaydedilir.",
+      "limitations": "Albümin tek başına tanı ölçütü değildir. Sıvı yükü antropometriyi bozar. Yoğun bakım ve obezite için uygulama sorunları sürmektedir; 2026 alım rehberi ayrıca değerlendirilmelidir.",
+      "accessNote": "PubMed özeti açıldı. PMC tam metni bot kontrolüne, yayıncı bağlantısı erişim engeline takıldı; tam metin okunduğu iddia edilmez."
+    },
+    {
+      "id": "glim-intake-2026",
+      "title": "GLIM: diyet alımı ve gastrointestinal/beslenmeyi etkileyen semptomlar",
+      "year": 2026,
+      "kind": "Modifiye Delphi uygulama rehberi",
+      "url": "https://aspenjournals.onlinelibrary.wiley.com/doi/abs/10.1002/jpen.70073",
+      "doi": "10.1002/jpen.70073",
+      "access": "Tam metin · VETİS",
+      "summary": "Azalmış alım için karşılaştırıcı hesaplanmış ihtiyaç yerine kişinin olağan alımıdır. Ağır gastrointestinal veya beslenmeyi etkileyen semptomlar klinik değerlendirmeye eklenir.",
+      "application": "Son haftada olağanın ≤%50 alımı, iki haftadan uzun herhangi azalma veya hastalık/tedaviyle ilişkili ağır disfaji, bulantı, kusma ya da ishal gibi semptomlar ayrı kaydedilir.",
+      "limitations": "Değiştirilmiş Delphi uzlaşısıdır; yeni ölçütün klinik uygulanabilirliği ve kriter geçerliği ayrıca araştırılmalıdır. Özgün yöntem, Tablo 3 ve öneriler SBÜ VETİS üzerinden incelendi."
+    },
+    {
+      "id": "glints-2026",
+      "title": "GLINTS: beslenme tedavisi ve desteğine başlama endikasyonları",
+      "year": 2026,
+      "kind": "Uluslararası modifiye Delphi konsensusu",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/42664568/",
+      "doi": "10.1016/j.clnu.2026.106768",
+      "access": "Tam metin · VETİS",
+      "summary": "Beslenme desteği için malnütrisyon, yüksek risk ve azalmış oral alımı ele alır. Özgün tam metnin 5. maddesi ayrıca beş günden uzun yiyememeyi endikasyon olarak belirtir.",
+      "application": "Güvenli oral yol tercih edilir; oral alım gereksinimin %50’sinden az ve düzelme beklenmiyorsa tüple beslenme değerlendirilir. SPN zamanlaması bireyselleştirilir.",
+      "limitations": "Delphi konsensusudur, etkililik RCT’si değildir. İlk birkaç günde hedefe ulaşılamaması rutin erken SPN önerisi sayılmaz. Maddeler 1–8 SBÜ VETİS tam metninden doğrulandı."
+    },
+    {
+      "id": "aspen-visceral-2021",
+      "title": "ASPEN: albümin ve prealbüminin beslenme belirteci olarak kullanımı",
+      "year": 2021,
+      "kind": "Resmî pozisyon belgesi; çevrimiçi ilk yayın 2020",
+      "url": "https://aspenjournals.onlinelibrary.wiley.com/doi/10.1002/ncp.10588",
+      "doi": "10.1002/ncp.10588",
+      "access": "Özgün yayıncı tam metni",
+      "summary": "Albümin ve prealbümin inflamasyondan etkilenir; toplam vücut proteini veya kas kitlesini güvenilir biçimde temsil etmez. Düşüklükleri malnütrisyonu tek başına kanıtlamaz.",
+      "application": "Albümin/prealbümin ve CRP klinik bağlamıyla gösterilir. Tek kan sonucu üzerinden katabolik/anabolik tanısı veya protein doz artışı yapılmaz.",
+      "limitations": "Beslenme tedavisinin yeterliliğini izlemek amacıyla tek başına kullanılmamalıdır. İnflamasyonun çözülmesi ile beslenme etkisi birbirinden ayrıştırılamayabilir.",
+      "accessNote": "24 Ekim 2026: yayıncı tam metninin yönetici özeti ve izlem bölümü incelendi. 2021 düzeltmesi yalnız podcast görüşmecisinin adını değiştirir. Önceki özet erişiminden ayrı incelemedir; VETİS kullanılmadı."
+    },
+    {
+      "id": "nice-cg32",
+      "title": "NICE CG32: erişkinde beslenme desteği ve refeeding riski",
+      "year": 2017,
+      "kind": "Ulusal kılavuz; ilk yayın 2006, güncelleme 2017",
+      "url": "https://www.nice.org.uk/guidance/cg32/chapter/Recommendations",
+      "doi": null,
+      "access": "Kısmi resmî metin",
+      "summary": "Refeeding yüksek riski: BKİ <16, 3–6 ayda >%15 istemsiz kayıp, >10 gün çok az/yok alım veya başlangıç düşük K/P/Mg’den biri; ya da daha hafif risk ölçütlerinden en az ikisi.",
+      "application": "Risk taraması başlangıç beslenmesinden önce yapılır. Kılavuz yüksek riskte en çok 10 kcal/kg/gün, aşırı durumda 5 kcal/kg/gün ve izlemle artırma tarif eder.",
+      "limitations": "Risk ile gelişmiş sendrom farklıdır. Eşikler tek başına reçete değildir. AuSPEN 2025 yaklaşımıyla farklılıklar bulunduğundan kurumun seçtiği protokol kaydedilmelidir.",
+      "accessNote": "NICE’ın indekslenen resmî önerileri görüldü; doğrudan HTML/PDF açılışı 403 verdi. Risk ölçütleri Japon kılavuzundaki NICE tablosuyla karşılaştırıldı."
+    },
+    {
+      "id": "aspen-refeeding-2020",
+      "title": "ASPEN: refeeding sendromu konsensus önerileri",
+      "year": 2020,
+      "kind": "Konsensus önerileri; düzeltme ayrıca yayımlanmıştır",
+      "url": "https://aspenjournals.onlinelibrary.wiley.com/doi/10.1002/ncp.10474",
+      "doi": "10.1002/ncp.10474",
+      "access": "Tam metin",
+      "summary": "Kalori başlanmasını izleyen beş günde P/K/Mg düşüşü %10–20 hafif, %20–30 orta, >%30 veya ilişkili organ bozukluğu/tiamin eksikliği ağır sendrom için önerilen tanımdır.",
+      "application": "Risklilerde başlangıç 10–20 kcal/kg/24 saat ve 1–2 günde hedefin yaklaşık %33’ü kadar ilerleme tarif edilir. Başlangıç elektrolitleri ve yüksek riskte ilk üç gün sık izlem gerekir.",
+      "limitations": "Uzlaşı önerileri tüm özel popülasyonlarda doğrulanmış değildir. Yüzde 20 sınırı örtüştüğünden yazılım sınıflaması kurumca onaylanmalıdır. Ciddi elektrolit düşüklüğünde başlama/artırma klinisyen tarafından değerlendirilir.",
+      "accessNote": "Yayıncı tam metni ve erişkin öneri tablosu açıldı. Düzeltme DOI’si: 10.1002/ncp.10491."
+    },
+    {
+      "id": "auspen-refeeding-2025",
+      "title": "AuSPEN: refeeding sendromu konsensus bildirisi",
+      "year": 2025,
+      "kind": "Ulusal erişkin konsensusu",
+      "url": "https://static1.squarespace.com/static/5a963e1a1137a60b45455f0c/t/68366c5a6b553145a61b8c85/1748397150638/AuSPEN%2BConsensus%2Bstatements%2Bon%2Brefeeding%2Bsyndrome.pdf",
+      "doi": "10.1111/1747-0080.70003",
+      "access": "Resmî tam metin",
+      "summary": "Genel riskli erişkinlerde yakın klinik/elektrolit izlemiyle ≥%50 gereksinimle başlangıç ve 24–72 saatte hedef önerilir. Elektrolit bozukluğu tek başına sendrom sayılmamalıdır.",
+      "application": "NICE/ASPEN’den farklı yaklaşım kanıt ekranında görünür tutulur. Yoğun bakımda mevcut kritik hasta başlangıç kılavuzları uygulanır; bakım ortamı ve seçilen protokol kaydedilir.",
+      "limitations": "Birçok öneri düşük düzey kanıt/uzman görüşüne dayanır. YBÜ’de hızlı ilerlemeye ilişkin kaliteli veri yetersizdir; farklı protokoller otomatik olarak birleştirilmemelidir.",
+      "accessNote": "Derneğin 28 sayfalık resmî PDF’i açıldı; başlangıç ve yoğun bakım bölümleri incelendi."
+    },
+    {
+      "id": "onodera-pni-1984",
+      "title": "Onodera: gastrointestinal cerrahide prognostik beslenme indeksi",
+      "year": 1984,
+      "kind": "Özgün geliştirme ve prospektif uygulama çalışması",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/6438478/",
+      "doi": null,
+      "access": "Özet",
+      "summary": "PNI = 10 × albümin (g/dL) + 0.005 × mutlak lenfosit (/µL). Özgün kullanım GI kanser cerrahisi komplikasyon riskidir.",
+      "application": "PNI yalnızca birimleri doğrulanmış yardımcı prognostik gösterge olarak hesaplanır. Kullanılan formül ve giriş tarihleri gösterilir.",
+      "limitations": "Tarihî 40/45 kesimleri evrensel YBÜ malnütrisyonu veya katabolizma eşiği değildir. Albümin ve lenfosit inflamasyon ile tedavilerden etkilenir; PNI’ye göre otomatik mama seçilmez.",
+      "accessNote": "26 Ekim 2026: özgün PubMed İngilizce özetindeki denklem ve birimler doğrudan karşılaştırıldı. Kanonik g/L ve 10⁹/L ifadesi cebirsel olarak eşdeğerdir. Japonca tam metin, modelleme ayrıntıları ve güncel YBÜ/servis geçerliği incelenmedi; DOI doğrulanmadı."
+    },
+    {
+      "id": "conut-2005",
+      "title": "CONUT: hastane popülasyonunda ilk validasyon",
+      "year": 2005,
+      "kind": "Özgün tarama aracı validasyonu",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/15762418/",
+      "doi": null,
+      "access": "Özet",
+      "summary": "Albümin, total kolesterol ve mutlak lenfositten laboratuvar temelli tarama üretir. İlk karşılaştırma 53 kişide SGA ve tam beslenme değerlendirmesiyle yapılmıştır.",
+      "application": "Varsa tarih ve birimleri eşleştirilmiş sonuçlarla yardımcı puan olarak gösterilir; GLIM, klinik muayene, alım ve antropometri ile birlikte değerlendirilir.",
+      "limitations": "İlk örneklem küçüktür. İnflamasyon, karaciğer hastalığı, ilaçlar ve sıvı durumu bileşenleri etkiler. Doğrudan katabolizma ölçümü veya ürün seçimi algoritması değildir.",
+      "accessNote": "PubMed özgün özeti açıldı; tam metin kopyası erişim engeli nedeniyle incelenemedi. DOI doğrulanamadı."
+    },
+    {
+      "id": "jccng-2024",
+      "title": "Japon Yoğun Bakım Beslenme Kılavuzu 2024",
+      "year": 2025,
+      "kind": "GRADE kılavuzu; 2024 başlığı, 2025 basımı, 2026 düzeltilmiş yayın",
+      "url": "https://jintensivecare.biomedcentral.com/counter/pdf/10.1186/s40560-025-00785-z.pdf",
+      "doi": "10.1186/s40560-025-00785-z",
+      "access": "Resmî tam metin",
+      "summary": "Azot dengesi protein alımı ile azot kayıplarının farkıdır. Yaklaşık yöntemlerden biri protein/6.25 − (UUN+4) g N/gündür; yöntemler arasında fark vardır.",
+      "application": "Aynı 24 saatte gerçekten verilen protein ve tam idrar toplama kullanılır. Seri/kümülatif sonuç, renal durum ve ölçülmeyen kayıplar ile birlikte yorumlanır.",
+      "limitations": "Tek günlük ölçüm dalgalanır. Eksik idrar, absorpsiyon, dren/dışkı/ter kayıpları ve üre havuzu değişimi hata üretir. Serum üresi UUN yerine kullanılamaz; pozitif sonuca ulaşmak otomatik doz hedefi değildir.",
+      "accessNote": "Yayıncının 66 sayfalık İngilizce PDF’i açıldı; azot dengesi, refeeding ve ölçüm sınırlılıkları bölümleri incelendi."
+    },
+    {
+      "id": "espen-polymorbid-2024",
+      "title": "ESPEN practical guideline: Nutritional support for polymorbid medical inpatients",
+      "year": 2024,
+      "kind": "ESPEN pratik kılavuzu",
+      "url": "https://www.espen.org/files/ESPEN-Guidelines/ESPEN-practical-guideline-Nutritional-support-for-polymorbid-medical-inpatients.pdf",
+      "doi": "10.1016/j.clnu.2024.01.008",
+      "access": "Resmî tam metin",
+      "summary": "Çoklu hastalığı bulunan servis hastalarında geçerli bir araçla beslenme taraması, risk saptanırsa ayrıntılı değerlendirme ve bireysel tedavi planı önerilir. Güvenle oral beslenebilen malnütrisyonlu veya yüksek riskli hastalarda enerji ve protein gereksinimine ulaşmaya yönelik oral destek önerilir. Enerji tahmin denklemlerinin doğruluğu sınırlıdır.",
+      "application": "Servis ve YBÜ kanıtı ayrı ele alınır. Güvenli yutma, mevcut alım, hastalık yükü ve izlemle birlikte klinisyenin belirlediği hedefe göre destek değerlendirilir.",
+      "limitations": "Polimorbid erişkin tıbbi servis hastalarına yöneliktir; bütün ayaktan, nörolojik veya kritik hastalara doğrudan genellenmez. Literatür taraması Temmuz 2022’ye kadar uzanır; 2024 yayın tarihi tüm kanıtın 2024’e kadar tarandığı anlamına gelmez."
+    },
+    {
+      "id": "aspen-icu-2022",
+      "title": "ASPEN: Guidelines for the Provision of Nutrition Support Therapy in the Adult Critically Ill Patient — resmî öneri özeti",
+      "year": 2022,
+      "kind": "ASPEN kılavuzu; resmî factsheet",
+      "url": "https://nutritioncare.org/wp-content/uploads/2024/12/Adult-Crit-Ill-Patient-Guidelines-Factsheet.pdf",
+      "doi": "10.1002/jpen.2267",
+      "access": "Resmî öneri özeti açıldı; ana kılavuz tam metni değildir",
+      "summary": "İlk 7–10 YBÜ gününde 12–25 kcal/kg/gün aralığı zayıf öneri olarak sunulur. Protein için o tarihteki veriler 2016 önerisi olan 1,2–2,0 g/kg/gün aralığını değiştirmeye yeterli bulunmamıştır. Ek parenteral beslenmenin ilk 7 günde rutin başlanması önerilmez; ağır malnütrisyon özel değerlendirme gerektirir.",
+      "application": "Propofol gibi lipidli sedasyondan gelen enerji toplam hesaba katılır. Klinik evre, tolerans ve hekim hedefi olmadan bu aralıklardan otomatik doz oluşturulmaz.",
+      "limitations": "Kılavuz çevrimiçi 2021, dergi basımı 2022 tarihlidir. EFFORT Protein, PRECISe ve TARGET Protein sonuçlarından öncedir; eski protein aralığı güncel yüksek doz yararı kanıtı olarak yorumlanmamalıdır."
+    },
+    {
+      "id": "nutrirea3-2023",
+      "title": "NUTRIREA-3: Low versus standard calorie and protein feeding in ventilated adults with shock",
+      "year": 2023,
+      "kind": "Çok merkezli açık randomize çalışma",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/36958363/",
+      "doi": "10.1016/S2213-2600(23)00092-9",
+      "access": "Özgün araştırmanın PubMed özeti",
+      "summary": "Şok nedeniyle vazopresör ve invaziv ventilasyon alan 3036 hastanın analizinde, ilk haftada düşük enerji/protein hedefleri standart hedeflerle karşılaştırıldı. 90 günlük mortalite farklı değildi (%41,3 ve %42,8). Düşük hedef grubunda YBÜ taburculuğuna hazır olma süresi kısaldı; gastrointestinal komplikasyonlar daha az görüldü.",
+      "application": "Akut şokta erken tam hedef beslemeyi otomatik varsaymamak ve klinik stabiliteyle ilerlemek için kanıt sağlar. Çalışmanın düşük dozları uygulamada varsayılan reçeteye dönüştürülmez.",
+      "limitations": "Enerji ve protein birlikte değiştirildi; bağımsız protein etkisi çıkarılamaz. Açık tasarım ve klinisyen değerlendirmesine bağlı taburculuğa hazır olma sonlanımı yorumda önemlidir. Bu kayıtta yalnız özgün özet incelenmiştir."
+    },
+    {
+      "id": "nutrirea3-renal-2026",
+      "title": "Low versus standard calorie and protein feeding and renal dysfunction in ventilated adults with shock: a NUTRIREA-3 post hoc analysis",
+      "year": 2026,
+      "kind": "Randomize çalışmanın post hoc renal analizi",
+      "url": "https://link.springer.com/article/10.1007/s00134-026-08369-7",
+      "doi": "10.1007/s00134-026-08369-7",
+      "access": "Yayıncıdaki özgün özet; tam metin abonelik gerektiriyor",
+      "summary": "NUTRIREA-3’ün 3036 hastasında ilk haftadaki düşük enerji/protein yaklaşımı, standart yaklaşıma göre daha kötü renal sonuç veya mortaliteyle ilişkili bulunmadı. Akut böbrek hastalığı oranları %44,6 ve %46,1 idi (HR 0,97; %95 GA 0,88–1,07). Böbrek replasman tedavisi gereksiniminde fark saptanmadı.",
+      "application": "Böbrek işlev bozukluğu bulunan kritik hastalarda daha yüksek erken besin dozunun otomatik yararlı sayılmaması gerektiğini destekler. AKI/KRT için bireysel değerlendirme sürdürülür.",
+      "limitations": "Yeni bağımsız randomizasyon değildir; post hoc analizdir. Enerji ve protein birlikte değişmiştir. Renal alt gruplarda fark bulunmaması eşdeğerliği kanıtlamaz. Tam metin bu erişimde incelenmedi."
+    },
+    {
+      "id": "lin-pmv-2026",
+      "title": "Effects of protein, muscle rehabilitation and trunk neuromuscular electrostimulation in patients with prolonged mechanical ventilation: a prospective, randomized controlled pilot study",
+      "year": 2026,
+      "kind": "Tek merkezli, açık, dört kollu randomize pilot",
+      "url": "https://www.tandfonline.com/doi/full/10.1080/07853890.2026.2728179",
+      "doi": "10.1080/07853890.2026.2728179",
+      "access": "Özgün açık erişimli ana metin",
+      "sampleSize": 100,
+      "sampleNote": "100 randomize (30/30/30/10); protokolü 91 kişi tamamladı; birincil ITT 100.",
+      "summary": "Tayvan’da tek solunum bakım merkezinde, ≥20 yaş ve >21 gün ventilasyonlu stabil hastalar incelendi. Eklemeli, faktöriyel olmayan protein/rehabilitasyon/NMES stratejisinde birleşik kolun ventilasyon süresi olağan bakımdan kısaydı (Dunn-düzeltilmiş P=0,0006); yalnız yüksek protein karşılaştırması anlamlı değildi (P=0,0962).",
+      "application": "İdeal ağırlığa göre 1,5 g/kg/gün yalnız çalışma hedefidir; gerçekleşen alım olarak varsayılmaz. Yaklaşık protein/6,25−(24 saatlik UUN+4) kullanımı yöntem bağlamıdır; net kas anabolizmasını veya hesaplayıcının klinik geçerliğini doğrulamaz.",
+      "limitations": "Küçük, dengesiz açık gruplar; etki GA yok. Ağır nöromüsküler hastalık/kontrolsüz epilepsi dışlaması genel nörolojik dışlama değildir. Böbrek yetmezliğinde proteini azaltmama renal öneri değildir. Tarihsel önbelirleme, protokol/analiz uyumu ve süre başlangıcı belirsiz; ventilasyon sonlanımının hiyerarşisi kaynaklar arasında farklıdır.",
+      "accessNote": "26 Ekim 2026: yöntem/sonuçlar, sınırlılıklar, Tablo 1/2 dipnotları ve Şekil 1 incelendi. Ekler ve kayıt geçmişi okunmadı; protokol ayrı incelendi.",
+      "studyLineage": {
+        "evidenceId": "lin-pmv-2026",
+        "auditDate": "2026-10-26",
+        "independentParticipantTotal": null,
+        "familyId": "lin-pmv-nct05932134",
+        "linkStatus": "verified",
+        "analysisRole": {
+          "en": "Parent pilot randomized combined-intervention report",
+          "tr": "Birleşik müdahaleli ana pilot randomize yayın"
+        },
+        "reportsParentRandomization": true,
+        "randomizedExposureForQuestion": true,
+        "participantCounts": {
+          "assessed": 195,
+          "ineligible": 66,
+          "declined": 29,
+          "randomized": 100,
+          "randomizedArms": {
+            "highProtein": 30,
+            "highProteinRehabilitation": 30,
+            "highProteinRehabilitationNmes": 30,
+            "usualCare": 10
+          },
+          "completed": 91,
+          "earlyWithdrawals": 9,
+          "withdrawalsByArm": {
+            "highProtein": 4,
+            "highProteinRehabilitation": 2,
+            "highProteinRehabilitationNmes": 1,
+            "usualCare": 2
+          },
+          "primaryITT": 100
+        },
+        "outcomeDenominators": {
+          "primaryAsReported": {
+            "highProtein": 30,
+            "highProteinRehabilitation": 30,
+            "highProteinRehabilitationNmes": 30,
+            "usualCare": 10
+          },
+          "serialNutritionAndFunctionMeasuredNs": null
+        },
+        "outcomeScope": {
+          "weaningSuccess": "five-consecutive-ventilator-free-days",
+          "ventilationDuration": {
+            "paperHierarchy": "primary",
+            "registryProtocolHierarchy": "secondary",
+            "exactClockReconciled": false
+          },
+          "treatmentEffectCi": null,
+          "independentAnabolicStateValidated": false,
+          "individualProteinTargetValidated": false
+        },
+        "analysisContrast": "assigned-additive-package-not-isolated-amino-acid-or-factorial-effect",
+        "nutrientExposure": {
+          "studyTarget": {
+            "protein": 1.5,
+            "unit": "g/kg/day",
+            "weightBasis": "ideal-body-weight"
+          },
+          "deliveredProteinGroupMeans": [
+            1.4,
+            1.5,
+            1.4,
+            1.2
+          ],
+          "nitrogenMethod": "EN-protein-g/6.25-(24h-UUN-g-N+4)",
+          "dialysisLossHandlingVerified": false
+        },
+        "relatedPublications": [
+          {
+            "pmid": "36297079",
+            "doi": "10.3390/nu14204395",
+            "registryReferenceType": "RESULT",
+            "role": "prior-observational-record-analysis-cited-for-RCC-weaning-protocol",
+            "participantOverlapVerified": false
+          }
+        ],
+        "participantOverlap": {
+          "en": "100 randomized and 91 completers are one cohort, not 191 people. Figure 1 and final Methods retain 100 in primary ITT analyses; no complete-case count is invented for serial measurements. Prior 2022 observational records and this trial are not merged or summed.",
+          "tr": "100 randomize ve 91 tamamlayan aynı kohorttur; 191 kişi değildir. Şekil 1 ve son yöntem birincil ITT’de 100 kişiyi korur; seri ölçümler için tam olgu sayısı uydurulmaz. Önceki 2022 gözlemsel kayıtları bu deneyle birleştirilmez/toplanmaz."
+        },
+        "sourceUrls": [
+          "https://www.tandfonline.com/doi/full/10.1080/07853890.2026.2728179",
+          "https://clinicaltrials.gov/api/v2/studies/NCT05932134",
+          "https://cdn.clinicaltrials.gov/large-docs/34/NCT05932134/Prot_SAP_000.pdf",
+          "https://pubmed.ncbi.nlm.nih.gov/36297079/"
+        ],
+        "basis": {
+          "en": "Original main Methods/Results, Tables 1/2 and complete Figure 1 were inspected through the normal public publisher DOI route; no CAPTCHA was solved. Current official API and selected public protocol pages supply separate source-qualified fields. The prior 2022 original abstract reports 172 observational records from 2020–2022, not a randomized parent. This does not establish every historical amendment or independent-patient total.",
+          "tr": "Özgün ana yöntem/sonuçlar, Tablo 1/2 ve tam Şekil 1 normal kamuya açık yayıncı DOI yolundan incelendi; CAPTCHA çözülmedi. Güncel resmî API ve seçilmiş kamu protokol sayfaları ayrı kaynak nitelikli alanlar sağlar. Önceki 2022 özgün özeti 2020–2022 döneminden 172 gözlemsel kaydı bildirir; randomize ana deney değildir. Her tarihsel değişiklik veya benzersiz kişi toplamı doğrulanmış sayılmaz."
+        },
+        "family": {
+          "title": {
+            "en": "Lin PMV · protein, rehabilitation and trunk NMES",
+            "tr": "Lin PMV · protein, rehabilitasyon ve gövde NMES"
+          },
+          "registry": {
+            "id": "NCT05932134",
+            "url": "https://clinicaltrials.gov/study/NCT05932134",
+            "access": "official-current-api-raw",
+            "historicalVersionsCompared": false,
+            "enrollment": {
+              "n": 100,
+              "type": "actual"
+            }
+          },
+          "parent": {
+            "doi": "10.1080/07853890.2026.2728179",
+            "url": "https://www.tandfonline.com/doi/full/10.1080/07853890.2026.2728179",
+            "access": "original-main-html-tables-and-flow"
+          },
+          "dates": {
+            "firstSubmitted": "2023-04-26",
+            "firstSubmissionMeetingQc": "2023-07-05",
+            "firstPosted": "2023-07-06",
+            "actualStart": "2023-09-18",
+            "paperRecruitmentEnd": "2024-09-18",
+            "registryActualCompletion": "2025-03-21",
+            "resultsFirstPosted": "2025-12-17",
+            "resultsOnline": "2026-09-22",
+            "resultsIssue": "2026-12"
+          },
+          "randomizationUnit": "individual-participant",
+          "protocol": {
+            "url": "https://cdn.clinicaltrials.gov/large-docs/34/NCT05932134/Prot_SAP_000.pdf",
+            "date": "2022-12-09",
+            "uploadDate": "2025-12-10",
+            "access": "public-pdf-selected-methods-and-statistics-with-selected-page-visual-check"
+          },
+          "note": {
+            "en": "Primary ITT includes 100 randomized (30/30/30/10); 91 completed the protocol. Serial measurement Ns are not established by that statement. The 2022 RESULT reference describes a prior observational record analysis, not this randomized parent; exact person overlap is unverified.",
+            "tr": "Birincil ITT 100 randomize kişiyi (30/30/30/10) içerir; 91 kişi protokolü tamamladı. Bu ifade tüm seri ölçüm sayılarını doğrulamaz. 2022 RESULT atfı önceki gözlemsel kayıt analizini tanımlar; bu randomize ana deney değildir. Kesin kişi örtüşmesi doğrulanmadı."
+          },
+          "methodsNote": {
+            "en": "Single-centre stable RCC pilot; age ≥20, ventilation >21 days. Additive arms cannot isolate amino-acid/protein effects. Final paper makes ventilation duration primary; current registry/protocol call it secondary. Posted protocol count/statistical/missing-data descriptions differ internally and from final Methods; historical prespecification remains unverified. Source-defined renal feeding and neurological exclusions are not app rules.",
+            "tr": "Tek merkezli stabil RCC pilotu; yaş ≥20, ventilasyon >21 gün. Eklemeli kollar aminoasit/protein etkisini ayıramaz. Son makalede ventilasyon süresi birincil; güncel kayıt/protokolde ikincildir. Paylaşılan protokolün sayı/istatistik/eksik veri ifadeleri kendi içinde ve son yöntemle farklıdır; tarihsel önbelirleme doğrulanmadı. Çalışmanın renal beslenme ve nörolojik dışlama tanımları uygulama kuralı değildir."
+          },
+          "prespecificationStatus": "current-registry-and-selected-protocol-compared-historical-versions-unreviewed"
+        }
+      }
+    },
+    {
+      "id": "deng-physiological-windows-2026",
+      "title": "Nutritional adequacy is associated with improved survival within specific physiological windows in critically ill patients",
+      "year": 2026,
+      "kind": "Özgün gözlemsel araştırma; bağımsız kohortla destekleme",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/42562321/",
+      "doi": "10.1016/j.clnesp.2026.105009",
+      "access": "Tam metin · VETİS",
+      "accessNote": "26 Ekim 2026: yetkili ScienceDirect ana yöntem/sonuç, altı HTML tablo metni ve şekil açıklamaları yeniden incelendi. Şekil görüntüleri ve ek okunmadı; önceki VETİS erişim beyanından ayrı, yerelde izlenebilir incelemedir.",
+      "sampleSize": 5370,
+      "sampleNote": "MIMIC-IV: 5370; ilk hafta PN alanların dışlandığı ayrı NEED kohortu: 1322. Yeni randomizasyon değildir.",
+      "design": "MIMIC-IV’de günlük alım için marjinal yapısal Cox; NEED’de ilk hafta ortalama alımı ve başlangıç fizyolojisiyle Cox modeli. Gerçekleşen yeterlilik randomize değildir.",
+      "population": "Beslenme desteği alan ve YBÜ yatışı en az 7 gün olan erişkinler.",
+      "primaryOutcome": "MIMIC-IV’de 28 günlük mortalite: yeterli (%80–100) / düşük (<%80) enerji alımı HR 0,61 (%95 GA 0,50–0,74); bildirilen hedef-protein analizinde HR 0,51 (0,42–0,63). Protein kategorilerinin aynı biçimde kodlandığı doğrulanmadı.",
+      "summary": "Ayrı belirteç katmanları incelenmiştir; ortak bir AND-pencere modeli doğrulanmamıştır. Noradrenalin eşdeğeri (NEE) etkileşimi p<0,001 (enerji/protein); laktat p=0,052/0,003; protein-kreatinin p=0,467. Katman içi anlamlılık tedavi seçimini doğrulamaz.",
+      "application": "Günlük alım ile geriye dönük ilk hafta ortalaması ayrılır. Bu ilişkiler anabolik/katabolik tanı, beslemeye hazır olma veya otomatik enerji/protein dozu kuralı değildir.",
+      "limitations": "Her iki payda ideal ağırlıktır: 25 kcal/kg/gün ve 1,2 g protein/kg/gün; IBW denklemi belirtilmez. ≥7 günlük yatış seçimi, taburculukta sansürleme ve artık karıştırıcılık sürer. Kreatinin 5 mg/dL doğrulanmış eşik değildir; NEED Tablo 6’daki maruziyet etiketi/metin uyuşmazlığı korunur.",
+      "studyLineage": {
+        "evidenceId": "deng-physiological-windows-2026",
+        "auditDate": "2026-10-26",
+        "independentParticipantTotal": null,
+        "familyId": null,
+        "linkStatus": "parent_named",
+        "relationshipLabel": {
+          "en": "Two cohort roles · MIMIC-IV / NEED",
+          "tr": "İki kohort rolü · MIMIC-IV / NEED"
+        },
+        "analysisRole": {
+          "en": "Observational report with two cohort roles",
+          "tr": "İki kohort rollü gözlemsel yayın"
+        },
+        "reportsParentRandomization": false,
+        "randomizedExposureForQuestion": false,
+        "cohorts": [
+          {
+            "dataset": "MIMIC-IV",
+            "role": "derivation",
+            "sampleSize": 5370,
+            "exposureTimeStructure": "daily"
+          },
+          {
+            "dataset": "NEED",
+            "role": "supportive",
+            "sampleSize": 1322,
+            "familyId": "need-isrctn12233792",
+            "parentPublicationCitationVerified": true,
+            "directRegistryCitationVerified": false,
+            "exposureTimeStructure": "first-week-mean",
+            "physiologyTimeStructure": "baseline-enrollment"
+          }
+        ],
+        "needSelection": {
+          "parentReportedEnrolled": 2772,
+          "excludedIcuUnder7Days": 212,
+          "excludedFirstWeekOralDiet": 235,
+          "excludedMissingNutrition": 35,
+          "excludedFirstWeekParenteralNutrition": 965,
+          "remainingBeforeMortalityExclusion": 1325,
+          "excludedMissingMortality": 3,
+          "analyzed": 1322,
+          "basis": "main-results-prose-not-visual-flow-figure"
+        },
+        "windowEvidence": {
+          "separateMarkerStrata": true,
+          "jointAndWindowVerified": false,
+          "formalInteractionP": {
+            "norepinephrineEnergy": "<0.001",
+            "norepinephrineProtein": "<0.001",
+            "lactateEnergy": 0.052,
+            "lactateProtein": 0.003,
+            "creatinineProtein": 0.467
+          },
+          "needTable6CreatinineExposureLabelReconciled": false,
+          "clinicalDecisionThreshold": null,
+          "individualDoseTargetValidated": false
+        },
+        "participantOverlap": {
+          "en": "MIMIC-IV is the daily main analysis; NEED is a first-week-mean supportive cohort, not replication of a daily dynamic rule. Its 1322 are selected from the NEED parent; overlap with other NEED reports is unquantified. Do not sum samples as unique participants.",
+          "tr": "Ana günlük analiz MIMIC-IV; NEED ilk hafta ortalamalı destekleyici kohorttur, günlük dinamik kuralın tekrarı değildir. 1322 kişi ana NEED’den seçilmiştir; diğer NEED yayınlarıyla örtüşme nicelenmedi. Örneklemleri benzersiz katılımcı olarak toplamayın."
+        },
+        "sourceUrls": [
+          "https://doi.org/10.1016/j.clnesp.2026.105009",
+          "https://link.springer.com/article/10.1186/s13054-022-03921-5"
+        ],
+        "basis": {
+          "en": "Authorized original main Methods 2.1 and reference 13 identify the NEED parent publication, whose registry had separate verification. No ISRCTN identifier appears in the captured main text; direct registry citation remains unverified. Six HTML table texts and captions were reviewed, not figure images or supplement. Separate strata and a Table 6 exposure-label conflict do not establish a joint classifier or dose.",
+          "tr": "Yetkili özgün ana Yöntem 2.1 ve kaynak 13, kaydı ayrı incelenmiş NEED ana yayınını tanımlar. Kaydedilen ana metinde ISRCTN kimliği yoktur; doğrudan kayıt atfı doğrulanmadı. Altı HTML tablo metni ve açıklamalar incelendi; şekil görüntüleri/ek incelenmedi. Ayrı katmanlar ve Tablo 6 maruziyet etiketi uyuşmazlığı ortak sınıflandırıcı veya doz doğrulamaz."
+        },
+        "family": null
+      }
+    },
+    {
+      "id": "need-age-heterogeneity-2026",
+      "title": "Association between age and outcomes of evidence-based feeding protocol versus usual care in critically ill patients",
+      "year": 2026,
+      "kind": "Çok merkezli küme randomize çalışmanın post hoc analizi",
+      "url": "https://link.springer.com/article/10.1186/s40560-026-00942-y",
+      "doi": "10.1186/s40560-026-00942-y",
+      "access": "Özgün tam metin",
+      "sampleSize": 2672,
+      "sampleNote": "88 Çin YBÜ’si. Ana NEED kohortu 2772; 100 hastanın 28 günlük takibi eksik.",
+      "design": "2018–2019 NEED verilerinde, ana protokolde önceden belirtilmemiş keşifsel yaş-etkileşimi analizi.",
+      "population": "Yeni YBÜ kabulü, organ yetmezliği, beklenen uzun yatış ve yakın zamanda oral alıma geçme olasılığı düşük erişkinler.",
+      "primaryOutcome": "28 günlük mortalite etkileşimi: her 10 yaş artışıyla müdahale HR oranı 1,28 (%95 GA 1,13–1,46). ≤65 yaş HR 0,64 (0,44–0,92); ≥76 yaş HR 1,29 (0,89–1,88).",
+      "summary": "Yapılandırılmış beslenme protokolüyle olağan bakım arasındaki ilişki yaşa göre değişti; ileri yaşta yarar gösterilmedi.",
+      "application": "Yaş, kırılganlık ve tolerans kişiselleştirmede kaydedilir. Yaş kesimleri hipotezdir; otomatik doz veya destekten mahrum bırakma kuralı değildir.",
+      "limitations": "Yeni 2026 randomizasyonu değildir. Çoklu keşifsel karşılaştırmalar, dengesiz takip kaybı, tedavi bileşenlerinin ayrılamaması ve dış doğrulama eksikliği sonuçları sınırlar.",
+      "studyLineage": {
+        "evidenceId": "need-age-heterogeneity-2026",
+        "auditDate": "2026-10-24",
+        "independentParticipantTotal": null,
+        "familyId": "need-isrctn12233792",
+        "linkStatus": "verified",
+        "analysisRole": {
+          "en": "Post hoc treatment-effect modification analysis",
+          "tr": "Post hoc tedavi etkisi değişimi analizi"
+        },
+        "reportsParentRandomization": false,
+        "randomizedExposureForQuestion": true,
+        "participantOverlap": {
+          "en": "Reuses NEED assignment; no new randomization. Age analysis was developed after parent completion/publication.",
+          "tr": "NEED atamasını yeniden kullanır; yeni randomizasyon yoktur. Yaş analizi ana çalışma/yayından sonra geliştirilmiştir."
+        },
+        "sourceUrls": [
+          "https://link.springer.com/article/10.1186/s40560-026-00942-y",
+          "https://www.isrctn.com/api/trial/ISRCTN12233792/format/who"
+        ],
+        "basis": {
+          "en": "Original methods explicitly name NEED/ISRCTN; official registry export verifies the parent identity.",
+          "tr": "Özgün yöntem NEED/ISRCTN’yi açıkça verir; resmî kayıt dışa aktarımı ana kimliği doğrular."
+        },
+        "family": {
+          "title": {
+            "en": "NEED · ICU feeding-guideline implementation",
+            "tr": "NEED · YBÜ beslenme kılavuzu uygulaması"
+          },
+          "registry": {
+            "id": "ISRCTN12233792",
+            "url": "https://www.isrctn.com/ISRCTN12233792"
+          },
+          "parent": {
+            "doi": "10.1186/s13054-022-03921-5",
+            "url": "https://link.springer.com/article/10.1186/s13054-022-03921-5"
+          },
+          "dates": {
+            "registration": "2017-11-24",
+            "enrollment": "2018-03-26"
+          },
+          "note": {
+            "en": "Registry export and age paper say 24 November 2017; the parent abstract says 20 November. The discrepancy is retained, not silently reconciled.",
+            "tr": "Kayıt dışa aktarımı ve yaş makalesi 24 Kasım 2017, ana özet 20 Kasım der. Fark korunur; sessizce eşitlenmez."
+          }
+        }
+      }
+    },
+    {
+      "id": "electrolyte-multicenter-cohort-2026",
+      "title": "Supplementation of calcium, magnesium, phosphate, and potassium in critically ill patients: A multicenter cohort study",
+      "year": 2026,
+      "kind": "Özgün büyük çok merkezli kohort",
+      "url": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0349145",
+      "doi": "10.1371/journal.pone.0349145",
+      "access": "Özgün tam metin",
+      "sampleSize": 47988,
+      "sampleNote": "67 YBÜ, 52 ABD hastanesi; 167.621 elektrolit ölçümü bulunan hasta-günü.",
+      "design": "2022–2024 Premier veritabanında retrospektif çok düzeyli analiz; randomizasyon yok.",
+      "population": "Yetişkin YBÜ hastaları; böbrek yetmezliği, gebelikle ilişkili tanı ve kabulde intrakraniyal kanama dışlandı.",
+      "primaryOutcome": "Elektrolit replasmanında hastaneler arası değişkenlik: medyan göreli odds potasyum için 1,51 (%95 GA 1,48–1,55), magnezyum için 2,09 (1,99–2,19).",
+      "summary": "Hastaların %70,1’i replasman aldı. Potasyum replasmanının yaygınlaştığı düzeyler hastaneler arasında 3,3–3,9 mmol/L arasında değişti.",
+      "application": "Laboratuvar referansı ve kurum protokolü kaydedilir. Veri, tek evrensel replasman eşiği yerine izlenebilir yerel karar desteğini destekler.",
+      "limitations": "Mortaliteyi azaltan replasman dozunu test etmez; uygulama farkı etkinlik kanıtı değildir. İntrakraniyal kanama ve böbrek yetmezliğine doğrudan genellenmez; otomatik elektrolit reçetesi üretmez."
+    },
+    {
+      "id": "fradkin-calorimetry-pmv-rct-2026",
+      "title": "Indirect calorimetry-guided nutrition during weaning from prolonged mechanical ventilation: a double-blind randomized controlled trial",
+      "year": 2026,
+      "kind": "Özgün randomize çalışma raporu; tek merkez",
+      "url": "https://link.springer.com/article/10.1186/s13054-026-06272-7",
+      "doi": "10.1186/s13054-026-06272-7",
+      "access": "Özgün tam metin",
+      "accessNote": "26 Ekim 2026: özgün ana yöntem/sonuç ve güncel resmî kayıt incelendi. Protokol kimliği bibliyografik olarak doğrulandı; özgün protokol/SAP, arşiv sürümleri, akış görüntüsü ve ek okunmadı. VETİS kullanılmadı.",
+      "sampleSize": 211,
+      "sampleNote": "211 ITT (111/100), 198 PP; planlanan 326 kişiye ulaşılamadı. Güncel kayıt 200 tahmini katılım verir; adlandırılan üç çekilme tüm PP farkı değildir.",
+      "design": "Tek merkez RCT; makale çift, güncel kayıt üçlü kör diye etiketler. Reçeteleyen diyetisyen kör değildir. İki kolda haftalık kalorimetri yapılmıştır.",
+      "population": "Ventilasyon ≥21 gün ve ≥6 saat/gün; stabil, vazopresörsüz erişkinler. İrreversibl nörodejenerasyon dışlanmıştır.",
+      "primaryOutcome": "Başarılı ayrılma: %58 ve %50; fark +8 yüzde puan (%95 GA −6 ila +21; p=0,33). 27/31 günlük medyanlar (p=0,58) yalnız başarılı ayrılan 118 kişinin özetidir, tüm ITT’nin süre sonucu değildir.",
+      "summary": "Kalorimetriyle enerji hedefi, Schofield tahmin denklemiyle belirlenen hedefle karşılaştırıldı. Birincil klinik sonuçlarda üstünlük gösterilmedi.",
+      "application": "Ölçülmüş enerji harcaması ve gerçek teslim edilen enerjinin ayrılması uygundur; ölçüme dayalı hedefin kesin ventilatörden ayrılma yararı olduğu söylenmez.",
+      "limitations": "İlk kamu kaydı katılım başladıktan sonradır. Kayıt birincil sonuçları 8 hafta, makale izlem sınırını 120 gün verir; sağkalım saatleri de farklıdır. PP enerji-açığı ilişkisi post hoc ve seçilmiştir; doz, metabolik sınıf veya eşdeğerlik doğrulamaz.",
+      "studyLineage": {
+        "evidenceId": "fradkin-calorimetry-pmv-rct-2026",
+        "auditDate": "2026-10-26",
+        "independentParticipantTotal": null,
+        "familyId": "fradkin-pmv-nct04825717",
+        "linkStatus": "verified",
+        "analysisRole": {
+          "en": "Original randomized nutrition-target strategy report; achieved-energy association is separate",
+          "tr": "Özgün randomize beslenme hedefi stratejisi yayını; gerçekleşen enerji ilişkisi ayrıdır"
+        },
+        "reportsParentRandomization": true,
+        "randomizedExposureForQuestion": true,
+        "participantCounts": {
+          "randomized": 211,
+          "calorimetryArm": 111,
+          "controlArm": 100,
+          "planned": 326,
+          "perProtocol": 198,
+          "reportedNamedWithdrawals": 3,
+          "weaningTimeSummarySuccessfulParticipants": 118
+        },
+        "analysisContrast": {
+          "primary": "randomized-target-strategy",
+          "achievedEnergyAssociation": "post-hoc-nonrandom-per-protocol"
+        },
+        "followupAnchors": {
+          "registryPrimaryWeeks": 8,
+          "reportedMaximumDaysFromRandomization": 120,
+          "reportedWeaningTimeSummaryPopulation": "successful-weaners-only",
+          "registrySurvival": "post-weaning-selected-successful-participants",
+          "articleThreeMonthSurvival": "randomization-all-ITT",
+          "reconciled": false
+        },
+        "participantOverlap": {
+          "en": "One trial: protocol and final report do not add independent participants. The 198 PP observations and 118 successful-weaner time summaries are selected analyses, not new cohorts. Three named withdrawals do not explain the entire 211-to-198 difference; do not reconstruct the unread flow.",
+          "tr": "Tek deneydir: protokol ve sonuç yayını bağımsız katılımcı eklemez. 198 PP ve başarılı ayrılan 118 kişinin süre özetleri seçilmiş analizlerdir, yeni kohort değildir. Adlandırılan üç çekilme 211–198 farkının tümünü açıklamaz; okunmamış akış yeniden kurulmaz."
+        },
+        "sourceUrls": [
+          "https://link.springer.com/article/10.1186/s13054-026-06272-7",
+          "https://clinicaltrials.gov/api/v2/studies/NCT04825717",
+          "https://doi.org/10.1016/j.clnesp.2023.01.003"
+        ],
+        "basis": {
+          "en": "Original main text names NCT04825717; the current official registry independently links both the 2026 results and 2023 protocol publications. Protocol identity is bibliographic only; original content/SAP and archived prespecification were not read. A calorimetry-based versus Schofield-based energy target is randomized; both arms underwent weekly calorimetry. Selected achieved-energy gaps are not randomized.",
+          "tr": "Özgün ana metin NCT04825717’yi adlandırır; güncel resmî kayıt 2026 sonuç ve 2023 protokol yayınlarını bağımsız olarak bağlar. Protokol kimliği yalnız bibliyografiktir; özgün içerik/SAP ve arşiv önbelirlemesi okunmadı. Kalorimetriye dayalı enerji hedefi ile Schofield’e dayalı hedef randomize karşılaştırılmıştır; iki kolda da haftalık kalorimetri yapılmıştır. Seçilmiş gerçekleşen enerji farkları randomize değildir."
+        },
+        "family": {
+          "title": {
+            "en": "PMV calorimetry trial · Fradkin",
+            "tr": "Uzamış ventilasyonda kalorimetri deneyi · Fradkin"
+          },
+          "registry": {
+            "id": "NCT04825717",
+            "url": "https://clinicaltrials.gov/study/NCT04825717",
+            "access": "official-current-api",
+            "historicalVersionsCompared": false,
+            "enrollment": {
+              "n": 200,
+              "type": "estimated"
+            },
+            "structuredResultsPosted": false,
+            "documentSectionAvailable": false
+          },
+          "parent": {
+            "doi": "10.1186/s13054-026-06272-7",
+            "url": "https://link.springer.com/article/10.1186/s13054-026-06272-7",
+            "access": "original-main-methods-results-discussion-reference-identity"
+          },
+          "randomizationUnit": "individual-participant",
+          "dates": {
+            "firstSubmitted": "2021-03-15",
+            "firstSubmissionMeetingQc": "2021-03-29",
+            "firstPosted": "2021-04-01",
+            "actualStart": "2019-12-01",
+            "reportedRecruitmentStart": "2019-11",
+            "reportedRecruitmentEnd": "2023-04",
+            "lastRegistryUpdatePosted": "2023-07-11",
+            "resultsPublished": "2026-08-28"
+          },
+          "protocol": {
+            "doi": "10.1016/j.clnesp.2023.01.003",
+            "url": "https://doi.org/10.1016/j.clnesp.2023.01.003",
+            "year": 2023,
+            "access": "bibliographic-pointer-only-original-text-unread",
+            "originalTextReviewed": false,
+            "versionVerified": false,
+            "sapVerified": false
+          },
+          "note": {
+            "en": "Single centre. Public registration in April 2021 follows both the article and registry recruitment starts. The article labels March 15 registration; the API identifies submission, not first public posting. Current estimated enrollment 200 differs from 326 planned, 211 ITT and 198 PP in the article.",
+            "tr": "Tek merkezlidir. Nisan 2021 kamu kaydı, hem makaledeki hem kayıttaki katılım başlangıcından sonradır. Makale 15 Mart’ı kayıt diye verir; API bunun ilk kamuya açılma değil gönderim olduğunu gösterir. Güncel tahmini 200, makaledeki planlı 326, ITT 211 ve PP 198’den farklıdır."
+          },
+          "methodsNote": {
+            "en": "Current registry primaries use eight weeks, whereas the article follows randomized patients up to 120 days. Registered survival clocks after weaning differ from the reported all-cohort/randomization anchor. Registry triple-masking and article double-blind labels retain the unblinded prescribing-dietitian exception. Original protocol/SAP, historical versions, flow image and supplement are unread; no formal outcome-switch or bias grade is assigned.",
+            "tr": "Güncel kayıt birincil sonuçları sekiz haftalık, makale randomizasyondan 120 güne kadar izler. Kayıttaki ayrılma sonrası sağkalım saatleri, bildirilen tüm kohort/randomizasyon başlangıcından farklıdır. Kayıt üçlü ve makale çift kör etiketleri, reçeteleyen diyetisyenin kör olmaması istisnasıyla birlikte korunur. Özgün protokol/SAP, tarihsel sürümler, akış görüntüsü ve ek okunmadı; biçimsel sonuç değişikliği veya yanlılık puanı hükmü verilmedi."
+          },
+          "prespecificationStatus": "public-registration-after-recruitment-original-protocol-history-unreviewed"
+        }
+      }
+    },
+    {
+      "id": "summers-anabolic-resistance-rct-2026",
+      "title": "Increasing protein dose does not further augment muscle protein synthesis in critical illness: a randomized, controlled clinical trial",
+      "year": 2026,
+      "onlineDate": "2026-02-24",
+      "printDate": "2026-05",
+      "kind": "Küçük mekanistik randomize çalışma; tek merkez",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/42085214/",
+      "doi": "10.1093/ajrccm/aamag086",
+      "access": "Özgün özet ve indekslenen yayıncı yöntem/sonuç bölümleri; kısmi erişim",
+      "accessNote": "Güncel PROMS kaydı okundu; doğrudan tam metin, ekler ve kayıt değişiklik geçmişi incelenmedi.",
+      "sampleSize": 20,
+      "sampleNote": "29 randomize, 21 tamamladı; 1 protokol ihlali dışlandı, 20 analiz (10/10). Güncel kayıt final-20 alanı randomizasyon paydası değildir.",
+      "design": "PROMS (ACTRN12620000776909): tek merkezli paralel mekanistik RCT; stabil izotop/kas biyopsisi, tam olgu analizi.",
+      "population": "Mekanik ventilasyon alan erişkin YBÜ; bir saatte intraduodenal 40 veya 20 g whey, altı saatlik izlem.",
+      "primaryOutcome": "Altı saatlik kas fraksiyonel sentez hızı: düzeltilmiş fark 0,007 %/saat (%95 GA −0,003 ila 0,016; p=0,152).",
+      "summary": "Daha yüksek amino asit erişilebilirliğine rağmen sentez hızında gruplar arası üstünlük gösterilmedi; eşdeğerlik kanıtlanmadı.",
+      "application": "Altı saatlik sentez hızı net kas/tüm vücut dengesi değildir; günlük bireysel doz veya otomatik protein artışı çıkarılmaz.",
+      "limitations": "Küçük, çoğunluğu erkek örneklem; kayıtlı tüm vücut dengesi/yıkımı analiz edilmedi. Önceden yayımlanmış SAP doğrulanmadı; günlük/uzun dönem klinik yarar belirlenmez.",
+      "studyLineage": {
+        "evidenceId": "summers-anabolic-resistance-rct-2026",
+        "auditDate": "2026-10-25",
+        "independentParticipantTotal": null,
+        "familyId": "proms-actrn12620000776909",
+        "linkStatus": "verified",
+        "analysisRole": {
+          "en": "Parent randomized acute muscle-synthesis report",
+          "tr": "Ana randomize akut kas sentezi yayını"
+        },
+        "reportsParentRandomization": true,
+        "randomizedExposureForQuestion": true,
+        "participantCounts": {
+          "randomized": 29,
+          "completed": 21,
+          "analyzed": 20,
+          "registryFinal": 20,
+          "completedExcludedProtocolViolation": 1
+        },
+        "outcomeScope": {
+          "postprandialHours": 6,
+          "wholeBodyBreakdownAnalyzed": false,
+          "wholeBodyBalanceAnalyzed": false,
+          "individualDailyDoseValidated": false
+        },
+        "participantOverlap": {
+          "en": "29 randomized, 21 completed, then one lower-dose protocol violation excluded: 20 analyzed. Registry final 20 is not silently treated as 20 randomized; these denominators are not added.",
+          "tr": "29 randomize, 21 tamamlayan; daha sonra düşük doz grubundaki bir protokol ihlali çıkarıldı: 20 analiz. Kayıttaki son 20 kişi sessizce 20 randomize sayılmaz; bu paydalar toplanmaz."
+        },
+        "sourceUrls": [
+          "https://pubmed.ncbi.nlm.nih.gov/42085214/",
+          "https://academic.oup.com/ajrccm/article/212/5/964/8496139",
+          "https://www.anzctr.org.au/Trial/Registration/TrialReview.aspx?ACTRN=12620000776909",
+          "https://api.crossref.org/works/10.1093%2Fajrccm%2Faamag086"
+        ],
+        "basis": {
+          "en": "Original abstract/indexed publisher Methods explicitly identify PROMS/ACTRN12620000776909; the official current registry was read directly. Access is indexed original methods/results plus current registration, not direct full-text/supplement or archived-registry appraisal.",
+          "tr": "Özgün özet/indekslenen yayıncı yöntemi PROMS/ACTRN12620000776909’u açıkça verir; resmî güncel kayıt doğrudan okundu. Erişim, indekslenen özgün yöntem/sonuç ile güncel kayıttır; doğrudan tam metin/ek veya arşivlenmiş kayıt incelemesi değildir."
+        },
+        "family": {
+          "title": {
+            "en": "PROMS · acute muscle protein synthesis",
+            "tr": "PROMS · akut kas protein sentezi"
+          },
+          "registry": {
+            "id": "ACTRN12620000776909",
+            "url": "https://www.anzctr.org.au/Trial/Registration/TrialReview.aspx?ACTRN=12620000776909",
+            "access": "official-current-record",
+            "historicalVersionsCompared": false,
+            "enrollment": {
+              "target": 20,
+              "final": 20
+            }
+          },
+          "parent": {
+            "doi": "10.1093/ajrccm/aamag086",
+            "url": "https://academic.oup.com/ajrccm/article/212/5/964/8496139",
+            "access": "indexed-original-methods-results"
+          },
+          "dates": {
+            "submitted": "2020-06-12",
+            "registered": "2020-07-30",
+            "actualStart": "2020-11-03",
+            "actualLastEnrollment": "2022-10-28",
+            "lastUpdated": "2023-01-10"
+          },
+          "randomizationUnit": "individual-participant",
+          "protocolLead": {
+            "url": "https://digital.library.adelaide.edu.au/dspace/handle/2440/136600",
+            "access": "metadata-and-indexed-contents-only",
+            "finalProtocolVerified": false
+          },
+          "note": {
+            "en": "The original report distinguishes 29 randomized, 21 completed and 20 analyzed; the current registry lists 20 as the final sample. These are different denominators, not extra cohorts. A six-hour muscle fractional-synthesis response to one whey exposure does not measure whole-body net protein balance or validate a daily individual protein target.",
+            "tr": "Özgün yayın 29 randomize, 21 tamamlayan ve 20 analiz edilen kişiyi ayırır; güncel kayıtta son örneklem 20’dir. Bunlar farklı paydalardır, ek kohort değildir. Tek whey maruziyetine altı saatlik kas fraksiyonel sentez yanıtı, tüm vücut net protein dengesini ölçmez ve günlük bireysel protein hedefini doğrulamaz."
+          },
+          "methodsNote": {
+            "en": "Indexed Methods report that registered whole-body breakdown/balance outcomes were not analyzed, with complete-case analysis and no prepublished SAP. A within-arm comparison was added at completion before analysis. The thesis is only a protocol lead: chapter text, final supplement/SAP and historical registry amendments were not reviewed. Current registration does not establish every analysis as prospectively specified.",
+            "tr": "İndekslenen yöntem, kaydedilmiş tüm vücut yıkım/denge sonuçlarının analiz edilmediğini, tam olgu analizini ve önceden yayımlanmış SAP olmadığını bildirir. Grup içi karşılaştırma çalışma tamamlanınca, analiz öncesinde eklenmiştir. Tez yalnız protokol için bir ipucudur; bölüm metni, son ek/SAP ve tarihsel kayıt değişiklikleri incelenmedi. Güncel kayıt, her analizin prospektif belirlendiğini kanıtlamaz."
+          },
+          "prespecificationStatus": "current-registration-read-final-sap-and-history-unreviewed"
+        }
+      }
+    },
+    {
+      "id": "cereda-ward-ons-print-2026",
+      "title": "Systematic high-calorie, high-protein oral nutritional support in hospitalized, moderately hypophagic patients at nutritional risk: A randomized-controlled trial",
+      "year": 2026,
+      "kind": "RCT · 2026 basılı sayı, 2025 çevrimiçi",
+      "url": "https://www.clinicalnutritionjournal.com/article/S0261-5614%2825%2900311-5/fulltext",
+      "doi": "10.1016/j.clnu.2025.11.017",
+      "access": "Özet",
+      "onlineDate": "2025-11-29",
+      "printDate": "2026-01",
+      "qualityHold": false,
+      "sampleSize": 220,
+      "sampleNote": "220 randomize; 201 yeniden değerlendirildi.",
+      "design": "Tek merkezli, açık etiketli randomize kontrollü çalışma.",
+      "population": "NRS-2002 ≥3 akut servis erişkinleri; alımı ihtiyacın yüzde 50 altında olanlar dışlandı.",
+      "primaryOutcome": "8. gün faz açısı değişimi: gruplar arası fark 0.47 derece; yüzde 95 GA 0.31–0.62.",
+      "summary": "Başlangıçtan sistematik ONS, danışmanlıkla birlikte 8. günden itibaren gerektikçe ONS yaklaşımıyla karşılaştırıldı.",
+      "application": "Serviste beslenme desteğinin zamanlamasına yardımcı araştırma; otomatik mama dozu üretmez.",
+      "limitations": "Primer sonlanım vekil ölçüttür. Nörolojiye özgü değildir. Kesin ürün dozu ve tam yöntem incelenemedi; ilk çevrimiçi yayın 2025’tir."
+    },
+    {
+      "id": "zhang-stroke-en-2026-quality-hold",
+      "title": "Impact of a Staged Enteral Nutrition Nursing Pathway Based on Dynamic Assessment of Tolerance and Aspiration Risk vs Usual Care on Feeding Intolerance in Older Adult Patients With Acute Ischemic Stroke and Dysphagia",
+      "year": 2026,
+      "kind": "Yöntem doğrulaması bekliyor",
+      "url": "https://medscimonit.com/abstract/full/idArt/953263",
+      "doi": "10.12659/MSM.953263",
+      "access": "Tam metin",
+      "onlineDate": "2026-07-29",
+      "printDate": "2026",
+      "qualityHold": true,
+      "sampleSize": 278,
+      "sampleNote": "278 randomize; beslenmeye başlayan 271 kişi analizde (136/135).",
+      "design": "Yayın tek merkezli paralel RCT bildiriyor; kayıt/protokol eşleşmesi açıklama bekliyor.",
+      "population": "En az 65 yaş; akut iskemik inme, disfaji ve postpilorik tüp.",
+      "primaryOutcome": "7 günlük intolerans: yüzde 27.94 / 45.19; düzeltilmiş RR 0.61 (yüzde 95 GA 0.47–0.81).",
+      "summary": "Tolerans/aspirasyona göre basamaklı bakım yolu; aynı beslenme hedefleriyle standart bakımla karşılaştırılmış.",
+      "application": "Doğrulama bekliyor; klinik motor ve seçilmiş kaliteli RCT listesi dışında tutulur.",
+      "limitations": "ChiCTR2300067930 başka yayımlanmış protokolde 8 merkezli stepped-wedge tasarımını tanımlıyor. Bu farklılık açıklanamadı. Kör olmayan bakım ve 7 günlük bileşik sonlanım ek sınırlılıklardır."
+    },
+    {
+      "id": "iv-glutamine-meta-2026",
+      "title": "The effects of intravenous glutamine supplementation in critically ill patients: a systematic review and meta-analysis",
+      "year": 2026,
+      "kind": "İkincil kanıt: sistematik derleme ve meta-analiz",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/42875940/",
+      "doi": "10.4266/acc.002132",
+      "access": "Özgün PubMed özet kaydı dizinde okundu; doğrudan açılış erişim hatası verdi",
+      "sampleSize": 1593,
+      "sampleNote": "10 RCT’nin toplamı; yeni 2026 randomizasyonu değildir. Yayın: 15 Ekim 2026.",
+      "design": "Erişkin IV glutamin RCT’lerinin random-effects meta-analizi; tarama Nisan 2025’e güncellendi.",
+      "population": "Heterojen kritik erişkinler; cerrahi/travma ve cerrahi dışı gruplar.",
+      "primaryOutcome": "Toplam mortalite RR 0,93 (%95 GA 0,77–1,13); toplam enfeksiyon RR 0,86 (0,63–1,18).",
+      "summary": "Rutin IV glutamin için sağkalım veya toplam enfeksiyon yararı gösterilmedi. Pnömoni ve ventilasyon süresindeki olumlu sinyaller az sayıda küçük çalışmaya dayanıyor.",
+      "application": "Ek IV amino asit, standart mama proteini ve enteral glutamin ayrı müdahaleler olarak kaydedilir; bu meta-analiz otomatik doz sağlamaz.",
+      "limitations": "2026 yayın tarihi, birincil deneylerin 2026’da yapıldığı anlamına gelmez. Doz, eşlik eden beslenme ve popülasyon heterojendir. Birincil çalışma yılları ve kombine IV+EN rejimlerin dahil edilmesi tam metinde doğrulanmalıdır."
+    },
+    {
+      "id": "redoxs-glutamine-2013",
+      "title": "REDOXS: A Randomized Trial of Glutamine and Antioxidants in Critically Ill Patients",
+      "year": 2013,
+      "kind": "Birincil kanıt: büyük çok merkezli randomize çalışma",
+      "url": "https://www.oeaie.org/content/uploads/2014/08/Heyland2013_A-Randomized-Trial-of-Glutamine-and-Antioxidants.pdf",
+      "doi": "10.1056/NEJMoa1212722",
+      "access": "Özgün NEJM makalesinin açık PDF kopyası; tam metin",
+      "sampleSize": 1223,
+      "sampleNote": "40 YBÜ; Kanada, ABD ve Avrupa.",
+      "design": "Kör 2×2 faktöriyel RCT: glutamin, antioksidan, ikisi veya plasebo.",
+      "population": "Mekanik ventilasyon ve en az iki organ yetmezliği bulunan erişkinler; çoğunluğu şokta.",
+      "primaryOutcome": "28 günlük mortalite %32,4 ve %27,2; düzeltilmiş OR 1,28 (%95 GA 1,00–1,64; p=0,05). Önceden belirlenmiş anlamlılık sınırı p<0,044 idi.",
+      "summary": "İlk 24 saatte standart beslenmeden ayrı kombine IV 0,35 g/kg ideal ağırlık/gün glutamin + enteral 30 g/gün uygulandı. Hastane içi ve 6 aylık mortalite arttı.",
+      "application": "Organ yetmezliği/şokta ek glutamin için güvenlik uyarısını destekler. Verilen doz araştırma rejimidir; reçete önerisi değildir.",
+      "limitations": "Kombine IV+EN ve yüksek ek azot yükü, izole enteral takviye veya standart proteinli mamayla eşitlenmez. Yalnız sepsis hastalarında yapılmamıştır; birincil sonuç formel anlamlılık sınırına ulaşmamıştır."
+    },
+    {
+      "id": "reenergize-glutamine-burns-2022",
+      "title": "RE-ENERGIZE: A Randomized Trial of Enteral Glutamine for Treatment of Burn Injuries",
+      "year": 2022,
+      "kind": "Birincil kanıt: büyük uluslararası randomize çalışma",
+      "url": "https://orbi.uliege.be/bitstream/2268/295097/1/Re-Energize%20%28NEJM%2022%29%20.pdf",
+      "doi": "10.1056/NEJMoa2203364",
+      "access": "Özgün NEJM makalesinin üniversite arşivindeki tam metni",
+      "sampleSize": 1200,
+      "sampleNote": "1209 randomize, 1200 analiz; 54 yanık ünitesi, 14 ülke.",
+      "design": "Çift kör plasebo kontrollü RCT; enteral glutamin 0,5 g/kg/gün ile izokalorik maltodekstrin.",
+      "population": "Deri grefti beklenen ağır yanıklı erişkinler; yaşa göre farklı yanık yüzey eşikleri.",
+      "primaryOutcome": "Canlı taburculuk süresi 40 ve 38 gün; subdistribution HR 0,91 (%95 GA 0,80–1,04; p=0,17).",
+      "summary": "Ek glutamin canlı taburculuğu hızlandırmadı. Altı aylık mortalite %17,2 ve %16,2; HR 1,06 (%95 GA 0,80–1,41).",
+      "application": "Yanık popülasyonunda biyolojik gerekçe veya eski küçük çalışmalar otomatik glutamin ekleme gerekçesi yapılmaz. Araştırma dozu reçete önerisi değildir.",
+      "limitations": "Sepsis/şok deneyi değildir. Renal disfonksiyon ve siroz dışlama nedenleriydi. Yavaş katılım nedeniyle çalışma sırasında örneklem ve birincil sonlanım değişti. İzole enteral rejim, REDOXS’un kombine rejiminden ayrılmalıdır."
+    },
+    {
+      "id": "kspen-glutamine-guideline-2026",
+      "title": "Nutritional support for critically ill patients by the Korean Society for Parenteral and Enteral Nutrition—part II: a clinical practice guideline",
+      "year": 2026,
+      "kind": "Resmî ulusal kılavuz; glutamin önerisi uzman uzlaşısı",
+      "url": "https://e-acnm.org/journal/view.php?doi=10.15747/ACNM.26.0059",
+      "doi": "10.15747/ACNM.26.0059",
+      "access": "Resmî yayıncı tam metni",
+      "sampleSize": null,
+      "sampleNote": "Yeni hasta kohortu yok; glutamin R23 önerisinde %95 güçlü uzlaşı. Yayın: 31 Temmuz 2026.",
+      "design": "Sistematik literatür değerlendirmesi ve çok disiplinli uzman uzlaşısı.",
+      "population": "Kritik erişkinler; sepsis, organ disfonksiyonu ve diğer YBÜ alt grupları.",
+      "primaryOutcome": "R23: rutin ek enteral glutamin önerilmiyor. Bu bir klinik deney sonlanımı değildir.",
+      "summary": "Mortalite ve enfeksiyonlarda klinik olarak belirgin yarar yeterince gösterilmediğinden rutin enteral ek glutamin desteklenmiyor.",
+      "application": "Klinik durum, yol ve ek madde açıkça belirtilir. Standart formülün protein içeriği ayrı tutulur; otomatik glutamin takviyesi oluşturulmaz.",
+      "limitations": "Uzlaşı yüzdesi tedavi etki büyüklüğü veya yüksek kesinlikli RCT kanıtı değildir. Kore uygulama bağlamı gözetilir. Arginin, omega-3 ve glutamin içeren çok bileşenli ürünlerden glutaminin bağımsız etkisi çıkarılamaz."
+    },
+    {
+      "id": "berger-hmb-metabolic-posthoc-2026",
+      "title": "Does β-hydroxy-β-methylbutyrate (HMB) have an anti-inflammatory impact in critically ill patients? A secondary post hoc analysis of an RCT",
+      "year": 2026,
+      "onlineDate": "2026-05-16",
+      "printDate": "2026-07",
+      "kind": "İkincil post hoc biyokimyasal analiz",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/42202485/",
+      "doi": "10.1016/j.clnu.2026.106690",
+      "access": "Özgün özet ve indekslenen yöntem; tam metin incelenmedi",
+      "accessNote": "PubMed özeti ve yayıncı yöntem dizini okundu; doğrudan tam metin 403.",
+      "sampleSize": 37,
+      "sampleNote": "37 dahil; NCT03628365; yeni randomizasyon yok.",
+      "population": "Lausanne YBÜ erişkinleri.",
+      "summary": "Viana 2021’in yeniden analizinde keşifsel biyokimyasal, sitokin ve amino asit sinyalleri bildirildi; bağımsız yeni katılımcılar değildir.",
+      "application": "Nedensel antiinflamatuar etki, klinik etkinlik veya anabolik sınıflayıcı kanıtlamaz; doz kuralı değildir.",
+      "limitations": "UCR analiti/birimi, güven aralığı ve analit bazlı örneklem doğrulanmadı; uygulamanın oranlarıyla karşılaştırılmaz.",
+      "studyLineage": {
+        "evidenceId": "berger-hmb-metabolic-posthoc-2026",
+        "auditDate": "2026-10-25",
+        "independentParticipantTotal": null,
+        "familyId": "hmb-icu-ch-nct03628365",
+        "linkStatus": "verified",
+        "analysisRole": {
+          "en": "Secondary post hoc biochemical analysis",
+          "tr": "İkincil post hoc biyokimyasal analiz"
+        },
+        "reportsParentRandomization": false,
+        "randomizedExposureForQuestion": true,
+        "reportedUcr": {
+          "analyteBasis": null,
+          "unitBasis": null,
+          "contrastCi": null,
+          "perAnalyteDenominators": null
+        },
+        "participantOverlap": {
+          "en": "Reuses the parent 37-person study; publication in 2026 does not add a new randomized cohort.",
+          "tr": "37 kişilik ana çalışmayı yeniden kullanır; 2026’da yayımlanması yeni randomize kohort eklemez."
+        },
+        "sourceUrls": [
+          "https://pubmed.ncbi.nlm.nih.gov/42202485/",
+          "https://pubmed.ncbi.nlm.nih.gov/34358832/",
+          "https://clinicaltrials.gov/api/v2/studies/NCT03628365"
+        ],
+        "basis": {
+          "en": "The original abstract/indexed publisher Methods cite NCT03628365 and the Viana parent; the official registry independently links both publications.",
+          "tr": "Özgün özet/indekslenen yayıncı yöntemi NCT03628365 ve Viana ana yayınına atıf verir; resmî kayıt iki yayını bağımsız olarak bağlar."
+        },
+        "family": {
+          "title": {
+            "en": "Lausanne HMB-ICU-CH",
+            "tr": "Lausanne HMB-ICU-CH"
+          },
+          "registry": {
+            "id": "NCT03628365",
+            "url": "https://clinicaltrials.gov/study/NCT03628365",
+            "access": "official-current-api"
+          },
+          "parent": {
+            "doi": "10.1016/j.clnu.2021.07.018",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/34358832/"
+          },
+          "dates": {
+            "firstSubmitted": "2018-08-07",
+            "firstPosted": "2018-08-14",
+            "actualStart": "2018-09-17"
+          },
+          "randomizationUnit": "individual-participant",
+          "note": {
+            "en": "The 2026 biochemical report reuses the Lausanne trial; it is not a new randomization. Parent enrollment was 37, with 30 completing day-15 tests. These denominators are not added together.",
+            "tr": "2026 biyokimyasal raporu Lausanne deneyini yeniden kullanır; yeni randomizasyon değildir. Ana kayıtta 37 katılım, 15. gün testlerini tamamlayan 30 kişi vardır. Bu paydalar toplanmaz."
+          },
+          "methodsNote": {
+            "en": "The reported UCR analyte/unit basis, contrast CI and per-analyte denominators were not verified from the original tables. It cannot be overlaid on this app’s urea/creatinine or BUN/creatinine output. Full text and prespecification remain incompletely reviewed.",
+            "tr": "Bildirilen UCR’nin analit/birim temeli, karşılaştırma güven aralığı ve analit başına paydalar özgün tablolardan doğrulanmadı. Uygulamanın üre/kreatinin veya BUN/kreatinin çıktısına bindirilemez. Tam metin ve önbelirleme incelemesi eksiktir."
+          },
+          "prespecificationStatus": "secondary-analysis-prespecification-not-established"
+        }
+      }
+    },
+    {
+      "id": "chan-tln01-2026",
+      "title": "Effects of a Multi-Ingredient MCT–Leucine–Creatine-Based Supplement (TLN-01) on Muscle Mass, Strength, and Plasma Amino Acid Profiles in Older Adults with Sarcopenia",
+      "year": 2026,
+      "kind": "RCT · çok bileşenli lösin/BCAA ürünü",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13514121/",
+      "doi": "10.3390/life16081334",
+      "access": "Tam metin",
+      "sampleSize": 80,
+      "sampleNote": "Tam metinde 80 randomize; 73 tamamlayan (34/39). Özet 73 kişiyi randomize diye tanımlıyor.",
+      "design": "Tek merkezli, çift kör; 8 hafta; tamamlayanlar analizi.",
+      "population": "Sarkopeni veya presarkopenisi olan ≥65 yaş erişkinler; YBÜ kohortu değildir.",
+      "primaryOutcome": "DXA ekstremite kas kütlesi farkı +0.45 kg (yüzde 95 GA 0.15–0.75); kavrama gücü farkı anlamlı değil.",
+      "summary": "Günlük ürün: 3 g lösin, toplam 6 g BCAA, 10 g whey, MCT, kreatin, D3 ve resveratrol. Kontrol izokalorik maltodekstrin; protein eşit değil.",
+      "application": "Karışım etkisi saf lösin etkisi olarak yorumlanmaz; otomatik AA eklenmez.",
+      "limitations": "Geç kayıt, asimetrik kayıp (6/1), kısa takip. Aktivite ve diyet izlenmemiş; kütle bulgusu işlevsel yararı kanıtlamaz."
+    },
+    {
+      "id": "lace-leucine-2022",
+      "title": "Effect of perindopril or leucine on physical performance in older people with sarcopenia: the LACE randomized controlled trial",
+      "year": 2022,
+      "kind": "RCT · saf lösin",
+      "url": "https://onlinelibrary.wiley.com/doi/10.1002/jcsm.12934",
+      "doi": "10.1002/jcsm.12934",
+      "access": "Tam metin",
+      "sampleSize": 145,
+      "sampleNote": "14 merkez; planlanan 440 yerine 145 randomize.",
+      "design": "Çift kör, plasebo kontrollü 2×2 faktöriyel; 12 ay.",
+      "population": "Sarkopenili ≥70 yaş erişkinler; genel YBÜ/akut inme çalışması değildir.",
+      "primaryOutcome": "Lösinin SPPB etkisi +0.1 puan (yüzde 95 GA −1.0–1.1; p=0.90). Kas kütlesi faydası gösterilmedi.",
+      "summary": "Lösin 2.5 g, günde üç kez; kontrol laktoz tozu. Perindopril/plasebo bağımsız randomize edildi.",
+      "application": "Saf lösin ile klinik işlev yararının gösterildiği varsayılmaz.",
+      "limitations": "Yavaş alım nedeniyle erken durdurma ve sınırlı güç; medyan uyum yaklaşık yüzde 76. Karışım ürünlerin etkisine veya akut hastaya doğrudan genellenmez."
+    },
+    {
+      "id": "sunsandee-bcaa-ckd-2025",
+      "title": "Anti-sarcopenic effect of leucine-enriched branched-chain amino acid supplementation among elderly chronic kidney disease patients: a double-blinded randomized controlled trial",
+      "year": 2025,
+      "kind": "RCT · lösinden zengin BCAA karışımı",
+      "url": "https://link.springer.com/article/10.1007/s11255-025-04560-9",
+      "doi": "10.1007/s11255-025-04560-9",
+      "access": "Özet",
+      "sampleSize": 55,
+      "sampleNote": "BCAA 29, plasebo 26 hasta.",
+      "design": "Çift kör randomize kontrollü; 12 hafta.",
+      "population": "Kronik böbrek hastalığı bulunan >65 yaş erişkinler.",
+      "primaryOutcome": "Yağsız kütle değişimi +0.4 kg (yüzde 95 GA 0.1–0.7) ve −0.2 kg (−0.6–0.2); p=0.010. Güç/işlev yararı gösterilmedi.",
+      "summary": "Günde lösin 4.5 g, valin 1.5 g ve izolösin 1.5 g. Günlük enerji/protein alımı benzer bildirilmiş.",
+      "application": "Böbrek hastalığına özgü küçük çalışma; motor renal hastaya otomatik BCAA eklemez.",
+      "limitations": "Saf lösin değildir. Benzer bildirilen alım, tasarımda azot/enerji eşitlemesiyle aynı değildir. Tam yöntem/plasebo bileşimi okunamadı; kütle sonucu genel klinik yarar değildir."
+    },
+    {
+      "id": "nakagawa-stroke-leaa-2024",
+      "title": "Effects of Nutritional Support with a Leucine-Enriched Essential Amino Acid Supplement on Body Composition, Muscle Strength, and Physical Function in Stroke Patients Undergoing Rehabilitation",
+      "year": 2024,
+      "kind": "RCT · inme rehabilitasyonunda bileşik destek",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11679282/",
+      "doi": "10.3390/nu16244264",
+      "access": "Tam metin",
+      "sampleSize": 60,
+      "sampleNote": "65 taranan; bildirilen iki grup 31/29. Metnin çekilme ifadesi sayısal akışı belirsiz bırakıyor.",
+      "design": "Tek merkezli paralel randomize çalışma; 3 ay.",
+      "population": "Bağımsız yürüyebilen, motor etkilenimi olan inme sonrası rehabilitasyon ayaktan hastaları.",
+      "primaryOutcome": "Kas kütlesi, güç ve motor işlevde anlamlı gruplar arası yarar yok; BKİ ve kemik mineral içeriğinde fark bildiriliyor.",
+      "summary": "Her iki grupta direnç egzersizi. Ek ürün: egzersiz sonrası 100 kcal, 10 g protein, 2.5 g BCAA/1.4 g lösin ve 20 mikrogram D vitamini.",
+      "application": "Saf AA etkisi veya yatan akut inme protokolü olarak kullanılmaz.",
+      "limitations": "Enerji/protein/D vitamini eşitlenmiş kontrol yok. Küçük örneklem ve çoklu ölçüt; BKİ yararı kas ya da işlev yararı değildir."
+    },
+    {
+      "id": "wu-icu-hmb-2025",
+      "title": "Resistance training and β-hydroxy-β-methylbutyrate for functional recovery in critical illness: a multicenter 2×2 factorial randomized trial",
+      "year": 2025,
+      "kind": "RCT · YBÜ HMB ve direnç egzersizi",
+      "url": "https://link.springer.com/article/10.1186/s13054-025-05660-9",
+      "doi": "10.1186/s13054-025-05660-9",
+      "access": "Tam metin",
+      "sampleSize": 266,
+      "sampleNote": "5 hastanede 10 YBÜ; dört kol; 266 ITT hastası, aynı protokoldeki önceki 112 kişiyi içerir.",
+      "design": "Açık etiketli 2×2 faktöriyel; kör sonuç değerlendiricileri.",
+      "population": "Komut izleyebilen erişkin YBÜ hastaları; uzun süreli etkilenim beklenen akut beyin hasarı dışlanmış.",
+      "primaryOutcome": "HMB için taburculuk SPPB farkı +0.282 (yüzde 95 GA −0.599–1.162); 6 dakika yürüme +10.170 m (−22.450–42.788): anlamlı değil.",
+      "summary": "Kalsiyum-HMB 1.5 g günde iki kez, oral/enteral. Egzersiz faktörü bağımsız randomize; HMB–egzersiz etkileşimi gösterilmedi.",
+      "application": "HMB lösin metabolitidir, aminoasit değildir. Egzersizin yararı HMB’ye atfedilmez; otomatik ekleme yapılmaz.",
+      "limitations": "Enerji/protein hedefleri ortak fakat eşitleyen plasebo yok. Açık bakım, değişken kısa maruziyet ve eksik takip; nöro-YBÜ’ye genellenebilirlik sınırlı.",
+      "studyLineage": {
+        "evidenceId": "wu-icu-hmb-2025",
+        "auditDate": "2026-10-25",
+        "independentParticipantTotal": null,
+        "familyId": "hmb-rt-chictr2200057685",
+        "linkStatus": "verified",
+        "analysisRole": {
+          "en": "Expanded factorial randomized trial report",
+          "tr": "Genişletilmiş faktöriyel randomize deney yayını"
+        },
+        "reportsParentRandomization": true,
+        "randomizedExposureForQuestion": true,
+        "includesEarlierParticipants": {
+          "n": 112,
+          "reportDoi": "10.1186/s13054-023-04698-x",
+          "reportUrl": "https://link.springer.com/article/10.1186/s13054-023-04698-x"
+        },
+        "participantOverlap": {
+          "en": "266 includes the earlier 112; the two publications are not independent samples. HMB and resistance-training factors remain distinct.",
+          "tr": "266 kişi önceki 112’yi içerir; iki yayın bağımsız örneklem değildir. HMB ve direnç egzersizi faktörleri ayrı tutulur."
+        },
+        "sourceUrls": [
+          "https://link.springer.com/article/10.1186/s13054-025-05660-9",
+          "https://link.springer.com/article/10.1186/s13054-023-04698-x",
+          "https://www.chictr.org.cn/hvshowproject.html?id=202250&v=1.1"
+        ],
+        "basis": {
+          "en": "Original methods explicitly state the same registration/protocol and the included earlier participants. Registry access itself was indexed only.",
+          "tr": "Özgün yöntem aynı kayıt/protokolü ve içerilen önceki katılımcıları açıkça belirtir. Kayıt sayfasına erişim yalnız indeks düzeyindeydi."
+        },
+        "family": {
+          "title": {
+            "en": "Fujian HMB and resistance training",
+            "tr": "Fujian HMB ve direnç egzersizi"
+          },
+          "registry": {
+            "id": "ChiCTR2200057685",
+            "url": "https://www.chictr.org.cn/hvshowproject.html?id=202250&v=1.1",
+            "access": "indexed-official-record"
+          },
+          "parent": {
+            "doi": "10.1186/s13054-025-05660-9",
+            "url": "https://link.springer.com/article/10.1186/s13054-025-05660-9"
+          },
+          "dates": {
+            "registered": "2022-03-15"
+          },
+          "randomizationUnit": "individual-four-arm-factorial",
+          "note": {
+            "en": "10 ICUs in 5 hospitals. The expanded 266-person report includes 112 participants from the earlier report under the same protocol/registration; do not count 378 independent participants. This is distinct from Lausanne HMB-ICU-CH.",
+            "tr": "5 hastanede 10 YBÜ. Genişletilmiş 266 kişilik yayın aynı protokol/kayıttaki önceki 112 kişiyi içerir; 378 bağımsız katılımcı sayılmaz. Lausanne HMB-ICU-CH’den ayrıdır."
+          },
+          "methodsNote": {
+            "en": "The original papers explicitly identify the registration and overlap. The official registry was available as indexed text only; its full history and the protocol amendment chronology were not appraised.",
+            "tr": "Özgün yayınlar kayıt numarasını ve örtüşmeyi açıkça belirtir. Resmî kayda yalnız indekslenen metinle erişildi; tam kayıt geçmişi ve protokol değişikliği kronolojisi değerlendirilmedi."
+          },
+          "prespecificationStatus": "expanded-report-amendment-chronology-incomplete"
+        }
+      }
+    },
+    {
+      "id": "wulandari-icu-bcaa-print-2026",
+      "title": "High leucine branched-chain amino acids supplementation ameliorates quadriceps femoris muscle thickness reduction and attenuates interleukin-6 in critically ill patients: A randomised controlled trial",
+      "year": 2026,
+      "onlineDate": "2025-11-29",
+      "printDate": "2026-04",
+      "kind": "Küçük iki merkezli RCT; keşifsel yorum",
+      "url": "https://doi.org/10.1016/j.clnesp.2025.11.153",
+      "doi": "10.1016/j.clnesp.2025.11.153",
+      "access": "İndekslenen özgün yöntem/sonuç ve güncel resmî kayıt; kısmi erişim",
+      "accessNote": "24 Ekim özgün indekslenen bölümler; 26 Ekim güncel resmî API okundu. Yeni VETİS aramasında kurum erişimi tanındı; makale açılışı tarayıcı güvenlik denetimince reddedildi. Tam ana metin, akış/ek/SAP ve geçmiş incelenmedi.",
+      "sampleSize": 40,
+      "sampleNote": "40 analiz, kas için N36, bildirilen kayıp %33; ilk randomize N ve kol akışı bilinmiyor. Kayıttaki gerçek 40 ayrı bir katılım alanıdır. Çevrimiçi 2025, sayı 2026.",
+      "design": "10 gün; makale çift, güncel kayıt dört kör der. Kayıt kontrol açıklamasında plasebo yoktur; körleme yöntemi doğrulanmadı.",
+      "population": "Güncel kayıt: 18–65 yaş; sağ quadriceps femoris paralizisi olan nöromüsküler hastalık dışlanır. Son kohortun tam akışı doğrulanmadı.",
+      "primaryOutcome": "Kas kalınlığı değişimi %0/−13 (p=0,001); IL-6 −59,1/126,5 pg/mL (p=0,012).",
+      "summary": "BCAA enteral/kısmi parenteral; protein 1,8/0,9 g/kg/gün, enerji 23/19 kcal/kg/gün. İki grupta NMES.",
+      "application": "Saf lösin yararı veya otomatik doz kuralı çıkarılmaz.",
+      "limitations": "Küçük örneklem, kayıp ve eşitlenmemiş enerji/protein; vekil sonuçlar. mg/g ve kayıt içindeki azot/protein–protein dışı kalori ifadeleri çözümlenmedi. Güncel kayıt özgün akış veya son analiz önbelirlenimini doğrulamaz; reçete türetilmez.",
+      "studyLineage": {
+        "evidenceId": "wulandari-icu-bcaa-print-2026",
+        "auditDate": "2026-10-26",
+        "independentParticipantTotal": null,
+        "familyId": "wulandari-bcaa-nct06167772",
+        "linkStatus": "indexed-original-registration-corroborated-by-current-registry",
+        "analysisRole": {
+          "en": "Reported randomized BCAA-enriched nutritional strategy; original flow unverified",
+          "tr": "Bildirilen randomize BCAA ile zenginleştirilmiş beslenme stratejisi; özgün akış doğrulanmadı"
+        },
+        "reportsParentRandomization": true,
+        "randomizedExposureForQuestion": true,
+        "randomizedExposureScope": "supplemented-nutrition-versus-standard-nutrition-with-common-NMES",
+        "isolatedLeucineEffectRandomized": false,
+        "participantCounts": {
+          "randomized": null,
+          "randomizedArms": null,
+          "reportedAnalyzed": 40,
+          "reportedMuscleThicknessN": 36,
+          "reportedAttritionPercent": 33,
+          "currentRegistryActual": 40
+        },
+        "outcomeDenominators": {
+          "perArmAndTime": null,
+          "lossReasonsAndTiming": null,
+          "analysisPopulationDefinition": null
+        },
+        "interventionVerification": {
+          "articleMgGramConflictResolved": false,
+          "actualRouteSpecificDoseVerified": false,
+          "individualDoseValidated": false
+        },
+        "participantOverlap": {
+          "en": "One existing report and registry association, not another trial or 80 independent patients. Analyzed 40, muscle N36 and current enrollment 40 are separately sourced quantities. Randomized N, allocated arm counts, loss flow and cross-report overlap remain unknown; do not reverse-calculate from 33% reported losses.",
+          "tr": "Mevcut tek yayın ile kayıt ilişkisi vardır; ek deney veya 80 bağımsız hasta değildir. Analiz 40, kas N36 ve güncel katılım 40 ayrı kaynaklı sayılardır. Randomize N, ilk kol sayıları, kayıp akışı ve yayınlar arası örtüşme bilinmiyor; bildirilen %33 kayıptan ters hesap yapılmaz."
+        },
+        "sourceUrls": [
+          "https://doi.org/10.1016/j.clnesp.2025.11.153",
+          "https://clinicaltrials.gov/api/v2/studies/NCT06167772"
+        ],
+        "basis": {
+          "en": "Original access remains indexed Methods/Results and registration text. A fresh authorized VETIS search recognized institutional access and found one exact-DOI result, but article navigation was rejected by browser security policy; no bypass or full-text claim followed. The current official API was directly archived on 26 October. Current registry labels are not a read original flow, dated SAP or historical outcome comparison.",
+          "tr": "Özgün erişim indekslenen yöntem/sonuç ve kayıt metni düzeyindedir. Yeni yetkili VETİS araması kurum erişimini tanıdı ve DOI için tek sonuç verdi; makaleye geçiş tarayıcı güvenlik denetimince reddedildi. Erişim aşılmadı ve tam metin okunmuş sayılmadı. Güncel resmî API 26 Ekim'de doğrudan arşivlendi. Güncel kayıt etiketleri okunmuş özgün akış, tarihli SAP veya tarihsel sonuç karşılaştırması değildir."
+        },
+        "family": {
+          "title": {
+            "en": "Wulandari · BCAA-enriched nutrition",
+            "tr": "Wulandari · BCAA ile zenginleştirilmiş beslenme"
+          },
+          "registry": {
+            "id": "NCT06167772",
+            "url": "https://clinicaltrials.gov/study/NCT06167772",
+            "access": "official-current-api-raw-response",
+            "historicalVersionsCompared": false,
+            "enrollment": {
+              "n": 40,
+              "type": "actual"
+            },
+            "structuredResultsPosted": false,
+            "documentSectionAvailable": false
+          },
+          "parent": {
+            "doi": "10.1016/j.clnesp.2025.11.153",
+            "url": "https://doi.org/10.1016/j.clnesp.2025.11.153",
+            "access": "indexed-original-methods-results-only"
+          },
+          "studyDesign": "randomized-parallel-as-currently-registered",
+          "randomizationUnit": null,
+          "dates": {
+            "firstSubmitted": "2023-12-04",
+            "firstSubmissionMeetingQc": "2023-12-04",
+            "firstPosted": "2023-12-13",
+            "actualStart": "2023-12-14",
+            "actualPrimaryCompletion": "2024-05-10",
+            "actualCompletion": "2024-05-10",
+            "lastRegistryUpdatePosted": "2024-07-23",
+            "resultsOnline": "2025-11-29",
+            "resultsIssue": "2026-04"
+          },
+          "note": {
+            "en": "The indexed original registration statement names NCT06167772; the current official registry links the matching DOI as a derived reference. Its 40 actual enrollment does not establish the original randomized count or replace the reported 40 analyzed and 36 muscle observations. Public posting precedes the currently recorded start by one day; archived content and final prespecification remain unread.",
+            "tr": "İndekslenen özgün kayıt bildirimi NCT06167772'yi adlandırır; güncel resmî kayıt eşleşen DOI'yi türetilmiş atıf olarak bağlar. Gerçek katılım 40, ilk randomizasyon sayısını doğrulamaz; bildirilen 40 analiz ve 36 kas gözleminin yerine geçmez. İlk kamu kaydı güncel başlangıçtan bir gün öncedir; arşiv içerik ve son önbelirleme okunmadı."
+          },
+          "methodsNote": {
+            "en": "The article is labelled double-blind, the current registry quadruple, while its placebo-comparator category explicitly describes no placebo. The masking procedure remains unresolved. Common NMES and unequal achieved protein/energy prevent an isolated-leucine interpretation. Registry gram wording does not repair the article mg/g inconsistency; nitrogen/protein-to-nonprotein-calorie wording also differs internally. Original main text/flow, supplement, protocol/SAP and history remain unread.",
+            "tr": "Makale çift, güncel kayıt dört kör olarak etiketlidir; kayıttaki plasebo karşılaştırıcı kategorisinin açıklaması plasebo olmadığını söyler. Körleme yöntemi çözümlenmedi. Ortak NMES ve eşitlenmemiş gerçekleşen protein/enerji, saf lösin yorumu sağlamaz. Kaydın gram ifadeleri makaledeki mg/g tutarsızlığını düzeltmez; azot/protein–protein dışı kalori ifadeleri de kayıt içinde farklıdır. Özgün tam ana metin/akış, ek, protokol/SAP ve geçmiş okunmadı."
+          },
+          "prespecificationStatus": "current-public-posting-before-start-historical-content-and-final-analysis-unverified"
+        }
+      }
+    },
+    {
+      "id": "veldsman-icu-aa-mobilization-print-2026",
+      "title": "Combined intravenous bolus amino acid supplementation and mobilization on early muscle loss in critically ill adults: A randomized controlled trial",
+      "year": 2026,
+      "onlineDate": "2025-12-31",
+      "printDate": "2026-02",
+      "kind": "Küçük tek merkezli RCT; birleşik müdahale",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12865756/",
+      "doi": "10.1002/jpen.70041",
+      "access": "Özgün açık ana metin ve güncel resmî kayıt",
+      "accessNote": "26 Ekim 2026: özgün ana yöntem/sonuç, HTML Tablo 1–3 ve güncel resmî kayıt incelendi. S1/SAP, diğer ekler, akış görüntüsü ve kayıt geçmişi okunmadı. VETİS kullanılmadı.",
+      "sampleSize": 50,
+      "sampleNote": "53 randomize; iki erken ölüm ve bir onam çekilmesi sonrası 50 mITT (25/25). Kayıtta 50 gerçek katılım; sonuç başına ölçüm sayıları doğrulanmadı. Çevrimiçi 2025, sayı 2026.",
+      "design": "ProMob-ICU; açık paralel RCT, seçilmiş kör sonuç değerlendirmeleri. İki kolda rutin mobilizasyon; ek IV AA ve bisiklet birlikte.",
+      "population": "Genç ağırlıklı cerrahi/travma YBÜ; akut faz.",
+      "primaryOutcome": "Ortalama 2.–8. gün biyopsi/ultrason kas alanında grup×zaman p=0,91/0,70; üstünlük gösterilmedi. Kol/zaman ortalama GA, tedavi etkisi GA değildir.",
+      "summary": "3–4. günden dört saatlik IV AA infüzyonu ve 45 dk/gün bisiklet. Bildirilen toplam protein 1,57±0,27/1,23±0,18 g/kg/gün; AA gramı protein eşdeğeriyle aynı sayılmaz.",
+      "application": "AA etkisi egzersizden ayrılamaz; otomatik takviye üretilmez.",
+      "limitations": "Küçük tek merkez ve seçilmiş cerrahi/travma kohortu. Önceki EE yayını aynı kohorttur; ek hasta değildir. S1/SAP ve arşiv okunmadı; alfa/çoklu test ifadeleri çelişir. Anlamsız sonuç eşdeğerlik veya metabolik sınıf doğrulamaz.",
+      "studyLineage": {
+        "evidenceId": "veldsman-icu-aa-mobilization-print-2026",
+        "auditDate": "2026-10-26",
+        "independentParticipantTotal": null,
+        "familyId": "promob-icu-nct04099108",
+        "linkStatus": "verified",
+        "analysisRole": {
+          "en": "Original randomized combined AA-plus-cycling strategy report",
+          "tr": "Özgün randomize AA ve bisiklet birleşik strateji yayını"
+        },
+        "reportsParentRandomization": true,
+        "randomizedExposureForQuestion": true,
+        "randomizedExposureScope": "additional-iv-amino-acids-and-cycling-over-nutrition-and-routine-mobilization",
+        "isolatedAminoAcidEffectRandomized": false,
+        "participantCounts": {
+          "screened": 649,
+          "eligibleApproached": 71,
+          "randomized": 53,
+          "randomizedArms": null,
+          "modifiedITT": 50,
+          "modifiedITTArms": {
+            "standardCare": 25,
+            "intervention": 25
+          },
+          "excludedAfterRandomization": 3,
+          "earlyDeaths": 2,
+          "consentWithdrawals": 1,
+          "exclusionArmAttribution": null,
+          "currentRegistryActual": 50
+        },
+        "outcomeDenominators": {
+          "biopsyPairedByArm": null,
+          "ultrasoundPairedByArm": null,
+          "secondaryModels": null
+        },
+        "outcomeScope": {
+          "primaryMeasurements": [
+            "VL-biopsy-myofiber-CSA",
+            "RF-ultrasound-CSA"
+          ],
+          "reportedAveragePreIcuDay": 2,
+          "reportedAveragePostIcuDay": 8,
+          "individualMatchedTimesVerified": false,
+          "isolatedAminoAcidBenefitValidated": false,
+          "metabolicClassifierValidated": false,
+          "individualDoseValidated": false
+        },
+        "relatedReports": [
+          {
+            "doi": "10.1016/j.clnesp.2024.11.009",
+            "relation": "explicit-same-cohort-energy-expenditure-report",
+            "originalTextReviewed": false,
+            "participantOverlapCount": null
+          }
+        ],
+        "participantOverlap": {
+          "en": "One ProMob-ICU trial, distinct from NEXIS. The main report identifies the earlier energy-expenditure publication as this cohort; it does not add independent participants. Fifty mITT participants (25/25) follow 53 randomized, with two early deaths and one consent withdrawal. Original randomized arm counts and outcome-specific Ns remain unknown.",
+          "tr": "NEXIS'ten ayrı tek ProMob-ICU deneyidir. Ana metin önceki enerji harcaması yayınını bu kohort diye tanımlar; ek bağımsız katılımcı oluşturmaz. 53 randomize kişiden iki erken ölüm ve bir onam çekilmesi sonrası 50 mITT (25/25) vardır. İlk randomizasyon kol sayıları ve sonuç başına ölçüm sayıları bilinmiyor."
+        },
+        "sourceUrls": [
+          "https://pmc.ncbi.nlm.nih.gov/articles/PMC12865756/",
+          "https://clinicaltrials.gov/api/v2/studies/NCT04099108",
+          "https://doi.org/10.1016/j.clnesp.2024.11.009"
+        ],
+        "basis": {
+          "en": "Original main Methods name ProMob-ICU/NCT04099108; the current official registry corroborates identity and prospective study-registration chronology. The same-cohort EE report is a verified citation, not a separately read original. Average day-2/day-8 primary measurements are distinct from the intervention-only three-timepoint plasma-AA secondary question. Main Tables 1–3 were reviewed; supplement/SAP/history and flow image were not. Arm/time mean CIs are not reconstructed as treatment-effect CIs.",
+          "tr": "Özgün ana yöntem ProMob-ICU/NCT04099108'i adlandırır; güncel resmî kayıt kimliği ve prospektif çalışma kaydı kronolojisini destekler. Aynı kohortun EE yayını doğrulanmış atıftır; özgün metni ayrıca okunmadı. Ortalama 2./8. gün birincil ölçümler, yalnız müdahale kolunun üç zamanlı plazma AA ikincil sorusundan ayrıdır. Ana Tablo 1–3 incelendi; ek/SAP/geçmiş ve akış görüntüsü okunmadı. Kol/zaman ortalama GA'larından tedavi etkisi GA'sı türetilmez."
+        },
+        "family": {
+          "title": {
+            "en": "ProMob-ICU · additional amino acids and cycling",
+            "tr": "ProMob-ICU · ek aminoasit ve bisiklet"
+          },
+          "registry": {
+            "id": "NCT04099108",
+            "url": "https://clinicaltrials.gov/study/NCT04099108",
+            "access": "official-current-api-selected-fields",
+            "historicalVersionsCompared": false,
+            "enrollment": {
+              "n": 50,
+              "type": "actual"
+            },
+            "structuredResultsPosted": false,
+            "documentSectionAvailable": false
+          },
+          "parent": {
+            "doi": "10.1002/jpen.70041",
+            "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12865756/",
+            "access": "original-main-methods-results-html-tables-1-3"
+          },
+          "randomizationUnit": "individual-participant",
+          "dates": {
+            "firstSubmitted": "2019-09-18",
+            "firstSubmissionMeetingQc": "2019-09-18",
+            "firstPosted": "2019-09-23",
+            "actualStart": "2021-05-24",
+            "reportedRecruitmentStart": "2021-05",
+            "reportedRecruitmentEnd": "2022-09",
+            "actualPrimaryCompletion": "2022-09-09",
+            "actualCompletion": "2022-12-31",
+            "lastRegistryUpdatePosted": "2025-12-03",
+            "resultsOnline": "2025-12-31",
+            "resultsIssue": "2026-02"
+          },
+          "protocolLead": {
+            "label": "S1 study protocol",
+            "fileLabel": "JPEN-50-170-s001.pdf",
+            "access": "main-article-link-and-label-only",
+            "originalTextReviewed": false,
+            "sapVerified": false
+          },
+          "note": {
+            "en": "Single-centre combined strategy: both arms received nutrition and routine mobilization; additional IV amino acids and cycling were assigned together. Public registration preceded the recorded start. The current registry actual enrollment of 50 does not replace the article's 53 randomized participants.",
+            "tr": "Tek merkezli birleşik strateji: iki kolda beslenme ve rutin mobilizasyon vardı; ek IV aminoasit ve bisiklet birlikte atandı. Kamu kaydı bildirilen başlangıçtan öncedir. Güncel kaydın gerçek 50 katılımı, makaledeki 53 randomize kişinin yerine geçmez."
+          },
+          "methodsNote": {
+            "en": "The main article is open-label with selected blinded outcome assessments; the current registry labels outcome-assessor masking. S1/SAP, other supplements, flow image and archived registry versions are unread. Outcome-specific paired/model counts remain unverified. Alpha-allocation and secondary multiplicity statements conflict within the main report; no testing sequence is silently repaired or formal bias grade assigned.",
+            "tr": "Ana makale açık etiketlidir; seçilmiş sonuç değerlendirmeleri kördür ve güncel kayıt sonuç değerlendiricisi körlüğünü etiketler. S1/SAP, diğer ekler, akış görüntüsü ve arşiv kayıtları okunmadı. Sonuç başına eşleşmiş/model sayıları doğrulanmadı. Ana metindeki alfa dağılımı ve ikincil çoklu karşılaştırma ifadeleri çelişir; test sırası sessizce düzeltilmez ve biçimsel yanlılık puanı verilmez."
+          },
+          "prespecificationStatus": "public-study-registration-before-start-final-protocol-sap-history-unreviewed"
+        }
+      }
+    },
+    {
+      "id": "engine-aki-pcr-posthoc-2026",
+      "title": "Protein requirements and determinants of protein catabolic rate in critically ill patients with acute kidney injury: A post hoc analysis of the ENGINE randomized controlled trial",
+      "year": 2026,
+      "onlineDate": "2026-08-21",
+      "printDate": "2026-10",
+      "kind": "ENGINE post hoc analizi; keşifsel ilişki",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/42628743/",
+      "doi": "10.1016/j.clnesp.2026.105039",
+      "access": "Özgün özet ve indekslenen yayıncı bölüm parçaları; kısmi erişim",
+      "accessNote": "İndekslenen ana çalışma yöntemleri ve güncel resmî kayıt okundu; tam 2026 metni, PCR denklem eki ve tarihli analiz planı incelenmedi.",
+      "sampleSize": 78,
+      "sampleNote": "80 kişilik ENGINE içinde 78 analiz; iki eksik idrar toplaması dışlandı. Medyan yaş 71; %80 AKI evre 1–2.",
+      "design": "ENGINE (NCT06238674) açık RCT’sinin post hoc analizi; 72. saatte 24 saatlik UUN.",
+      "population": "Akut böbrek hasarlı kritik erişkinler.",
+      "primaryOutcome": "Ortalama PCR 1,15±0,42 g/kg/gün. Gerçekleşen protein 0,8–1,2/<0,8 g/kg/gün için mortalite aHR 0,29 (%95 GA 0,08–1,06; p=0,062).",
+      "summary": "Ana randomizasyon kalorimetri+azot dengesi rehberli birleşik stratejiydi; gerçekleşen alıma göre mortalite karşılaştırması randomize değildir.",
+      "application": "PCR ortalaması bireysel doz hedefi değildir; serum üresi veya UUN+4 bu ölçümle eşitlenmez. Otomatik doz çıkarılmaz.",
+      "limitations": "GA 1’i kapsar; nedensellik kurulmaz. PCR denklemi ve tarihli analiz önbelirlenimi doğrulanmadı. Kamuya açık kayıt geriye dönük; makale/kayıt başlangıç tarihleri farklı.",
+      "studyLineage": {
+        "evidenceId": "engine-aki-pcr-posthoc-2026",
+        "auditDate": "2026-10-25",
+        "independentParticipantTotal": null,
+        "familyId": "engine-aki-nct06238674",
+        "linkStatus": "verified",
+        "analysisRole": {
+          "en": "Secondary post hoc PCR and achieved-intake analysis",
+          "tr": "İkincil post hoc PCR ve gerçekleşen alım analizi"
+        },
+        "reportsParentRandomization": false,
+        "randomizedExposureForQuestion": false,
+        "participantCounts": {
+          "parentEnrolled": 80,
+          "secondaryAnalyzed": 78,
+          "excludedIncompleteUrineCollections": 2
+        },
+        "analysisContrast": "nonrandom-achieved-intake-association",
+        "pcrMethodVerification": {
+          "equationVerified": false,
+          "parentEquationLocator": "Supplementary Fig. 1S",
+          "renalKineticHandlingVerified": false,
+          "individualDoseTargetValidated": false
+        },
+        "participantOverlap": {
+          "en": "78 analyzed from the 80-person parent; two incomplete urine collections were excluded. No new randomization or independent cohort is added. Achieved-intake mortality categories are observational within the randomized study.",
+          "tr": "80 kişilik ana çalışmadan 78 kişi analiz edildi; eksik idrar toplaması bulunan iki kişi çıkarıldı. Yeni randomizasyon veya bağımsız kohort eklenmez. Gerçekleşen alıma göre mortalite kategorileri, randomize çalışma içinde gözlemseldir."
+        },
+        "sourceUrls": [
+          "https://pubmed.ncbi.nlm.nih.gov/42628743/",
+          "https://www.sciencedirect.com/science/article/abs/pii/S2405457726021364",
+          "https://api.crossref.org/works/10.1016%2Fj.clnesp.2026.105039",
+          "https://www.nature.com/articles/s41598-025-97443-z",
+          "https://clinicaltrials.gov/api/v2/studies/NCT06238674"
+        ],
+        "basis": {
+          "en": "Original 2026 Introduction reference 13 and publisher-deposited Crossref bib13 identify the parent DOI; original parent Methods explicitly name NCT06238674. Complete 2026 methods and the PCR-equation supplement were not read.",
+          "tr": "Özgün 2026 girişinin 13. kaynağı ve yayıncının Crossref’e yatırdığı bib13 ana DOI’yi verir; özgün ana yöntem NCT06238674’ü açıkça adlandırır. 2026’nın tam yöntemi ve PCR denklemi eki okunmadı."
+        },
+        "family": {
+          "title": {
+            "en": "ENGINE · combined AKI nutrition strategy",
+            "tr": "ENGINE · AKI’de birleşik beslenme stratejisi"
+          },
+          "registry": {
+            "id": "NCT06238674",
+            "url": "https://clinicaltrials.gov/study/NCT06238674",
+            "access": "official-current-api",
+            "historicalVersionsCompared": false
+          },
+          "parent": {
+            "doi": "10.1038/s41598-025-97443-z",
+            "url": "https://www.nature.com/articles/s41598-025-97443-z",
+            "access": "indexed-original-methods"
+          },
+          "dates": {
+            "firstSubmitted": "2024-01-07",
+            "firstPosted": "2024-02-02",
+            "actualStart": "2023-03-07",
+            "reportedStudyStart": "2023-02-04",
+            "reportedStudyEnd": "2024-01-30"
+          },
+          "randomizationUnit": "individual-participant",
+          "registrationTiming": "first-public-posting-after-reported-conduct",
+          "note": {
+            "en": "The parent randomized strategy combined indirect-calorimetry energy guidance and nitrogen-balance-guided protein versus usual care. The 2026 achieved-intake association is not the randomized treatment contrast. Public registration followed the reported study interval.",
+            "tr": "Ana randomize strateji, indirekt kalorimetriyle enerji ve azot dengesiyle protein rehberliğini olağan bakımla karşılaştırır. 2026’daki gerçekleşen alım ilişkisi randomize tedavi karşılaştırması değildir. Kamuya açık kayıt, bildirilen çalışma döneminden sonradır."
+          },
+          "methodsNote": {
+            "en": "The paper starts on 4 February 2023; the current registry starts on 7 March 2023. The discrepancy is unresolved. Exact PCR coefficients, weight normalization and renal kinetic handling remain unverified; the parent refers to unread Supplementary Fig. 1S. Access was indexed original passages and current registry/reference metadata, not complete 2026 full text or a dated SAP. Author-reported prespecification was not independently verified.",
+            "tr": "Makale 4 Şubat 2023, güncel kayıt 7 Mart 2023 başlangıcı verir; fark çözümlenmedi. PCR katsayıları, ağırlıkla normalizasyon ve renal kinetik işleme doğrulanmadı; ana yayın okunmamış Ek Şekil 1S’ye yönlendirir. İndekslenen özgün bölümler ve güncel kayıt/kaynakça metadatası okundu; 2026 tam metni veya tarihli SAP tam incelenmedi. Yazarın önbelirleme beyanı bağımsız doğrulanmadı."
+          },
+          "prespecificationStatus": "author-reported-posthoc-prespecification-not-independently-verified"
+        }
+      }
+    },
+    {
+      "id": "nexis-aa-cycling-2026",
+      "title": "Nutrition and Exercise in Critical Illness (NEXIS) trial: randomized trial of combined in-bed cycling and intravenous amino acid plus usual care",
+      "year": 2026,
+      "onlineDate": "2026-07-13",
+      "printDate": null,
+      "kind": "Çok merkezli faz 2 RCT; birleşik müdahale",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/42438140/",
+      "doi": "10.1093/ajrccm/aamag287",
+      "access": "Özgün PubMed ve yayıncı özeti; tam metin incelenmedi",
+      "accessNote": "13 Temmuz 2026 çevrimiçi; basılı sayı doğrulanmadı. Yayıncı özet sayfası açıldı.",
+      "sampleSize": 115,
+      "sampleNote": "115 randomize (60/55); planlanan 128 değerlendirilebilir hasta.",
+      "design": "Faz 2; ITT; kör birincil sonuç değerlendirmesi.",
+      "population": "Akut solunum yetmezliği; >%90 mekanik ventilasyon.",
+      "primaryOutcome": "Taburculuk 6 dakika yürüme farkı 10 m (%95 GA −75–84; p=0,51).",
+      "summary": "Erken IV AA+bisiklet; gerçekleşen protein 1,9±0,6/0,9±0,6 g/kg/gün; bisiklet 40±7/0 dk/gün.",
+      "application": "Birleşik yaklaşımda işlevsel üstünlük gösterilmedi; otomatik AA kuralı çıkarılmaz.",
+      "limitations": "Yavaş katılımla erken durdu; geniş GA, AA/egzersiz etkisi ayrılamaz; eşdeğerlik göstermez. Güncel NCT03021902 kaydı primer sistemik nöromüsküler hastalık, motor etkili intrakraniyal/spinal süreç, yalnız hava yolu koruması için entübasyon ve KRT’siz AKI’yi dışlar; bunlar doğrulanmış nihai kohort özellikleri değildir.",
+      "studyLineage": {
+        "evidenceId": "nexis-aa-cycling-2026",
+        "auditDate": "2026-10-25",
+        "independentParticipantTotal": null,
+        "familyId": "nexis-nct03021902",
+        "linkStatus": "verified",
+        "analysisRole": {
+          "en": "Parent combined-intervention randomized report",
+          "tr": "Ana birleşik müdahale randomize yayını"
+        },
+        "reportsParentRandomization": true,
+        "randomizedExposureForQuestion": true,
+        "participantOverlap": {
+          "en": "115 randomized; protocol/registry are related documents, not new independent trials. A separate study adapting NEXIS cycling is not assumed to share its cohort.",
+          "tr": "115 randomize; protokol/kayıt ilişkili belgelerdir, yeni bağımsız deney değildir. NEXIS bisiklet yöntemini uyarlayan ayrı bir çalışmanın aynı kohortu kullandığı varsayılmaz."
+        },
+        "sourceUrls": [
+          "https://pubmed.ncbi.nlm.nih.gov/42438140/",
+          "https://clinicaltrials.gov/api/v2/studies/NCT03021902",
+          "https://bmjopen.bmj.com/content/9/7/e027893"
+        ],
+        "basis": {
+          "en": "Original abstract names NCT03021902; official registry links both result and protocol. Indexed original protocol passages describe individual allocation.",
+          "tr": "Özgün özet NCT03021902’yi adlandırır; resmî kayıt sonuç ve protokolü bağlar. İndekslenen özgün protokol bölümleri bireysel atamayı tanımlar."
+        },
+        "family": {
+          "title": {
+            "en": "NEXIS · combined amino acids and cycling",
+            "tr": "NEXIS · amino asit ve bisiklet birlikte"
+          },
+          "registry": {
+            "id": "NCT03021902",
+            "url": "https://clinicaltrials.gov/study/NCT03021902",
+            "access": "official-current-api"
+          },
+          "parent": {
+            "doi": "10.1093/ajrccm/aamag287",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42438140/"
+          },
+          "dates": {
+            "firstSubmitted": "2016-12-21",
+            "firstPosted": "2017-01-16",
+            "firstPostDateType": "ESTIMATED",
+            "actualStart": "2017-09-28"
+          },
+          "randomizationUnit": "individual-participant",
+          "protocol": {
+            "url": "https://bmjopen.bmj.com/content/9/7/e027893",
+            "doi": "10.1136/bmjopen-2018-027893",
+            "year": 2019,
+            "access": "indexed-original-passages"
+          },
+          "populationScopeBasis": "current-registry-not-verified-final-cohort",
+          "note": {
+            "en": "Individual randomized phase 2 trial; amino acids and cycling were combined. The protocol and registry do not add new participants. Original result access remains abstract-only.",
+            "tr": "Bireysel randomize faz 2 deney; amino asit ve bisiklet birlikte verildi. Protokol ve kayıt yeni katılımcı eklemez. Özgün sonuca erişim özet düzeyindedir."
+          },
+          "methodsNote": {
+            "en": "Current registry excludes primary neuromuscular disease, intracranial/spinal motor disorders, airway-protection-only ventilation and AKI without RRT. These are not verified final-cohort counts. Protocol access was indexed passages; complete final methods/SAP and historical amendments remain unreviewed.",
+            "tr": "Güncel kayıt primer nöromüsküler hastalığı, intrakraniyal/spinal motor süreçleri, yalnız havayolu koruması için ventilasyonu ve KRT olmadan AKI’yi dışlar. Bunlar doğrulanmış son analiz kohortu sayıları değildir. Protokolün indekslenen bölümleri okundu; tam son yöntem/SAP ve tarihsel değişiklikler incelenmedi."
+          },
+          "prespecificationStatus": "historical-comparison-and-final-sap-incomplete"
+        }
+      }
+    },
+    {
+      "id": "persistent-critical-illness-ee-2026",
+      "title": "Time course of energy expenditure in persistent critical illness: a prospective multicentre study",
+      "year": 2026,
+      "onlineDate": "2026-05-27",
+      "doi": "10.1186/s13054-026-06102-w",
+      "url": "https://link.springer.com/article/10.1186/s13054-026-06102-w",
+      "sampleSize": 433,
+      "kind": "Prospektif çok merkezli gözlemsel EPIC kohortu",
+      "access": "Özgün yayıncı tam metni, resmî protokol/SAP ve ek tablo metni",
+      "accessNote": "25 Ekim 2026: ilgili HTML bölümleri, protokol/SAP PDF’si ve güncel kayıt incelendi. DOCX ekinin tabloları yapısal olarak okundu; tüm sayfalar görselleştirilemedi. Tarihsel sürüm incelemesi ve VETİS erişimi yok.",
+      "sampleNote": "433 hasta / 1.194 ölçüm; son EE modelinde 393 hasta / 1.003 gözlem; LCA’da 269 hasta. Bu paydalar toplanmaz.",
+      "design": "Seri kalorimetri; veriye dayalı seçimler içeren karma etkili modeller ve keşifsel LCA. Bu enerji harcaması analizi randomize beslenme karşılaştırması değildir.",
+      "population": "Yedi YBÜ’de en az 10 gün kalan, kalorimetri ölçümü bulunan yetişkinler; kısa yatışlara genellenmez.",
+      "primaryOutcome": "Grup düzeyinde enerji harcaması yaklaşık 10. gün civarında tepe yaptı, ardından azaldı; bu, bireysel anabolizma ölçümü değildir.",
+      "summary": "Beslenme, ölçüm anındaki formül ve hızlardan saatlik miktar × 24 olarak türetildi; gerçek toplam 24 saatlik uygulamayı doğrulamaz.",
+      "application": "Ölçülen EE, hekim hedefi ve aynı dönemde gerçekleşen alım ayrı tutulur. Sınıflandırıcı, beslemeye hazır olma eşiği veya enerji/protein dozu doğrulanmaz.",
+      "limitations": "Uzamış yatış seçimi, düzensiz ölçüm ve bilgilendirici izlem kaybı yorumu sınırlar. Protokol/son rapor yöntem farkları açık kalır. Avustralya alt grubu TARGET Protein ile örtüşür; örtüşme sayısı bilinmez, bağımsız hasta toplamı çıkarılmaz.",
+      "studyLineage": {
+        "evidenceId": "persistent-critical-illness-ee-2026",
+        "auditDate": "2026-10-25",
+        "independentParticipantTotal": null,
+        "familyId": "epic-nct05124860",
+        "linkStatus": "verified",
+        "analysisRole": {
+          "en": "Longitudinal observational energy-expenditure report",
+          "tr": "Seri gözlemsel enerji harcaması yayını"
+        },
+        "reportsParentRandomization": false,
+        "randomizedExposureForQuestion": false,
+        "participantCounts": {
+          "reportedPatients": 433,
+          "reportedMeasurements": 1194,
+          "adjustedModelPatients": 393,
+          "adjustedModelObservations": 1003,
+          "exploratoryLcaPatients": 269,
+          "regionalAustralianPatients": 138,
+          "regionalAustralianMeasurements": 394
+        },
+        "relatedStudies": [
+          {
+            "familyId": "target-protein-actrn12621001484831",
+            "relation": "explicit-partial-participant-overlap",
+            "overlapCount": null
+          }
+        ],
+        "participantOverlap": {
+          "en": "An Australian subset is explicitly reported to overlap TARGET Protein, but its size is not identified. Regional totals of 138 patients/394 measurements are not the overlap count. Do not add EPIC and TARGET samples as unique participants; repeated measurements are not additional people.",
+          "tr": "Avustralya alt grubunun TARGET Protein ile örtüştüğü açıkça bildirilir; büyüklüğü verilmez. Bölgesel 138 hasta/394 ölçüm, örtüşen kişi sayısı değildir. EPIC ile TARGET örneklemleri benzersiz kişi olarak toplanmaz; tekrarlı ölçümler ek hasta değildir."
+        },
+        "sourceUrls": [
+          "https://link.springer.com/article/10.1186/s13054-026-06102-w",
+          "https://clinicaltrials.gov/api/v2/studies/NCT05124860",
+          "https://cdn.clinicaltrials.gov/large-docs/60/NCT05124860/Prot_SAP_002.pdf",
+          "https://media.springernature.com/original/springer-static/esm/art%3A10.1186%2Fs13054-026-06102-w/MediaObjects/13054_2026_6102_MOESM1_ESM.docx"
+        ],
+        "basis": {
+          "en": "The original article names NCT05124860; the official current registry links this report. Main methods, combined protocol/SAP and relevant structural supplement tables were reviewed. EE trajectories and exploratory classes are not protein-balance or treatment-response validation.",
+          "tr": "Özgün makale NCT05124860’ı adlandırır; resmî güncel kayıt bu yayını bağlar. Ana yöntem, birleşik protokol/SAP ve ilgili yapısal ek tablolar incelendi. EE seyri ve keşifsel sınıflar, protein dengesi veya tedavi yanıtı doğrulaması değildir."
+        },
+        "family": {
+          "title": {
+            "en": "EPIC · longitudinal calorimetry cohort",
+            "tr": "EPIC · seri kalorimetri kohortu"
+          },
+          "registry": {
+            "id": "NCT05124860",
+            "url": "https://clinicaltrials.gov/study/NCT05124860",
+            "access": "official-current-api",
+            "historicalVersionsCompared": false,
+            "enrollment": {
+              "n": 714,
+              "type": "actual"
+            }
+          },
+          "studyDesign": "observational-prospective-cohort",
+          "randomizationUnit": null,
+          "parent": {
+            "doi": "10.1186/s13054-026-06102-w",
+            "url": "https://link.springer.com/article/10.1186/s13054-026-06102-w",
+            "access": "original-main-methods-results-discussion"
+          },
+          "reportLabel": {
+            "en": "Observational report",
+            "tr": "Gözlemsel yayın"
+          },
+          "dates": {
+            "firstSubmitted": "2021-10-25",
+            "firstSubmissionMeetingQc": "2021-11-15",
+            "firstPosted": "2021-11-18",
+            "actualStart": "2022-02-21",
+            "reportedStart": "2022-01",
+            "reportedEnd": "2024-05",
+            "actualPrimaryCompletion": "2024-07-18",
+            "actualCompletion": "2025-03-21"
+          },
+          "protocol": {
+            "url": "https://cdn.clinicaltrials.gov/large-docs/60/NCT05124860/Prot_SAP_002.pdf",
+            "access": "original-combined-protocol-sap-selected-sections",
+            "protocolUpdated": "2022-02-21",
+            "sapUpdated": "2025-04-08",
+            "uploadedDate": "2025-04-09",
+            "historicalVersionsCompared": false,
+            "analysisLockChronologyVerified": false
+          },
+          "note": {
+            "en": "Prospective study registration precedes recruitment; the paper uses the QC date, not the first public posting. Current enrollment 714 and the prolonged-stay report 433 are different denominators. An Australian subset overlaps TARGET Protein; the overlap count remains unknown.",
+            "tr": "Prospektif çalışma kaydı katılım başlangıcından öncedir; makale ilk kamuya açılma yerine kalite kontrol tarihini kullanır. Güncel kayıttaki 714 ile uzamış yatış yayınındaki 433 farklı paydalardır. Avustralya alt grubu TARGET Protein ile örtüşür; örtüşen kişi sayısı bilinmiyor."
+          },
+          "methodsNote": {
+            "en": "The available combined document separates the 2022 protocol from the April 2025 SAP; database-lock timing and earlier versions remain unverified. Protocol one-third versus reported 25% excess-weight normalization, planned K-means/DTW versus exploratory LCA, and >10 versus ≥10 days remain explicit differences. Nutrition recorded as hourly rates ×24 is not verified cumulative 24-hour delivery. Supplement tables were structurally inspected, not fully rendered.",
+            "tr": "Mevcut birleşik belge 2022 protokolünü Nisan 2025 SAP’den ayırır; veri kilidi zamanı ve eski sürümler doğrulanmadı. Protokolde fazla ağırlığın üçte biri ile yayında %25’i, planlanan K-means/DTW ile keşifsel LCA ve >10 ile ≥10 gün farklılıkları korunur. Saatlik hız ×24 olarak kaydedilen beslenme, doğrulanmış toplam 24 saatlik alım değildir. Ek tablolar yapısal olarak incelendi; tam görsel sayfa denetimi yapılmadı."
+          },
+          "prespecificationStatus": "study-registered-before-recruitment-final-analysis-history-unverified"
+        }
+      }
+    },
+    {
+      "id": "excel-ecmo-delivery-2026",
+      "title": "Nutrition provision across acute hospitalization in adult patients receiving extracorporeal membrane oxygenation: A prospective multicenter observational, registry-embedded study",
+      "year": 2026,
+      "doi": "10.1016/j.nut.2026.113244",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/42172821/",
+      "sampleSize": 147,
+      "kind": "EXCEL bağlantılı prospektif gözlemsel beslenme alt çalışması",
+      "access": "Özgün özet ve güncel resmî kayıt; tam yöntem incelenmedi",
+      "accessNote": "25 Ekim 2026: özgün özet, indekslenen yayıncı metni ve güncel ANZCTR kaydı okundu; doğrudan yayıncı erişimi 403. Tam yöntem, tablolar, ek/SAP ve tarihsel kayıt sürümleri incelenmedi.",
+      "sampleNote": "147 katılımcı; YBÜ enerji verisi 140, servis verisi 37 kişide. Protein analiz paydası ve servis ölçümü için uygun/planlı kişi toplamı doğrulanmadı.",
+      "design": "Prospektif gözlemsel veri; 9 Haziran 2022 katılım başlangıcından sonra 17 Mart 2023’te geriye dönük kamu kaydı. Randomize beslenme karşılaştırması değildir.",
+      "population": "Yayında 10 hastanede ECMO alan, EXCEL’e kayıtlı hastalar. Kayıt alt yaşı 16’dır; son kohortun tümünün ≥18 olduğu doğrulanmadı.",
+      "primaryOutcome": "Klinisyen reçeteli hedefe göre ortalama enerji sunumu YBÜ’de %64 / serviste %70; protein %61 / %77. Bunlar ölçülmüş gereksinim yüzdeleri değildir.",
+      "summary": "Reçeteye göre beslenme sunumu bir süreç ölçütüdür; emilim, azot/kas dengesi veya gerçek gereksinim ölçümü değildir.",
+      "application": "ECMO’da bakım geçişleri ve gerçek alım/uzman hedefi bağlamını destekler; açığı kapatmanın yararını, genel doz veya metabolik durum kuralını doğrulamaz.",
+      "limitations": "Servisteki 37 kişi için uygun izlem paydası bilinmez; 37/147 tamamlanma oranı değildir. 140 yalnız YBÜ enerji paydasıdır. EXCEL yayınlarıyla örtüşme bilinmez; fark bulunmaması eşdeğerlik veya nedensel yarar göstermez.",
+      "studyLineage": {
+        "evidenceId": "excel-ecmo-delivery-2026",
+        "auditDate": "2026-10-25",
+        "independentParticipantTotal": null,
+        "familyId": "excel-nutrition-actrn12623000304639",
+        "linkStatus": "verified",
+        "analysisRole": {
+          "en": "Observational nutrition-delivery substudy",
+          "tr": "Gözlemsel beslenme sunumu alt çalışması"
+        },
+        "reportsParentRandomization": false,
+        "randomizedExposureForQuestion": false,
+        "participantCounts": {
+          "reportedPatients": 147,
+          "icuEnergyAvailable": 140,
+          "wardDataAvailable": 37,
+          "registeredFinal": 150
+        },
+        "populationVerification": {
+          "registeredMinimumAge": 16,
+          "publishedMinimumAgeVerified": false,
+          "adult18SubsetVerified": false,
+          "wardEligibleDenominatorVerified": false
+        },
+        "participantOverlap": {
+          "en": "ICU and ward observations are not independent cohorts; the overlap of their reported analysis sets is not quantified in the accessed abstract. Exact reuse across other EXCEL publications remains unresolved. The 2012 historical comparator is not a concurrent randomized control.",
+          "tr": "YBÜ ve servis gözlemleri bağımsız kohortlar değildir; erişilen özette analiz gruplarının örtüşmesi nicelenmez. Diğer EXCEL yayınlarıyla kesin kişi tekrarı çözümlenmedi. 2012 tarihsel karşılaştırıcısı eşzamanlı randomize kontrol değildir."
+        },
+        "sourceUrls": [
+          "https://pubmed.ncbi.nlm.nih.gov/42172821/",
+          "https://www.sciencedirect.com/science/article/pii/S0899900726001528",
+          "https://www.anzctr.org.au/Trial/Registration/TrialReview.aspx?ACTRN=12623000304639",
+          "https://www.monash.edu/medicine/sphpm/anzicrc/research/anzic-rc-nutrition-program/ecmo-nutrition"
+        ],
+        "basis": {
+          "en": "Original abstract and current registry explicitly identify ECMO-Nutrition and its EXCEL linkage. Current registration is complete access; full published Methods/flow/SAP are unreviewed. Recorded delivery divided by physician prescription does not measure an optimal requirement.",
+          "tr": "Özgün özet ve güncel kayıt ECMO-Nutrition ile EXCEL bağlantısını açıkça tanımlar. Güncel kayda tam erişildi; yayımlanmış tam yöntem/akış/SAP incelenmedi. Kaydedilen alımın hekim reçetesine oranı optimal gereksinimi ölçmez."
+        },
+        "family": {
+          "title": {
+            "en": "ECMO-Nutrition · EXCEL-linked substudy",
+            "tr": "ECMO-Nutrition · EXCEL bağlantılı alt çalışma"
+          },
+          "registry": {
+            "id": "ACTRN12623000304639",
+            "url": "https://www.anzctr.org.au/Trial/Registration/TrialReview.aspx?ACTRN=12623000304639",
+            "access": "official-current-record",
+            "historicalVersionsCompared": false,
+            "enrollment": {
+              "target": 150,
+              "final": 150
+            }
+          },
+          "studyDesign": "observational-prospective-registry-linked-cohort",
+          "randomizationUnit": null,
+          "parent": {
+            "doi": "10.1016/j.nut.2026.113244",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/42172821/",
+            "access": "original-abstract-and-indexed-publisher-passages"
+          },
+          "reportLabel": {
+            "en": "Nutrition substudy report",
+            "tr": "Beslenme alt çalışması yayını"
+          },
+          "platform": {
+            "name": "EXCEL",
+            "url": "https://www.monash.edu/medicine/sphpm/registries/excel",
+            "exactCrossReportOverlapVerified": false
+          },
+          "dates": {
+            "submitted": "2023-03-02",
+            "registered": "2023-03-17",
+            "actualStart": "2022-06-09",
+            "actualLastEnrollment": "2023-07-09",
+            "actualLastDataCollection": "2023-08-04",
+            "resultsProvided": "2026-06-23"
+          },
+          "registrationTiming": "retrospectively-registered",
+          "note": {
+            "en": "Prospectively collected observations were retrospectively registered. ECMO-Nutrition is linked to the separate EXCEL registry platform; it is not a randomized nutrition trial or all EXCEL participants. Current registry 150 versus reported 147 and institutional nine versus reported ten sites remain unresolved.",
+            "tr": "Prospektif toplanan gözlemler geriye dönük kaydedilmiştir. ECMO-Nutrition ayrı EXCEL kayıt platformuna bağlıdır; randomize beslenme deneyi veya tüm EXCEL katılımcıları değildir. Güncel kayıttaki 150 ile yayındaki 147 ve kurum sayfasındaki dokuz ile bildirilen on merkez farkı çözümlenmedi."
+          },
+          "methodsNote": {
+            "en": "Registration permits age ≥16; the published cohort minimum age and an isolated ≥18 subset were not verified. Ward data for 37 do not identify all eligible survivors or a follow-up completeness rate. Full published Methods, flow and SAP were inaccessible. Planned six-month and historical-cohort questions are not verified additional results or causal nutrient effects.",
+            "tr": "Kayıt ≥16 yaşa izin verir; yayımlanan örneklemin en küçük yaşı ve ayrı bir ≥18 alt grubu doğrulanmadı. Servis verisi bulunan 37 kişi, uygun tüm sağ kalanları veya izlem tamlık oranını göstermez. Yayımlanmış tam yöntem, akış ve SAP’ye erişilemedi. Planlanan altı aylık ve tarihsel kohort soruları doğrulanmış ek sonuçlar veya nedensel besin etkileri değildir."
+          },
+          "prespecificationStatus": "retrospective-registration-current-record-only"
+        }
+      }
+    },
+    {
+      "id": "ucr-aki-mortality-posthoc-2026",
+      "title": "Urea-to-Creatinine-Ratio and the risk of 28-day mortality in critically ill adults with or without Acute Kidney Injury: A post-hoc analysis of a randomized clinical trial.",
+      "year": 2026,
+      "onlineDate": "2026-09-28",
+      "doi": "10.1002/jpen.70148",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/42806521/",
+      "sampleSize": 2613,
+      "kind": "NEED küme deneyinin post hoc gözlemsel biyobelirteç analizi",
+      "access": "VETİS ile özgün yayıncı ana metni ve görüntülenen tablolar",
+      "accessNote": "25 Ekim 2026: yetkili kurum erişimiyle ana yöntem, sonuçlar ve tablolar incelendi. Şekil panelleri ve ekler okunmadı. Önceki yalnız indekslenen özet erişiminden ayrı incelemedir.",
+      "sampleNote": "1. gün 2613 / 7. gün 2516; 2512 kişi ortaktır. 7. gün kümesi 1. günün tam alt kümesi değildir; paydalar toplanmaz.",
+      "design": "NEED, kılavuz uygulamasını olağan bakımla YBÜ düzeyinde karşılaştırır. Bu ikincil UCR/gerçekleşen protein analizi randomize doz veya biyobelirteç rehberli tedavi karşılaştırması değildir.",
+      "primaryOutcome": "28 günlük mortaliteyle ilişki ölçüm gününe ve başlangıç/1. gün AKI durumuna bağlıydı. Başlangıç AKI olmayanlarda 7. gün UCR ilişkisi U-şekilliydi.",
+      "summary": "Çalışma UCR’si: üre mmol/L ÷ (kreatinin µmol/L / 1000), sonuç mmol/mmol. Bu molar oran, uygulamanın kütle temelli üre/kreatinin veya ayrı BUN/kreatinin sayısıyla eşit değildir.",
+      "application": "Ölçüm günü, böbrek bağlamı ve gerçekleşen protein alımı birlikte incelenir. Veriye dayalı UCR grupları klinik eşik, metabolik sınıf veya beslenme dozu değildir.",
+      "limitations": "AKI tanımı hastalık öncesi kreatinin yerine normal üst sınırları kullanır; idrar ölçütü yoktur. 7. gün sağ kalım/veri seçimi, eksik veriler ve 1. gün modelinde 1–7. gün GI kanama bilgisiyle düzeltme yorumu sınırlar. Küme varyansı ve 7. gün risk kümesi uygulaması okunmuş ana metinden doğrulanmadı.",
+      "studyLineage": {
+        "evidenceId": "ucr-aki-mortality-posthoc-2026",
+        "auditDate": "2026-10-25",
+        "independentParticipantTotal": null,
+        "familyId": "need-isrctn12233792",
+        "linkStatus": "verified",
+        "analysisRole": {
+          "en": "Post hoc observational prognostic analysis within NEED",
+          "tr": "NEED içinde post hoc gözlemsel prognostik analiz"
+        },
+        "reportsParentRandomization": false,
+        "randomizedExposureForQuestion": false,
+        "participantCounts": {
+          "parentReportedEnrolled": 2772,
+          "day1Analyzed": 2613,
+          "day7Analyzed": 2516,
+          "bothDays": 2512
+        },
+        "reportedUcr": {
+          "analyteBasis": "serum-urea/serum-creatinine",
+          "unitBasis": "mmol/mmol",
+          "formula": "urea_mmol_L / (creatinine_umol_L / 1000)",
+          "clinicalDecisionThreshold": null,
+          "individualDoseTargetValidated": false
+        },
+        "participantOverlap": {
+          "en": "Reuses NEED participants with no new randomization. Day 1/7 sets share 2512 people and are not fully nested. Overlap with the age analysis and other NEED reports is unquantified; do not sum samples as independent participants.",
+          "tr": "Yeni randomizasyon olmadan NEED katılımcılarını yeniden kullanır. 1./7. gün kümelerinde 2512 ortak kişi vardır; kümeler tam iç içe değildir. Yaş analizi ve diğer NEED yayınlarıyla örtüşme nicelenmedi; örneklemleri bağımsız katılımcı gibi toplamayın."
+        },
+        "sourceUrls": [
+          "https://doi.org/10.1002/jpen.70148",
+          "https://www.isrctn.com/api/trial/ISRCTN12233792/format/who"
+        ],
+        "basis": {
+          "en": "Original main Methods explicitly name NEED/ISRCTN12233792; institutional main-text/table review on 25 October supersedes the earlier abstract-only unresolved link. Parent identity had separate registry verification. Figures/supplements remain unread; allocation adjustment is not a treatment-interaction or UCR-guided dose trial.",
+          "tr": "Özgün ana yöntem NEED/ISRCTN12233792’yi açıkça adlandırır; 25 Ekim kurum erişimiyle ana metin/tablo incelemesi, önceki yalnız özet kaynaklı eksik bağlantıyı günceller. Ana kimliğin ayrı kayıt doğrulaması vardır. Şekil/ekler okunmadı; atama için düzeltme, tedavi etkileşimi veya UCR rehberli doz deneyi değildir."
+        },
+        "family": {
+          "title": {
+            "en": "NEED · ICU feeding-guideline implementation",
+            "tr": "NEED · YBÜ beslenme kılavuzu uygulaması"
+          },
+          "registry": {
+            "id": "ISRCTN12233792",
+            "url": "https://www.isrctn.com/ISRCTN12233792"
+          },
+          "parent": {
+            "doi": "10.1186/s13054-022-03921-5",
+            "url": "https://link.springer.com/article/10.1186/s13054-022-03921-5"
+          },
+          "dates": {
+            "registration": "2017-11-24",
+            "enrollment": "2018-03-26"
+          },
+          "note": {
+            "en": "Registry export and age paper say 24 November 2017; the parent abstract says 20 November. The discrepancy is retained, not silently reconciled.",
+            "tr": "Kayıt dışa aktarımı ve yaş makalesi 24 Kasım 2017, ana özet 20 Kasım der. Fark korunur; sessizce eşitlenmez."
+          }
+        }
+      }
+    },
+    {
+      "id": "ucr-effort-ward-2025",
+      "title": "Urea-to-creatinine ratio as a biomarker for clinical outcome and response to nutritional support in non-critically ill patients: A secondary analysis of a randomized controlled trial",
+      "year": 2025,
+      "onlineDate": "2025-03-21",
+      "printDate": "2025-06",
+      "doi": "10.1016/j.clnesp.2025.03.042",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/40122337/",
+      "sampleSize": 1595,
+      "kind": "EFFORT ikincil biyobelirteç analizi",
+      "access": "WUR kurum deposunda özgün tam makale · Taverne",
+      "accessNote": "25 Ekim 2026: kurum deposundaki özgün yöntem, sonuç, tablolar ve Şekil 3 incelendi. Önceki yalnız özet erişiminden ayrıdır. Yayıncı önizlemesi 403 döndü; ekler/SAP okunmadı. Bu makale için VETİS kullanılmadı.",
+      "sampleNote": "Bildirilen 2028 ana analiz hastasından 1595’inde başlangıç UCR; 870’inde izlem UCR. İzlem 7. gün veya daha erken taburculuk olabilir; bağımsız örneklemler değildir.",
+      "population": "NRS 2002 ≥3, beklenen yatış ≥5 gün olan dahili servis hastaları; ağızdan alamayanlar ve YBÜ/cerrahi başvurular dışlanmıştır.",
+      "design": "Başlangıç ve değişim UCR gruplarıyla ana beslenme ataması karşılaştırılır. Değişim grubu tedavi sonrasıdır; UCR’ye göre randomize bir besleme stratejisi değildir.",
+      "primaryOutcome": "Şekil 3’te 30 günlük mortalite için etkileşim p: başlangıç UCR 0,26; UCR değişimi 0,80. Fark saptanmaması eşdeğerliği göstermez.",
+      "summary": "Yüksek veya yükselen UCR mortaliteyle ilişkiliydi. Yöntemde üre mmol/L ve kreatinin µmol/L için basılı /1000 formülü, bildirilen oran ölçeğiyle uzlaştırılamadı; sayısal eşik aktarılmaz.",
+      "application": "UCR’nin prognoz ve tedavi yanıtını öngörme soruları ayrılır. Veriye dayalı gruplar, kişisel anabolik/katabolik tanı veya protein dozu değildir.",
+      "limitations": "Bir merkez ve doğrulanamayan uç değerler dışlandı; izlem verisi seçilmiştir. Grup HR güven aralıkları etkileşim güven aralığı değildir; modele özgü paydalar/etkileşim GA doğrulanmadı. Ekler, tarihsel önbelirleme ve doz seçimi yararı açık kalır.",
+      "studyLineage": {
+        "evidenceId": "ucr-effort-ward-2025",
+        "auditDate": "2026-10-25",
+        "independentParticipantTotal": null,
+        "familyId": "effort-ward-nct02517476",
+        "linkStatus": "verified",
+        "analysisRole": {
+          "en": "Secondary biomarker and exploratory parent-treatment interaction analysis",
+          "tr": "İkincil biyobelirteç ve keşifsel ana tedavi etkileşimi analizi"
+        },
+        "reportsParentRandomization": false,
+        "randomizedExposureForQuestion": false,
+        "randomizedExposureScope": "biomarker-level-or-change-not-parent-treatment-assignment",
+        "participantCounts": {
+          "parentAnalysisReported": 2028,
+          "baselineUcr": 1595,
+          "followupUcr": 870
+        },
+        "reportedUcr": {
+          "ureaUnit": "mmol/L",
+          "creatinineUnit": "umol/L",
+          "formulaAsPrinted": "(urea_mmol_L / creatinine_umol_L) / 1000",
+          "reportedScaleReconciled": false,
+          "clinicalDecisionThreshold": null,
+          "individualDoseTargetValidated": false
+        },
+        "treatmentInteraction": {
+          "parentAssignmentRandomized": true,
+          "outcome": "30-day-all-cause-mortality",
+          "measure": "Cox-HR",
+          "figure": "3",
+          "printedPage": 247,
+          "baselineP": 0.26,
+          "changeP": 0.8,
+          "changeGroupingPostBaseline": true,
+          "interactionEffectEstimate": null,
+          "interactionConfidenceInterval": null,
+          "perModelSampleSizes": null
+        },
+        "participantOverlap": {
+          "en": "Nested within EFFORT: 1595 baseline and 870 follow-up UCR observations are not new independent participants. Follow-up permits Day 7 or earlier discharge. Availability, centre and extreme-value exclusions limit the subset.",
+          "tr": "EFFORT içindedir: 1595 başlangıç ve 870 izlem UCR gözlemi yeni bağımsız katılımcılar değildir. İzlem 7. gün veya daha erken taburculuk olabilir. Veri uygunluğu, merkez ve uç değer dışlamaları alt kümeyi sınırlar."
+        },
+        "sourceUrls": [
+          "https://doi.org/10.1016/j.clnesp.2025.03.042",
+          "https://edepot.wur.nl/691468",
+          "https://clinicaltrials.gov/api/v2/studies/NCT02517476"
+        ],
+        "basis": {
+          "en": "Original full article identifies NCT02517476 and Figure 3 supplies interaction P values; the previous registry check independently lists this derived report. Parent assignment is randomized, UCR level/change is not. Printed formula versus reported scale is unresolved; stratum HR intervals do not supply an interaction-effect CI or establish equivalence.",
+          "tr": "Özgün tam makale NCT02517476’yı adlandırır; Şekil 3 etkileşim p değerlerini verir. Önceki kayıt denetimi türetilmiş yayını bağımsız olarak listeler. Ana atama randomizedir; UCR düzeyi/değişimi değildir. Basılı formül ile bildirilen ölçek uzlaştırılmadı; grup HR aralıkları etkileşim GA sağlamaz veya eşdeğerliği göstermez."
+        },
+        "family": {
+          "title": {
+            "en": "EFFORT · medical ward",
+            "tr": "EFFORT · dahili servis"
+          },
+          "registry": {
+            "id": "NCT02517476",
+            "url": "https://clinicaltrials.gov/study/NCT02517476"
+          },
+          "parent": {
+            "doi": "10.1016/S0140-6736(18)32776-4",
+            "url": "https://pubmed.ncbi.nlm.nih.gov/31030981/"
+          },
+          "dates": {
+            "actualStart": "2014-04",
+            "firstSubmitted": "2015-07-30",
+            "firstPosted": "2015-08-07"
+          },
+          "note": {
+            "en": "Distinct from EFFORT Protein. Registry first posting follows recorded recruitment start; prospective registration is not assumed.",
+            "tr": "EFFORT Protein’den ayrıdır. Kayıttaki ilk yayımlanma, kayıtlı başlangıçtan sonradır; prospektif kayıt varsayılmaz."
+          }
+        }
+      }
+    },
+    {
+      "id": "espen-diagnosis-2015",
+      "title": "Diagnostic criteria for malnutrition — an ESPEN Consensus Statement",
+      "year": 2015,
+      "kind": "Konsensus",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/25799486/",
+      "doi": "10.1016/j.clnu.2015.03.001",
+      "access": "Özgün indekslenen özet",
+      "summary": "Risk taraması sonrası BKİ veya istemsiz kayıp ile BKİ/FFMI birleşimi değerlendirilir.",
+      "application": "Aday örüntü hesaplanır; klinik doğrulama gerekir.",
+      "limitations": "FFMI ile appendiküler kas indeksi farklıdır. Ödem ve ölçüm yöntemi dikkate alınır."
+    },
+    {
+      "id": "and-aspen-malnutrition-2012",
+      "title": "AND/ASPEN consensus: characteristics for identification and documentation of adult malnutrition",
+      "year": 2012,
+      "kind": "Konsensus",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/22709779/",
+      "doi": "10.1016/j.jand.2012.03.012",
+      "access": "Özgün özet ve yayıncı uygulama metni",
+      "summary": "Altı klinik özellikten en az ikisi değerlendirilir; etiyoloji, süre ve muayene önemlidir.",
+      "application": "Klinisyenin doğruladığı özellikler sayılır; şiddet otomatik atanmaz.",
+      "limitations": "YBÜ’de el kavrama ölçümü bu amaçla önerilmez; nörolojik parezi ve sıvı yükü yorum gerektirir."
+    },
+    {
+      "id": "espen-screening-nrs2002",
+      "title": "ESPEN guidelines for nutrition screening 2002 — NRS 2002",
+      "year": 2003,
+      "kind": "Resmî tarama rehberi",
+      "url": "https://www.espen.org/documents/Screening.pdf",
+      "doi": null,
+      "access": "Resmî tam metin",
+      "summary": "Beslenme bozulması ve hastalık şiddeti puanlarına 70 yaş ve üzerinde bir puan eklenir.",
+      "application": "Klinisyenin iki alt puanı ve yaştan toplam hesaplanır; toplam ≥3 risk göstergesidir.",
+      "limitations": "Hastalık alt puanı otomatik olarak SOFA/SAPS puanına çevrilmez; tarama malnütrisyon tanısı değildir."
+    },
+    {
+      "id": "ewgsop2-2019",
+      "year": 2019,
+      "doi": "10.1093/ageing/afy169",
+      "title": "EWGSOP2: güncellenmiş Avrupa sarkopeni uzlaşısı",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6322506/",
+      "access": "Özgün dizin metni; doğrudan PMC istekleri aralıklı engellendi",
+      "kind": "Ölçek ve ölçüt kaynağı",
+      "application": "Yalnız belirtilen klinik bağlamda ve özgün formuyla uygulanır.",
+      "summary": "Avrupa referans eşikleri; klinik ve ölçüm bağlamı gereklidir.",
+      "limitations": "Avrupa referans eşikleri; klinik ve ölçüm bağlamı gereklidir."
+    },
+    {
+      "id": "ewgsop2-correction-2019",
+      "year": 2019,
+      "doi": "10.1093/ageing/afz046",
+      "title": "EWGSOP2 düzeltmesi: kadın ASM/boy² eşiği",
+      "url": "https://academic.oup.com/ageing/article/48/4/601/5488778",
+      "access": "Resmî yayıncı düzeltmesi okundu",
+      "kind": "Ölçek ve ölçüt kaynağı",
+      "application": "Yalnız belirtilen klinik bağlamda ve özgün formuyla uygulanır.",
+      "summary": "Düzeltilmiş kadın eşiği <5,5 kg/m²'dir; <6,0 değildir.",
+      "limitations": "Düzeltilmiş kadın eşiği <5,5 kg/m²'dir; <6,0 değildir."
+    },
+    {
+      "id": "eat10-original-2008",
+      "year": 2008,
+      "doi": "10.1177/000348940811701210",
+      "title": "Özgün EAT-10 validasyonu",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/19140539/",
+      "access": "Özgün PubMed dizin özeti okundu; yayıncı erişimi zaman aşımına uğradı",
+      "kind": "Ölçek ve ölçüt kaynağı",
+      "application": "Yalnız belirtilen klinik bağlamda ve özgün formuyla uygulanır.",
+      "summary": "Belirti puanı ≥3 anormaldir; aspirasyon açısından güvenlik testi değildir. Anket maddeleri çoğaltılmaz.",
+      "limitations": "Belirti puanı ≥3 anormaldir; aspirasyon açısından güvenlik testi değildir. Anket maddeleri çoğaltılmaz."
+    },
+    {
+      "id": "eat10-turkish-2016",
+      "year": 2016,
+      "doi": "10.1007/s00455-016-9723-9",
+      "title": "Türkçe EAT-10 validasyonu",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/27405421/",
+      "access": "Özgün dizin özeti ve yazar kurumu kaydı okundu",
+      "kind": "Ölçek ve ölçüt kaynağı",
+      "application": "Yalnız belirtilen klinik bağlamda ve özgün formuyla uygulanır.",
+      "summary": "Uygulamanın çevirdiği anket yerine valide özgün dil formunu kullanın.",
+      "limitations": "Uygulamanın çevirdiği anket yerine valide özgün dil formunu kullanın."
+    },
+    {
+      "id": "fois-original-2005",
+      "year": 2005,
+      "doi": "10.1016/j.apmr.2004.11.049",
+      "title": "İnmede özgün FOIS validasyonu",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/16084801/",
+      "access": "Özgün dizin özeti okundu",
+      "kind": "Ölçek ve ölçüt kaynağı",
+      "application": "Yalnız belirtilen klinik bağlamda ve özgün formuyla uygulanır.",
+      "summary": "Yedi düzeyli işlevsel alım kaydıdır; yutma fizyolojisi veya aspirasyon testi değildir.",
+      "limitations": "Yedi düzeyli işlevsel alım kaydıdır; yutma fizyolojisi veya aspirasyon testi değildir."
+    },
+    {
+      "id": "iddsi-framework-2026",
+      "year": 2026,
+      "doi": null,
+      "title": "IDDSI resmî çerçevesi: sürüm 2.2",
+      "url": "https://www.iddsi.org/resources/framework-documents",
+      "access": "Resmî dizin çerçeve/sürüm sayfası okundu; doğrudan sayfa 403 döndürdü",
+      "kind": "Ölçek ve ölçüt kaynağı",
+      "application": "Yalnız belirtilen klinik bağlamda ve özgün formuyla uygulanır.",
+      "summary": "Çerçeve tanımları 2.2, test yöntemleri 2.0; gıda ve sıvı düzeyleri klinisyen tarafından ayrı kaydedilir.",
+      "limitations": "Çerçeve tanımları 2.2, test yöntemleri 2.0; gıda ve sıvı düzeyleri klinisyen tarafından ayrı kaydedilir."
+    },
+    {
+      "id": "ueg-esnm-dysphagia-2025",
+      "year": 2025,
+      "doi": "10.1002/ueg2.70062",
+      "title": "UEG/ESNM klinik disfaji önerileri",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12269739/",
+      "access": "Özgün dizin önerileri okundu; doğrudan PMC isteklerinde bot kontrolü görüldü",
+      "kind": "Ölçek ve ölçüt kaynağı",
+      "application": "Yalnız belirtilen klinik bağlamda ve özgün formuyla uygulanır.",
+      "summary": "Yatak başı bulgular orofaringiyal bozukluğu tek başına tam tanımlamaz; enstrümantal inceleme klinik uygunluk gerektirir.",
+      "limitations": "Yatak başı bulgular orofaringiyal bozukluğu tek başına tam tanımlamaz; enstrümantal inceleme klinik uygunluk gerektirir."
+    },
+    {
+      "id": "digest-iddsi-mapping-2026",
+      "year": 2026,
+      "doi": "10.1007/s00455-026-10943-6",
+      "title": "2026 DIGEST–IDDSI terminoloji eşleştirmesi",
+      "url": "https://link.springer.com/article/10.1007/s00455-026-10943-6",
+      "access": "Özgün yayıncı tam metni okundu",
+      "kind": "Ölçek ve ölçüt kaynağı",
+      "application": "Yalnız belirtilen klinik bağlamda ve özgün formuyla uygulanır.",
+      "summary": "Terminoloji yorumudur; yeni valide tarama ölçeği veya otomatik kıvam seçme algoritması değildir.",
+      "limitations": "Terminoloji yorumudur; yeni valide tarama ölçeği veya otomatik kıvam seçme algoritması değildir."
+    },
+    {
+      "id": "sofa2-2025",
+      "title": "Development and Validation of the Sequential Organ Failure Assessment (SOFA)-2 Score",
+      "year": 2025,
+      "kind": "Çok merkezli model geliştirme/validasyon",
+      "url": "https://jamanetwork.com/journals/jama/fullarticle/2840822",
+      "doi": "10.1001/jama.2025.20516",
+      "access": "Özgün yayıncı metni ve puanlama tablosu",
+      "summary": "Altı organ sistemi, 0–24; uluslararası erişkin YBÜ kohortlarında validasyon.",
+      "application": "Açık birimlerle ve eksik değere atama yapmadan organ alt puanlarını hesaplar.",
+      "limitations": "İnflamasyon ölçeği, sepsis tanısı veya beslenme dozu deneyi değildir; bireysel mortalite olasılığı hesaplanmaz."
+    },
+    {
+      "id": "saps2-1993",
+      "title": "A New Simplified Acute Physiology Score (SAPS II)",
+      "year": 1993,
+      "kind": "Özgün şiddet modeli",
+      "url": "https://jamanetwork.com/journals/jama/article-abstract/409979",
+      "doi": "10.1001/jama.1993.03510240069035",
+      "access": "Özgün özet",
+      "summary": "13.152 erişkin YBÜ yatışından geliştirilen 17 değişken.",
+      "application": "Klinisyenin hesapladığı toplam, beslenme hedeflerinden ayrı kaydedilir.",
+      "limitations": "Tarihsel popülasyon ve kalibrasyon; doğrulanmış beslenme titrasyon kuralı değildir."
+    },
+    {
+      "id": "espen-ibd-2023",
+      "title": "ESPEN guideline on Clinical Nutrition in inflammatory bowel disease",
+      "year": 2023,
+      "kind": "Resmî kılavuz",
+      "url": "https://2022.espen.org/files/ESPEN-Guidelines/ESPEN_guideline_on_Clinical_nutrition_in_inflammatory_bowel_disease.pdf",
+      "doi": "10.1016/j.clnu.2022.12.004",
+      "access": "Resmî tam metin",
+      "summary": "Crohn/ülseratif kolit, aktif hastalık/remisyon, beslenme riski ve komplikasyonları ayırır.",
+      "application": "Hastalık bağlamı klinik değerlendirmeye katılır; marka veya otomatik SCFA reçetesi verilmez.",
+      "limitations": "İBH kılavuzu bütün YBÜ için takviye veya bireysel optimum doz belirlemez."
+    },
+    {
+      "id": "butyrate-ibd-print-2026",
+      "title": "Impact of oral butyrate on clinical and biochemical parameters in IBD: A randomized placebo-controlled study targeting gut microbiota",
+      "year": 2026,
+      "kind": "Özgün randomize çalışma",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/41354580/",
+      "doi": "10.1016/j.dld.2025.11.014",
+      "sampleSize": 140,
+      "onlineDate": "2025-12-06",
+      "printDate": "2026-01",
+      "access": "Özgün indekslenen özet; tam yöntem incelenmedi",
+      "summary": "60 Crohn ve 80 ülseratif kolit hastasında standart tedavi yanında mikroenkapsüle bütirat/plasebo; klinik/biyokimyasal ve yaşam kalitesi sinyalleri bildirildi.",
+      "application": "Endikasyona özgü gastroenteroloji değerlendirmesi düşünülebilir; otomatik takviye yapılmaz.",
+      "limitations": "Özet primer gruplar arası GA sağlamıyor. Çevrimiçi 2025/sayı 2026; mikrobiyom alt grupları doğrulanmış seçim belirteci değildir."
+    },
+    {
+      "id": "scfa-mixture-uc-1997",
+      "title": "Short chain fatty acid rectal irrigation for left-sided ulcerative colitis: a randomised placebo controlled trial",
+      "year": 1997,
+      "kind": "Özgün randomize çalışma",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/9176076/",
+      "doi": "10.1136/gut.40.4.485",
+      "sampleSize": 103,
+      "access": "Özgün özet",
+      "summary": "Rektal SCFA karışımı deneyi: 91 tamamlayan; genel iyileşme %33 ve %20, p=0,14.",
+      "application": "Asetat/propiyonat/bütirat karışımları izole oral takviyelerle eşdeğer değildir.",
+      "limitations": "Genel etkililik anlamlı değil; alt grup/açık etiket bulguları rutin kullanım veya doz kuralı oluşturmaz."
+    },
+    {
+      "id": "ucr-crrt-2025",
+      "title": "The Urea-Creatinine Ratio as Marker of Catabolism Is Affected by Continuous Renal Replacement Therapy",
+      "year": 2025,
+      "kind": "Özgün gözlemsel araştırma",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/40506980/",
+      "doi": "10.3390/diagnostics15111408",
+      "access": "Özgün açık tam metin; yöntem/sonuç/tartışma incelendi",
+      "summary": "CRRT UCR’yi değiştirir ve katabolizma vekili olarak yorumunu güçleştirir.",
+      "application": "Analit/birimleri açıkça ayırır; böbrek/KRT etkisini görünür tutar.",
+      "limitations": "Doğrulanmış UCR rehberli tedavi deneyi veya evrensel eşik değildir."
+    }
+  ]
+}

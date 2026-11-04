@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="en" class="i18n-pending">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Yetişkin YBÜ ve servis hastalarında izlenebilir klinik beslenme değerlendirmesi ve araştırma çalışma alanı."
+    />
+    <meta name="referrer" content="no-referrer" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; worker-src 'self' blob:; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; frame-src blob:; object-src 'none'; base-uri 'self'"
+    />
+    <title>NutriClinic · Clinical Nutrition</title>
+    <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./experience.css" />
+    <link rel="stylesheet" href="./clinical.css" />
+    <link rel="stylesheet" href="./followup.css" />
+    <link rel="stylesheet" href="./lab-reference.css" />
+    <link rel="stylesheet" href="./print-report.css" />
+    <link rel="stylesheet" href="./local-records.css" />
+    <link rel="stylesheet" href="./navigation-help.css" />
+    <link rel="stylesheet" href="./start-guide.css" />
+    <link rel="stylesheet" href="./about-licenses.css" />
+  </head>
+  <body>
+    <a href="#main" class="skip">İçeriğe geç</a>
+    <aside class="sidebar">
+      <a class="brand" href="#degerlendirme"
+        ><span class="brand-mark">n<span>+</span></span
+        ><span
+          >nutri<span class="brand-light">clinic</span
+          ><small>KLİNİK BESLENME ÇALIŞMA ALANI</small></span
+        ></a
+      >
+      <div class="sidebar-label">GÜNLÜK AKIŞ</div>
+      <nav id="mainNavigation" aria-label="Ana menü">
+        <button class="nav active" data-view="assessment">
+          <span class="navicon">01</span> Değerlendirme
+        </button>
+        <button class="nav" data-view="labs">
+          <span class="navicon">02</span> Kan sonuçları
+          <span class="nav-count" id="labCount">—</span>
+        </button>
+        <button class="nav" data-view="plan">
+          <span class="navicon">03</span> Beslenme planı
+        </button>
+        <button class="nav" data-view="research"><span class="navicon">04</span> İzlem ve kayıtlar</button>
+        <span class="navigation-group-heading">Gerektiğinde</span>
+        <button class="nav" data-view="criteria"><span class="navicon">✓</span> Beslenme kriterleri</button>
+        <button class="nav" data-view="dysphagia"><span class="navicon">◉</span> Disfaji değerlendirmesi</button>
+        <button class="nav" data-view="context"><span class="navicon">⊕</span> Hastalık ve metabolizma</button>
+        <button class="nav" data-view="decisions"><span class="navicon">⇄</span> Klinik tercihler</button>
+        <button class="nav" data-view="evidence">
+          <span class="navicon">▧</span> Kanıt kitaplığı
+        </button>
+        <button class="nav" data-view="components">
+          <span class="navicon">⌬</span> AA ve bileşen kanıtı</button
+        >
+      </nav>
+      <div class="case-card">
+        <span class="eyebrow">AKTİF DEĞERLENDİRME</span
+        ><strong id="sideCase" data-no-i18n>DEMO-001</strong
+        ><span id="sideContext">Servis · Sentetik örnek</span>
+        <div class="case-line"></div>
+        <p>Hasta adı veya kimlik numarası yerine çalışma kodu kullanın.</p>
+      </div>
+      <div class="sidebar-bottom">
+        <span class="live-dot"></span> <span data-server-text="Sunucuda ortak kayıt">Bu bilgisayarda yerel kayıt</span><small
+          ><span data-server-text="Girdiler sunucuya kaydedilir.">Girdiler yerel diske kaydedilir.</span><br />Kayıt durumunu üstten kontrol edin.</small
+        ><span class="version">ARAŞTIRMA SÜRÜMÜ · 0.3.23</span>
+        <button id="aboutLicensesButton" class="about-licenses-trigger" type="button">Hakkında ve Lisanslar</button>
+      </div>
+    </aside>
+    <div class="shell">
+      <header class="topbar">
+        <button id="menuToggle" class="mobile-menu" type="button" aria-controls="mainNavigation" aria-expanded="false" aria-label="Ana menüyü aç veya kapat">☰</button>
+        <div class="breadcrumb">
+          Çalışma alanı <span>/</span>
+          <strong id="breadcrumb">Değerlendirme</strong>
+        </div>
+        <div class="topmeta">
+          <div id="accessBar" class="access-bar" data-no-i18n hidden></div>
+          <label class="language-control">
+            <span>Dil</span>
+            <select id="languageSelect" aria-label="Arayüz dili">
+              <option value="en" data-no-i18n>English</option>
+              <option value="tr" data-no-i18n>Türkçe</option>
+            </select>
+          </label>
+          <span class="privacy" data-server-text="◈ Hastane içi kullanım">◈ Yerel veri işleme</span
+          ><span>Kanıt taraması · 26 Ekim 2026</span>
+        </div>
+      </header>
+      <main id="main">
+        <div class="title-row">
+          <div>
+            <div class="eyebrow">BİREYE ÖZGÜ BESLENME DESTEĞİ</div>
+            <h1 id="pageTitle" tabindex="-1">Hasta değerlendirmesi</h1>
+            <p class="subtitle" id="pageSubtitle">
+              Klinik bağlam, antropometri ve laboratuvarı aynı değerlendirmede
+              birleştirin.
+            </p>
+          </div>
+          <div class="title-actions">
+            <button id="newCase" class="button secondary">
+              ＋ Yeni değerlendirme</button
+            ><button id="demoCase" class="button subtle">
+              Örnek olguyu yükle
+            </button>
+          </div>
+        </div>
+        <section id="startGuide" class="start-guide" data-no-i18n hidden></section>
+        <div class="notice" id="modeNotice">
+          <span class="notice-icon">i</span>
+          <div>
+            <strong>Sentetik örnek olgu görüntüleniyor.</strong> Gerçek hasta
+            verisi içermez. Hesaplamalar klinik doğrulama bekleyen araştırma
+            yazılımına aittir.
+          </div>
+        </div>
+        <section id="localRecordStatus" class="local-record-status" data-no-i18n aria-label="Local save status"></section>
+        <nav id="workflowNav" class="workflow-nav" aria-label="Değerlendirme adımları" data-no-i18n></nav>
+        <div id="workflowNext" class="workflow-next" data-no-i18n></div>
+        <section id="view-assessment" class="view">
+          <div class="summary-strip">
+            <div>
+              <span class="eyebrow">METABOLİK DEĞERLENDİRME</span>
+              <h2 id="metabolicTitle">Değerlendiriliyor</h2>
+              <p id="metabolicDetail"></p>
+            </div>
+            <div class="summary-badge">
+              <span class="orb">⌁</span
+              ><span
+                >Tek bir indeks<br /><strong
+                  >klinik durumu tanımlamaz.</strong
+                ></span
+              >
+            </div>
+          </div>
+          <div class="metrics">
+            <article>
+              <span>Vücut kitle indeksi</span><strong id="metricBmi">—</strong
+              ><small>kg/m² · seçilen ağırlık ile</small>
+            </article>
+            <article>
+              <span>İstemsiz ağırlık kaybı</span
+              ><strong id="metricLoss">—</strong
+              ><small id="metricLossPeriod">Olağan ağırlığa göre</small>
+            </article>
+            <article>
+              <span>Tahmini azot dengesi</span
+              ><strong id="metricNitrogen">—</strong
+              ><small>g N/gün · aynı 24 saat</small>
+            </article>
+            <article>
+              <span>Yeniden beslenme riski</span
+              ><strong id="metricRefeeding" class="status-text">—</strong
+              ><small>NICE risk ölçütleri · tanı değildir</small>
+            </article>
+          </div>
+          <div class="assessment-grid">
+            <div>
+              <section class="card">
+                <div class="card-head">
+                  <div>
+                    <span class="step">01</span>
+                    <h2>Hasta ve antropometri</h2>
+                  </div>
+                  <span class="pill">Yetişkin</span>
+                </div>
+                <div id="patientForm" class="fields"></div>
+              </section>
+              <section class="card">
+                <div class="card-head">
+                  <div>
+                    <span class="step">02</span>
+                    <h2>Klinik bağlam</h2>
+                  </div>
+                </div>
+                <div id="clinicalForm" class="fields"></div>
+              </section>
+              <section class="card">
+                <div class="card-head">
+                  <div>
+                    <span class="step">03</span>
+                    <h2>Alım ve vücut kompozisyonu</h2>
+                  </div>
+                </div>
+                <div id="intakeForm" class="fields"></div>
+                <p class="footnote">
+                  GLIM 2025 çerçevesi; olağan alıma göre etiyoloji
+                  değerlendirmesi GLIM 2026 ile güncellendi. Kriterin
+                  karşılanması klinisyen tarafından doğrulanır.
+                </p>
+              </section>
+            </div>
+            <aside class="right-column">
+              <section class="card assessment-note">
+                <div class="card-head">
+                  <h2>Karar özeti</h2>
+                  <span class="mini-icon">↗</span>
+                </div>
+                <div class="decision-item">
+                  <span class="decision-dot"></span>
+                  <div>
+                    <h3 id="glimTitle">GLIM değerlendirmesi</h3>
+                    <p id="glimDetail"></p>
+                  </div>
+                </div>
+                <div class="decision-item">
+                  <span class="decision-dot amber"></span>
+                  <div>
+                    <h3>Güvenlik kontrolü</h3>
+                    <p id="blockerSummary"></p>
+                  </div>
+                </div>
+                <button class="button primary full" data-goto="plan">
+                  Beslenme planına geç <span>→</span>
+                </button>
+              </section>
+              <section class="card lab-shortcut">
+                <span class="eyebrow">LABORATUVAR</span>
+                <div class="lab-illustration" aria-hidden="true">
+                  <div class="tube"></div>
+                  <div class="tube short"></div>
+                  <div class="lab-dots">＋</div>
+                </div>
+                <h2>Sonuçları değerlendirmeye ekleyin.</h2>
+                <p>
+                  PDF, CSV veya JSON dosyasını cihazınızda okuyun. Birim ve
+                  ölçümleri aktarım öncesi doğrulayın.
+                </p>
+                <button class="button secondary full" data-goto="labs">
+                  Kan sonuçlarını yükle ↗
+                </button>
+              </section>
+              <section class="evidence-teaser">
+                <span class="eyebrow">KANIT NOTU</span>
+                <p>
+                  Albümin ve prealbümin, tek başına beslenme durumunu veya
+                  anabolizmayı göstermez.
+                </p>
+                <button class="text-button" data-goto="evidence">
+                  ASPEN görüş belgesi ve kaynaklar →
+                </button>
+              </section>
+            </aside>
+          </div>
+        </section>
+        <section id="view-labs" class="view" hidden>
+          <div class="two-col">
+            <section class="card">
+              <div class="card-head">
+                <div>
+                  <span class="step">01</span>
+                  <h2>Sonuç dosyası</h2>
+                </div>
+                <span class="pill">Cihazda işlenir</span>
+              </div>
+              <label class="dropzone" for="labFile"
+                ><span class="upload-icon">↥</span
+                ><strong>Kan sonuçlarını seçin</strong
+                ><span>Metin içeren PDF · CSV · JSON · TXT</span
+                ><small
+                  >En fazla 10 MB · Taranmış görseller için elle giriş</small
+                ></label
+              ><input
+                id="labFile"
+                type="file"
+                accept=".pdf,.csv,.json,.txt"
+                class="file-input"
+              />
+              <div class="button-row">
+                <button id="csvTemplate" class="button subtle">
+                  CSV şablonu indir ↓</button
+                ><button id="clearImport" class="text-button">
+                  Aktarımı temizle
+                </button>
+              </div>
+              <p id="uploadStatus" class="upload-status" role="status">
+                Dosya seçilmedi. Sonuçları sağdaki alanlara elle de
+                girebilirsiniz.
+              </p>
+              <div id="importPreview"></div>
+              <details>
+                <summary>Dosya biçimi ve mahremiyet</summary>
+                <p>
+                  CSV başlıkları: test,value,unit,date. Desteklenen testler
+                  albumin, neutrophils, lymphocytes, crp, potassium, phosphate,
+                  magnesium, uun. JSON: aynı alanlara sahip kayıt dizisi.
+                  Birimler açıkça eşleşmeden değer aktarılmaz. PDF/TXT metni
+                  yalnız inceleme için okunur; değerler elle doğrulanarak
+                  girilir. Sonuçlar ağ üzerinden paylaşılmaz; kimlik bilgisi
+                  içeren dosyalar yerine kimliksizleştirilmiş dosya kullanın.
+                </p>
+              </details>
+              <pre id="extractedText" class="extracted" hidden></pre>
+            </section>
+            <section class="card">
+              <div class="card-head">
+                <div>
+                  <span class="step">02</span>
+                  <h2>Doğrulanacak ölçümler</h2>
+                </div>
+              </div>
+              <div id="labForm" class="fields"></div>
+              <div id="labChecks" class="check-stack"></div>
+              <div class="lab-index-grid">
+                <div>
+                  <span>NLR</span><strong id="nlrValue">—</strong
+                  ><small>Nötrofil / lenfosit</small>
+                </div>
+                <div>
+                  <span>PNI</span><strong id="pniValue">—</strong
+                  ><small>Albümin + lenfosit</small>
+                </div>
+              </div>
+              <p class="footnote">
+                NLR ve PNI yardımcı araştırma göstergeleridir. Evrensel
+                katabolizma eşiği veya mama seçimi kuralı uygulanmaz. Eksik
+                değerler sıfır kabul edilmez.
+              </p>
+            </section>
+          </div>
+          <section class="card">
+            <div class="card-head">
+              <h2>Azot dengesi için ek veriler</h2>
+              <span class="pill">Yaklaşık ölçüm</span>
+            </div>
+            <div id="nitrogenForm" class="fields three"></div>
+            <div id="nitrogenChecks" class="check-stack"></div>
+            <p class="formula-text">
+              Azot dengesi = gerçek protein / 6,25 − (24 saatlik idrar üre azotu
+              + 4)
+            </p>
+            <p class="footnote">
+              Serum üre/BUN bu alana girilmez. Böbrek fonksiyon değişikliği,
+              RRT, ek kayıp, eksik toplama veya farklı ölçüm döneminde sonuç
+              hesaplanmaz.
+            </p>
+          </section>
+          <section id="clinicReferences" class="card" data-no-i18n></section>
+        </section>
+        <section id="view-plan" class="view" hidden>
+          <div id="planSafety" class="safety-box"></div>
+          <div class="two-col">
+            <div>
+              <section class="card">
+                <div class="card-head">
+                  <div>
+                    <span class="step">01</span>
+                    <h2>Hekim tarafından belirlenen hedefler</h2>
+                  </div>
+                </div>
+                <div id="referenceText" class="reference-box"></div>
+                <div id="targetForm" class="fields"></div>
+                <p class="footnote">
+                  Diğer enerji/protein: planlanan mamanın dışındaki oral diyet,
+                  EN/PN, modüller; enerjiye propofol ve IV dekstroz da dahildir.
+                  Aynı mamayı iki kez saymayın.
+                </p>
+              </section>
+              <section class="card">
+                <div class="card-head">
+                  <div>
+                    <span class="step">02</span>
+                    <h2>Mama bileşimi</h2>
+                  </div>
+                  <span class="pill">Üretici etiketinden</span>
+                </div>
+                <div id="formulaForm" class="fields"></div>
+                <div id="planChecks" class="check-stack"></div>
+                <p class="footnote">
+                  Marka veya ürün etkinliği sıralanmaz. Alerjenler, endikasyon,
+                  elektrolitler ve ilaç etkileşimleri klinisyen tarafından
+                  ayrıca değerlendirilir.
+                </p>
+              </section>
+            </div>
+            <div>
+              <section class="plan-result card">
+                <span class="eyebrow">BESLENME PROGRAMI TASLAĞI</span>
+                <h2 id="planTitle">Hedeflerden günlük programa</h2>
+                <div id="planResult"></div>
+              </section>
+              <section class="card">
+                <div class="card-head">
+                  <h2>İzlem ve yeniden değerlendirme</h2>
+                </div>
+                <ul class="monitor-list">
+                  <li>
+                    Fiilen verilen enerji, protein ve sıvıyı her gün kaydedin.
+                  </li>
+                  <li>
+                    Tolerans, aspirasyon, kusma, dışkı ve tüp sorunlarını
+                    değerlendirin.
+                  </li>
+                  <li>
+                    Glukoz, K/P/Mg, sıvı dengesi ve böbrek fonksiyonunu klinik
+                    gereğe göre izleyin.
+                  </li>
+                  <li>
+                    Refeeding riskinde kurum protokolü, tiamin ve elektrolit
+                    planını uzman ekip belirler.
+                  </li>
+                  <li>
+                    Nörolojik hastada yutma değerlendirmesi ve levodopa gibi
+                    ilaçların zamanlamasını kontrol edin.
+                  </li>
+                </ul>
+                <p class="footnote">
+                  Bu sürüm izlem dozlarını, ilaçları, PN reçetesini veya
+                  otomatik gün gün artışı üretmez.
+                </p>
+              </section>
+            </div>
+          </div>
+          <div class="delivery-workspace" data-no-i18n><section class="card" id="deliveryForm"></section><section class="card delivery-review" id="deliveryResult"></section></div>
+        </section>
+        <section id="view-criteria" class="view" hidden>
+          <div class="clinical-intro"><h2>Ölçütleri, kendi klinik bağlamında değerlendirin.</h2><p>GLIM, ESPEN, AND/ASPEN, NRS 2002 ve EWGSOP2 farklı soruları yanıtlar. Gerekli veriler tamamlanınca hesaplanır; eksik veri normal kabul edilmez.</p></div>
+          <div class="clinical-grid" data-no-i18n><div id="criteriaForms"></div><div id="criteriaResults" aria-live="polite"></div></div>
+        </section>
+        <section id="view-dysphagia" class="view" hidden>
+          <div class="clinical-intro"><h2>Yutma işlevi, belirtiler ve güvenliği ayrı inceleyin.</h2><p>EAT-10 ve FOIS kayıtları, IDDSI gıda/sıvı düzeyleri ve FEES/VFSS değerlendirmesi. Tarama puanı tek başına güvenli oral beslenme onayı değildir.</p></div>
+          <div class="clinical-grid" data-no-i18n><div id="dysphagiaForms"></div><div id="dysphagiaResults" aria-live="polite"></div></div>
+        </section>
+        <section id="view-context" class="view" hidden>
+          <div class="clinical-intro"><h2>Hastalık, organ yükü ve metabolik bulgular birlikte.</h2><p>Kronik hastalıklar, İBH fazı, yaklaşık azot dengesi, UCR, CRP ve SOFA-2 bağlamı. Bu veriler tek başına net kas anabolizmasını veya bireysel optimum dozu kanıtlamaz.</p></div>
+          <div class="clinical-grid" data-no-i18n><div id="contextForms"></div><div id="contextResults" aria-live="polite"></div></div>
+        </section>
+        <section id="view-decisions" class="view" hidden>
+          <div class="decision-hero"><span class="eyebrow">KANITTAN KLİNİK YORUMA</span><h2>Aynı soruya, farklı yanıtlar.</h2><p>Çalışmaların neyi karşılaştırdığını görün. Hastaya uygunluğu değerlendirin ve gerekçenizi kaydedin. Bu alan hekim hedeflerini veya güvenlik kontrollerini değiştirmez.</p></div>
+          <div id="decisionTabs" class="decision-tabs" role="group" aria-label="Kanıt karşılaştırma konuları" data-no-i18n></div>
+          <div id="decisionContent" data-no-i18n></div>
+        </section>
+        <section id="view-evidence" class="view" hidden>
+          <div class="evidence-banner">
+            <div>
+              <span class="eyebrow">KAYNAKTAN KARARA</span>
+              <h2>Her kuralın dayanağı görünür.</h2>
+              <p>
+                Özgün araştırmalar, güncel kılavuzlar ve uzlaşılar erişim
+                düzeyiyle birlikte listelenir. Bu tarama sistematik derleme
+                yerine geçmez.
+              </p>
+            </div>
+            <div class="evidence-date">26<span>EKİM 2026</span></div>
+          </div>
+          <div class="evidence-toolbar">
+            <input
+              id="evidenceSearch"
+              type="search"
+              placeholder="Yazar, başlık, konu veya DOI ara…"
+              aria-label="Kanıt kitaplığında ara"
+            /><select id="evidenceSize" aria-label="Örneklem büyüklüğü">
+              <option value="all">Tüm örneklemler</option>
+              <option value="large">≥1.000 katılımcı</option></select
+            ><select id="evidenceYear" aria-label="Yayın yılı">
+              <option value="all">En yeni önce · tüm yıllar</option>
+              <option value="2026" selected>2026 yayınları</option>
+              <option value="2025">2025 yayınları</option>
+              <option value="2024">2024 yayınları</option></select
+            ><select id="evidenceFilter" aria-label="Kaynak türü">
+              <option value="all">Tüm kaynaklar</option>
+              <option value="RCT">Özgün randomize çalışmalar</option>
+              <option value="secondary">Post hoc / ikincil analiz</option>
+              <option value="cohort">Gözlemsel kohortlar</option>
+              <option value="review">Derleme / meta-analiz</option>
+              <option value="Kılavuz">Kılavuzlar</option>
+              <option value="consensus">Uzlaşı / yöntem</option>
+            </select>
+          </div>
+          <label class="check-field evidence-hold"
+            ><input type="checkbox" id="showQualityHold" /><span
+              >Yöntem doğrulaması bekleyen yayınları da göster · karar
+              kurallarında kullanılmaz</span
+            ></label
+          >
+          <p class="footnote evidence-focus">
+            2026 öncelikli görünüm. Örneklem büyüklüğü kalite puanı değildir;
+            yeni randomizasyon, post hoc analiz ve kohortlar ayrı etiketlenir.
+            Basılı sayı ve ilk çevrimiçi tarih farklı olabilir.
+          </p>
+          <div class="button-row"><a class="button secondary" href="./evidence-catalog.json" download>Kaynak kataloğunu indir · JSON ↓</a><a class="button subtle" href="./NUTRICLINIC-README.md" download>Sürüm ve doğrulama notu ↓</a></div>
+          <p id="evidenceSummary" class="footnote" role="status"></p>
+          <div id="evidenceList" class="evidence-list"></div>
+          <p class="footnote">
+            Tam metin erişimi olmayan kayıtlarda özet/kısmi erişim etiketi
+            gösterilir. SBÜ VETİS kimlik bilgileri bu uygulamada tutulmaz.
+          </p>
+        </section>
+        <section id="view-components" class="view" hidden>
+          <div class="evidence-banner">
+            <div>
+              <span class="eyebrow">BİLEŞEN DÜZEYİNDE DEĞERLENDİRME</span>
+              <h2>Toplam protein, tek başına bütün yanıt değildir.</h2>
+              <p>
+                Glutamin, lösin ve BCAA amino asitlerdir. HMB, lösinin
+                metabolitidir. İzole bileşen ile çoklu içerikli ürünün klinik
+                kanıtı ayrı değerlendirilir.
+              </p>
+            </div>
+          </div>
+          <div class="notice">
+            <span class="notice-icon">i</span>
+            <div>
+              Bu bölüm bileşen kanıtını karşılaştırır. Bir laboratuvar
+              sonucundan izole amino asit dozu veya ek tedavi reçetesi üretmez.
+            </div>
+          </div>
+          <div id="componentList" class="evidence-list"></div>
+          <div class="button-row">
+            <a
+              class="button secondary"
+              href="./AMINO-ACID-EVIDENCE-NOTE.md"
+              download
+              >Glutamin kanıt notu ↓</a
+            >
+            <a
+              class="button secondary"
+              href="./LEUCINE-BCAA-HMB-EVIDENCE-NOTE.md"
+              download
+              >Lösin / BCAA / HMB kanıt notu ↓</a
+            >
+          </div>
+          <div class="card">
+            <h2>Kanıttan ürüne geçiş</h2>
+            <p>
+              Hasta grubu, beslenme yolu, klinik faz, kullanılan doz ve
+              karşılaştırıcı uygulamayla eşleşmelidir. Çalışmanın çok bileşenli
+              ürüne ait sonucu, tek bir amino asidin etkisi olarak yorumlanmaz.
+            </p>
+            <a
+              class="button secondary"
+              href="./COMPONENT-EVIDENCE-METHODS.md"
+              download
+              >Bileşen kanıtı yöntem notu ↓</a
+            >
+          </div>
+        </section>
+        <section id="view-research" class="view" hidden>
+          <section id="localPatientArchive" class="card" data-no-i18n></section>
+          <section id="followupBoard" class="card followup-board" data-no-i18n></section>
+          <div class="two-col">
+            <section class="card">
+              <div class="card-head">
+                <h2>Değerlendirme çalışma listesi</h2>
+                <span class="pill" id="visitCount">0 kayıt</span>
+              </div>
+              <p data-server-text="Aynı olgunun ölçümlerini zaman damgasıyla kaydedin. Çalışma listesi ve taslaklar sunucuda korunur; JSON/CSV ile ayrıca dışa aktarabilirsiniz.">
+                Aynı olgunun ölçümlerini zaman damgasıyla kaydedin. Çalışma listesi ve taslaklar yerel diskte korunur; JSON/CSV ile ayrıca dışa aktarabilirsiniz.
+              </p>
+              <div class="button-row">
+                <button id="saveVisit" class="button primary">
+                  Değerlendirmeyi kaydet</button
+                ><button id="exportJson" class="button secondary">
+                  JSON indir ↓</button
+                ><button id="exportCsv" class="button secondary">
+                  CSV indir ↓
+                </button>
+              </div>
+              <div id="visitsList"></div>
+              <div class="button-row">
+                <label class="button subtle" for="sessionFile"
+                  >Araştırma JSON'unu aç</label
+                ><input
+                  class="file-input"
+                  id="sessionFile"
+                  type="file"
+                  accept=".json"
+                /><button id="clearVisits" class="text-button danger">
+                  Çalışma listesini temizle
+                </button>
+              </div>
+              <p id="researchStatus" role="status"></p>
+              <p class="footnote">JSON/CSV çıktılarındaki özgün hesaplama metni Türkçe korunur. Yazdırılabilir rapor seçilen arayüz dilini kullanır.</p>
+            </section>
+            <section class="card">
+              <div class="card-head"><h2>Yöntem ve izlenebilirlik</h2></div>
+              <details class="method-group" open>
+                <summary>Kanıt taraması ve tekrar üretilebilirlik</summary>
+                <p>Tarama kayıtları, uygunluk veya klinik geçerlik kararı değildir. Sorgular, ham yanıtlar ve bekleyen incelemeler ayrı izlenir.</p>
+                <div class="button-row">
+                  <a class="button secondary" href="./FOCUSED-SEARCH-METHODS.md" download>Odaklı tarama protokolü (EN/TR) ↓</a>
+                  <a class="button secondary" href="./focused-search-20261025.zip" download>2026 PubMed tarama paketi · ZIP ↓</a>
+                </div>
+              </details>
+              <details class="method-group">
+                <summary>Klinik çalışma tasarımı ve alanlar</summary>
+              <div class="button-row">
+                <a
+                  class="button secondary"
+                  href="./RESEARCH-PROTOCOL.md"
+                  download
+                  >Protokol taslağı ↓</a
+                ><a class="button secondary" href="./CLINICAL-VALIDATION-CRF.md" download>Klinik doğrulama CRF ve alan eşleştirmesi (EN/TR) ↓</a
+                ><a class="button secondary" href="./REFERENCE-FEASIBILITY-DECISION-RECORD.md" download>Bağımsız referans uygulanabilirliği: karar formu (EN/TR) ↓</a
+                ><a class="button secondary" href="./METABOLIC-METHODS-AND-VALIDATION.md" download>Metabolik yöntem ve doğrulama planı (EN/TR) ↓</a
+                ><a class="button secondary" href="./CLINICAL-MODULES-METHODS.md" download>Klinik modüller ve sınırlar ↓</a
+                ><a class="button secondary" href="./DATA-DICTIONARY.md" download>Veri sözlüğü ↓</a>
+              </div>
+              </details>
+              <details class="method-group">
+                <summary>Özgün yayınlar ve çalışma aileleri</summary>
+                <p><a class="button secondary" href="./PNI-SOURCE-METHODS.md" download>PNI özgün denklem ve birim denetimi (EN/TR) ↓</a></p>
+                <p><a class="button secondary" href="./LIN-PMV-SOURCE-METHODS.md" download>Lin PMV: birleşik müdahale ve azot dengesi (EN/TR) ↓</a></p>
+                <p><a class="button secondary" href="./DENG-METABOLIC-SOURCE-METHODS.md" download>Deng fizyolojik pencereler: kaynak ve yöntem (EN/TR) ↓</a></p>
+                <p><a class="button secondary" href="./WULANDARI-BCAA-SOURCE-METHODS.md" download>Wulandari BCAA: kayıt ve erişim sınırları (EN/TR) ↓</a></p>
+                <p><a class="button secondary" href="./UCR-ORIGINAL-SOURCE-METHODS.md" download>UCR özgün kaynak ve birim denetimi (EN/TR) ↓</a></p>
+                <p><a class="button secondary" href="./ENERGY-MEASUREMENT-AND-DELIVERY-SOURCE-METHODS.md" download>Enerji ölçümü ve alım: kaynak denetimi (EN/TR) ↓</a></p>
+              <div class="button-row">
+                <a class="button secondary" href="./STUDY-FAMILIES-AND-SCREENING.md" download>Çalışma aileleri ve tarama kaydı (EN/TR) ↓</a
+                ><a class="button secondary" href="./PRECISE-TARGET-METHODS-AUDIT.md" download>PRECISe / TARGET yöntem denetimi (EN/TR) ↓</a
+                ><a class="button secondary" href="./HMB-NEXIS-SOURCE-METHODS.md" download>HMB ve birleşik AA deneyleri: kaynak ve yöntem (EN/TR) ↓</a
+                ><a class="button secondary" href="./ENGINE-SUMMERS-SOURCE-METHODS.md" download>ENGINE / Summers kaynak ve yöntem notu (EN/TR) ↓</a
+                ><a class="button secondary" href="./EVIDENCE-COMPARISON-AND-SEARCH.md" download>Kanıt karşılaştırması ve tarama kaydı ↓</a
+                ><a
+                  class="button secondary"
+                  href="./2026-ICU-EVIDENCE.md"
+                  download
+                  >2026 YBÜ kanıtları ↓</a
+                ><a
+                  class="button secondary"
+                  href="./2026-NEUROLOGY-EVIDENCE.md"
+                  download
+                  >2026 nöroloji kanıtları ↓</a
+                >
+              </div>
+              </details>
+              <details class="method-group">
+                <summary>Sentetik analiz ve teknik ön deneme</summary>
+                <div class="button-row">
+                  <a class="button secondary" href="./ANALYSIS-DRY-RUN-METHODS.md" download>Çevrimdışı sentetik analiz yöntemi (EN/TR) ↓</a>
+                  <a class="button secondary" href="./analysis-synthetic-input.json" download="analysis-synthetic-input.json" data-synthetic-download>Sentetik analiz girdisi · JSON ↓</a>
+                  <a class="button secondary" href="./analysis-synthetic-report.json" download="analysis-synthetic-report.json" data-synthetic-download>Sentetik analiz ön deneme raporu · JSON ↓</a>
+                </div>
+              </details>
+              <dl class="method-list">
+                <dt>Hesaplama motoru</dt>
+                <dd>v0.1.1 · deterministik kurallar</dd>
+                <dt>Çalışma popülasyonu</dt>
+                <dd>≥18 yaş · YBÜ ve servis ayrı değerlendirilir</dd>
+                <dt>Çıktının niteliği</dt>
+                <dd>
+                  Klinisyen denetimli araştırma prototipi; klinik validasyon
+                  yapılmadı
+                </dd>
+                <dt>Kaydın içeriği</dt>
+                <dd>
+                  Girdiler, sonuçlar, engeller, formüller, kanıt sürümü ve zaman
+                  damgası
+                </dd>
+                <dt>Veri yönetimi</dt>
+                <dd data-server-text="Çalışma koduyla sunucuda kayıt; tek ortak şifreli hesap kullanılır, kişisel kullanıcı yetkisi veya değiştirilemez denetim izi bulunmaz">
+                  Çalışma koduyla yerel disk kaydı; kullanıcı yetkisi veya değiştirilemez denetim izi bulunmaz
+                </dd>
+              </dl>
+              <p class="footnote">
+                Hasta verisiyle çalışma öncesinde kurumun etik kurul, veri
+                güvenliği ve mevzuat değerlendirmesi gerekir. Hasta bazlı
+                ayrılmış doğrulama, ölçüm standardizasyonu ve önceden
+                belirlenmiş sonlanımlar araştırma protokolünde planlanmalıdır.
+              </p>
+            </section>
+          </div>
+          <section class="card" data-no-i18n>
+            <details id="coreRuleSources" class="method-group">
+              <summary id="coreRuleSourceTitle">Sources for core calculations</summary>
+              <div id="coreRuleSourceContent"></div>
+            </details>
+          </section>
+          <section class="card">
+            <div class="card-head">
+              <h2>Bu hesaplamanın izi</h2>
+              <button id="printReport" class="button subtle">
+                Raporu yazdır / PDF
+              </button>
+            </div>
+            <div id="reportInputList" class="report-inputs"></div>
+            <div id="decisionReport" class="report-inputs" data-no-i18n></div>
+            <div id="clinicalReport" class="report-inputs" data-no-i18n></div>
+            <div id="followupReport" class="report-inputs" data-no-i18n></div>
+            <div id="traceList" class="trace-list"></div>
+            <div id="reportAppendix" data-no-i18n></div>
+          </section>
+        </section>
+        <div class="bottom-bar">
+          <span
+            ><span class="live-dot"></span>
+            <span id="lastUpdated">Örnek olgu</span></span
+          ><span
+            >Hekim denetiminde değerlendirme · Klinik validasyon bekliyor</span
+          >
+        </div>
+      </main>
+      <footer>
+        NutriClinic <span>Hastaya özgü veriler. İzlenebilir kararlar.</span
+        ><button class="text-button" data-goto="evidence">
+          Kanıtlar ve yöntem ↗
+        </button>
+      </footer>
+    </div>
+    <div id="toast" class="toast" role="status"></div>
+    <script src="./app.mjs" type="module"></script>
+    <script src="./synthetic-downloads.mjs" type="module"></script>
+  </body>
+</html>

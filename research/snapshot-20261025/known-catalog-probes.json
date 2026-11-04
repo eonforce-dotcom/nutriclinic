@@ -1,0 +1,202 @@
+{
+  "claim": "Known catalog DOI probes, not sensitivity or eligibility validation",
+  "catalog": [
+    {
+      "id": "aha-stroke-2026",
+      "pmids": [],
+      "queryIds": []
+    },
+    {
+      "id": "glim-intake-2026",
+      "pmids": [],
+      "queryIds": []
+    },
+    {
+      "id": "glints-2026",
+      "pmids": [],
+      "queryIds": []
+    },
+    {
+      "id": "nutrirea3-renal-2026",
+      "pmids": [
+        "41989569"
+      ],
+      "queryIds": [
+        "icu-energyProtein",
+        "icu-energyProtein-amendment01"
+      ]
+    },
+    {
+      "id": "deng-physiological-windows-2026",
+      "pmids": [
+        "42562321"
+      ],
+      "queryIds": [
+        "icu-energyProtein",
+        "icu-energyProtein-amendment01"
+      ]
+    },
+    {
+      "id": "need-age-heterogeneity-2026",
+      "pmids": [
+        "42764372"
+      ],
+      "queryIds": [
+        "icu-energyProtein-amendment01"
+      ]
+    },
+    {
+      "id": "electrolyte-multicenter-cohort-2026",
+      "pmids": [],
+      "queryIds": []
+    },
+    {
+      "id": "fradkin-calorimetry-pmv-rct-2026",
+      "pmids": [
+        "42791574"
+      ],
+      "queryIds": [
+        "ward-energyProtein",
+        "icu-energyProtein-amendment01",
+        "ward-energyProtein-amendment01"
+      ]
+    },
+    {
+      "id": "summers-anabolic-resistance-rct-2026",
+      "pmids": [
+        "42085214"
+      ],
+      "queryIds": [
+        "icu-energyProtein",
+        "icu-metabolic",
+        "icu-aminoAcids",
+        "icu-energyProtein-amendment01",
+        "icu-metabolic-amendment01",
+        "icu-aminoAcids-amendment01"
+      ]
+    },
+    {
+      "id": "cereda-ward-ons-print-2026",
+      "pmids": [
+        "41406624"
+      ],
+      "queryIds": [
+        "ward-energyProtein",
+        "ward-energyProtein-amendment01"
+      ]
+    },
+    {
+      "id": "zhang-stroke-en-2026-quality-hold",
+      "pmids": [],
+      "queryIds": []
+    },
+    {
+      "id": "iv-glutamine-meta-2026",
+      "pmids": [
+        "42875940"
+      ],
+      "queryIds": [
+        "icu-aminoAcids",
+        "icu-energyProtein-amendment01",
+        "icu-aminoAcids-amendment01"
+      ]
+    },
+    {
+      "id": "kspen-glutamine-guideline-2026",
+      "pmids": [],
+      "queryIds": []
+    },
+    {
+      "id": "berger-hmb-metabolic-posthoc-2026",
+      "pmids": [
+        "42202485"
+      ],
+      "queryIds": [
+        "icu-aminoAcids",
+        "icu-energyProtein-amendment01",
+        "icu-metabolic-amendment01",
+        "icu-aminoAcids-amendment01"
+      ]
+    },
+    {
+      "id": "chan-tln01-2026",
+      "pmids": [],
+      "queryIds": []
+    },
+    {
+      "id": "wulandari-icu-bcaa-print-2026",
+      "pmids": [
+        "41325937"
+      ],
+      "queryIds": [
+        "icu-metabolic",
+        "icu-aminoAcids",
+        "icu-energyProtein-amendment01",
+        "icu-metabolic-amendment01",
+        "icu-aminoAcids-amendment01"
+      ]
+    },
+    {
+      "id": "veldsman-icu-aa-mobilization-print-2026",
+      "pmids": [
+        "41472548"
+      ],
+      "queryIds": [
+        "icu-energyProtein-amendment01",
+        "icu-aminoAcids-amendment01"
+      ]
+    },
+    {
+      "id": "engine-aki-pcr-posthoc-2026",
+      "pmids": [
+        "42628743"
+      ],
+      "queryIds": [
+        "icu-energyProtein",
+        "icu-metabolic",
+        "icu-energyProtein-amendment01",
+        "icu-metabolic-amendment01"
+      ]
+    },
+    {
+      "id": "nexis-aa-cycling-2026",
+      "pmids": [
+        "42438140"
+      ],
+      "queryIds": [
+        "icu-energyProtein",
+        "ward-energyProtein",
+        "icu-energyProtein-amendment01",
+        "icu-aminoAcids-amendment01",
+        "ward-energyProtein-amendment01",
+        "ward-aminoAcids-amendment01"
+      ]
+    },
+    {
+      "id": "ucr-aki-mortality-posthoc-2026",
+      "pmids": [
+        "42806521"
+      ],
+      "queryIds": [
+        "icu-energyProtein",
+        "icu-energyProtein-amendment01",
+        "icu-metabolic-amendment01"
+      ]
+    },
+    {
+      "id": "iddsi-framework-2026",
+      "pmids": [],
+      "queryIds": []
+    },
+    {
+      "id": "digest-iddsi-mapping-2026",
+      "pmids": [],
+      "queryIds": []
+    },
+    {
+      "id": "butyrate-ibd-print-2026",
+      "pmids": [],
+      "queryIds": []
+    }
+  ]
+}

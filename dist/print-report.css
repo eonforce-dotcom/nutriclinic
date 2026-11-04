@@ -1,0 +1,57 @@
+/* Loaded after the normal workspace styles. The trace is print-only; the live
+   forms and source cards keep their existing screen presentation. */
+#reportAppendix { display: none; }
+
+@page { size: A4; margin: 14mm 12mm 16mm; }
+
+@media print {
+  html, body { width: auto; min-width: 0; background: #fff; color: #182621; }
+  .shell, main, #view-research { min-width: 0; max-width: none; }
+  #reportAppendix { display: block !important; }
+  #view-research > .card:has(> #coreRuleSources) { display: none !important; }
+  #view-research > .card, .print-report-appendix,
+  .print-report-appendix > div { break-inside: auto; }
+  #view-research .card { box-shadow: none; overflow: visible; }
+  #view-research .two-col, #view-research .table-scroll { overflow: visible; }
+  #view-research .file-input, #view-research input[type=file] { display: none !important; }
+  /* End the printed trace at its last source entry. Screen-card padding,
+     bottom margins and a closing border can otherwise spill onto a blank
+     final sheet after the last printable line. */
+  #view-research > .card:last-child {
+    padding-bottom: 0;
+    margin-bottom: 0;
+    border-bottom: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  .print-report-appendix > :last-child,
+  .print-report-appendix > ul:last-child > li:last-child { margin-bottom: 0; }
+  .print-report-appendix { margin-top: 7mm; font-size: 9pt; line-height: 1.4; }
+  .print-report-appendix h3 { font-size: 12pt; margin: 6mm 0 2.5mm; }
+  .print-report-appendix h4 { font-size: 10pt; margin: 4mm 0 2mm; }
+  .print-report-appendix h3, .print-report-appendix h4 { break-after: avoid; }
+  .print-report-appendix p, .print-report-appendix li {
+    font-size: 9pt; line-height: 1.4; color: #253e33;
+    orphans: 3; widows: 3;
+  }
+  .print-report-appendix ul { padding-left: 5mm; }
+  .print-report-appendix li { margin-bottom: 2mm; }
+  .print-report-appendix table {
+    display: table; width: 100%; table-layout: fixed;
+    border-collapse: collapse; font-size: 9pt; break-inside: auto;
+  }
+  .print-report-appendix tbody { display: table-row-group; }
+  .print-report-appendix tr { break-inside: avoid; }
+  .print-report-appendix th, .print-report-appendix td {
+    padding: 1.6mm 2mm; border-bottom: 0.2mm solid #d4ddd7;
+    vertical-align: top; white-space: normal; line-height: 1.35;
+    overflow-wrap: anywhere; word-break: normal;
+  }
+  .print-report-appendix th { width: 40%; font-weight: 500; text-align: left; }
+  .print-report-appendix td { width: 60%; }
+  .print-report-appendix a { color: #183d31; text-decoration: underline; }
+  .print-report-appendix p, .print-report-appendix li, .print-report-appendix a {
+    overflow-wrap: anywhere; word-break: normal;
+  }
+  .print-report-appendix .print-lab-interval { break-inside: avoid; }
+}

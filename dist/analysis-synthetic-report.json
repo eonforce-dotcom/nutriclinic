@@ -1,0 +1,989 @@
+{
+  "schema": "nutriklinik-synthetic-agreement-report-v1",
+  "analysisVersion": "0.1.0",
+  "status": "ok",
+  "syntheticOnly": true,
+  "clinicalPass": null,
+  "analysisSetStatus": "built",
+  "errors": [],
+  "contract": {
+    "construct": "whole-body-nitrogen-balance",
+    "unit": "g N/24h",
+    "difference": "candidate-minus-reference",
+    "estimand": "eligible-window",
+    "method": "ba2007-varying-value-anova",
+    "residualAssumption": "independent-within-patient-synthetic",
+    "bootstrap": {
+      "seed": 20261025,
+      "replicates": 1000
+    }
+  },
+  "assumptions": [
+    "Synthetic assertions do not establish physiological reference independence or validity.",
+    "The ANOVA illustration assumes independent, homoscedastic within-patient differences; serial independence and real-patient suitability are unchecked.",
+    "Whole-patient resampling assumes representative independent patient clusters; percentile intervals are a computational demonstration, not validated coverage.",
+    "No clinical agreement margin, categorical metabolic label, sample size or dose has been selected. clinicalPass is always null."
+  ],
+  "patients": {
+    "total": 9,
+    "screened": 8,
+    "eligible": 7,
+    "enrolled": 6
+  },
+  "ledger": [
+    {
+      "patientId": "P1",
+      "admissionId": "A1",
+      "windowId": "W01",
+      "revisionId": "R1",
+      "selectedRevisionIds": [
+        "R1"
+      ],
+      "setting": "icu",
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "exitReason": null,
+      "start": "2026-01-01T08:00:00Z",
+      "end": "2026-01-02T08:00:00Z",
+      "candidateStatus": "observed",
+      "referenceStatus": "observed",
+      "revisionGroups": 2,
+      "duplicateRows": 1,
+      "reasons": []
+    },
+    {
+      "patientId": "P1",
+      "admissionId": "A1",
+      "windowId": "W02",
+      "revisionId": "R1",
+      "selectedRevisionIds": [
+        "R1"
+      ],
+      "setting": "icu",
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "exitReason": null,
+      "start": "2026-01-02T08:00:00Z",
+      "end": "2026-01-03T08:00:00Z",
+      "candidateStatus": "observed",
+      "referenceStatus": "observed",
+      "revisionGroups": 1,
+      "duplicateRows": 0,
+      "reasons": []
+    },
+    {
+      "patientId": "P1",
+      "admissionId": "A2",
+      "windowId": "W03",
+      "revisionId": "R1",
+      "selectedRevisionIds": [
+        "R1"
+      ],
+      "setting": "icu",
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "exitReason": null,
+      "start": "2026-01-05T08:00:00Z",
+      "end": "2026-01-06T08:00:00Z",
+      "candidateStatus": "observed",
+      "referenceStatus": "observed",
+      "revisionGroups": 1,
+      "duplicateRows": 0,
+      "reasons": []
+    },
+    {
+      "patientId": "P2",
+      "admissionId": "A1",
+      "windowId": "W01",
+      "revisionId": "R1",
+      "selectedRevisionIds": [
+        "R1"
+      ],
+      "setting": "icu",
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "exitReason": null,
+      "start": "2026-01-01T08:00:00Z",
+      "end": "2026-01-02T08:00:00Z",
+      "candidateStatus": "observed",
+      "referenceStatus": "observed",
+      "revisionGroups": 1,
+      "duplicateRows": 0,
+      "reasons": []
+    },
+    {
+      "patientId": "P2",
+      "admissionId": "A1",
+      "windowId": "W02",
+      "revisionId": "R1",
+      "selectedRevisionIds": [
+        "R1"
+      ],
+      "setting": "icu",
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "exitReason": null,
+      "start": "2026-01-02T08:00:00Z",
+      "end": "2026-01-03T08:00:00Z",
+      "candidateStatus": "observed",
+      "referenceStatus": "observed",
+      "revisionGroups": 1,
+      "duplicateRows": 0,
+      "reasons": []
+    },
+    {
+      "patientId": "P3",
+      "admissionId": "A1",
+      "windowId": "W01",
+      "revisionId": "R1",
+      "selectedRevisionIds": [
+        "R1"
+      ],
+      "setting": "icu",
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "exitReason": null,
+      "start": "2026-01-01T08:00:00Z",
+      "end": "2026-01-02T08:00:00Z",
+      "candidateStatus": "observed",
+      "referenceStatus": "observed",
+      "revisionGroups": 1,
+      "duplicateRows": 0,
+      "reasons": []
+    },
+    {
+      "patientId": "P4",
+      "admissionId": "A1",
+      "windowId": "W-DEATH",
+      "revisionId": "R1",
+      "selectedRevisionIds": [
+        "R1"
+      ],
+      "setting": "icu",
+      "planned": true,
+      "attempted": false,
+      "collectionComplete": false,
+      "exitReason": "death",
+      "start": "2026-01-26T08:00:00Z",
+      "end": "2026-01-27T08:00:00Z",
+      "candidateStatus": "unavailable",
+      "referenceStatus": "unavailable",
+      "revisionGroups": 1,
+      "duplicateRows": 0,
+      "reasons": [
+        "not_attempted",
+        "incomplete_collection",
+        "candidate_unavailable",
+        "reference_unavailable"
+      ]
+    },
+    {
+      "patientId": "P4",
+      "admissionId": "A1",
+      "windowId": "W-FAILED",
+      "revisionId": "R1",
+      "selectedRevisionIds": [
+        "R1"
+      ],
+      "setting": "icu",
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "exitReason": null,
+      "start": "2026-01-12T08:00:00Z",
+      "end": "2026-01-13T08:00:00Z",
+      "candidateStatus": "execution_failure",
+      "referenceStatus": "observed",
+      "revisionGroups": 1,
+      "duplicateRows": 0,
+      "reasons": [
+        "candidate_execution_failure"
+      ]
+    },
+    {
+      "patientId": "P4",
+      "admissionId": "A1",
+      "windowId": "W-INCOMPLETE",
+      "revisionId": "R1",
+      "selectedRevisionIds": [
+        "R1"
+      ],
+      "setting": "icu",
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": false,
+      "exitReason": null,
+      "start": "2026-01-13T08:00:00Z",
+      "end": "2026-01-14T08:00:00Z",
+      "candidateStatus": "observed",
+      "referenceStatus": "observed",
+      "revisionGroups": 1,
+      "duplicateRows": 0,
+      "reasons": [
+        "incomplete_collection"
+      ]
+    },
+    {
+      "patientId": "P4",
+      "admissionId": "A1",
+      "windowId": "W-MISSING-C",
+      "revisionId": "R1",
+      "selectedRevisionIds": [
+        "R1"
+      ],
+      "setting": "icu",
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "exitReason": null,
+      "start": "2026-01-10T08:00:00Z",
+      "end": "2026-01-11T08:00:00Z",
+      "candidateStatus": "unavailable",
+      "referenceStatus": "observed",
+      "revisionGroups": 1,
+      "duplicateRows": 0,
+      "reasons": [
+        "candidate_unavailable"
+      ]
+    },
+    {
+      "patientId": "P4",
+      "admissionId": "A1",
+      "windowId": "W-MISSING-R",
+      "revisionId": "R1",
+      "selectedRevisionIds": [
+        "R1"
+      ],
+      "setting": "icu",
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "exitReason": null,
+      "start": "2026-01-23T08:00:00Z",
+      "end": "2026-01-24T08:00:00Z",
+      "candidateStatus": "observed",
+      "referenceStatus": "unavailable",
+      "revisionGroups": 1,
+      "duplicateRows": 0,
+      "reasons": [
+        "reference_unavailable"
+      ]
+    },
+    {
+      "patientId": "P4",
+      "admissionId": "A1",
+      "windowId": "W-OVERLAP-A",
+      "revisionId": "R1",
+      "selectedRevisionIds": [
+        "R1"
+      ],
+      "setting": "icu",
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "exitReason": null,
+      "start": "2026-01-20T08:00:00Z",
+      "end": "2026-01-21T08:00:00Z",
+      "candidateStatus": "observed",
+      "referenceStatus": "observed",
+      "revisionGroups": 1,
+      "duplicateRows": 0,
+      "reasons": [
+        "overlap"
+      ]
+    },
+    {
+      "patientId": "P4",
+      "admissionId": "A1",
+      "windowId": "W-SHIFTED",
+      "revisionId": "R1",
+      "selectedRevisionIds": [
+        "R1"
+      ],
+      "setting": "icu",
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "exitReason": null,
+      "start": "2026-01-14T08:00:00Z",
+      "end": "2026-01-15T08:00:00Z",
+      "candidateStatus": "observed",
+      "referenceStatus": "observed",
+      "revisionGroups": 1,
+      "duplicateRows": 0,
+      "reasons": [
+        "candidate_interval_mismatch"
+      ]
+    },
+    {
+      "patientId": "P4",
+      "admissionId": "A1",
+      "windowId": "W-SUPPRESSED",
+      "revisionId": "R1",
+      "selectedRevisionIds": [
+        "R1"
+      ],
+      "setting": "icu",
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "exitReason": null,
+      "start": "2026-01-11T08:00:00Z",
+      "end": "2026-01-12T08:00:00Z",
+      "candidateStatus": "expected_suppression",
+      "referenceStatus": "observed",
+      "revisionGroups": 1,
+      "duplicateRows": 0,
+      "reasons": [
+        "candidate_expected_suppression"
+      ]
+    },
+    {
+      "patientId": "P4",
+      "admissionId": "A1",
+      "windowId": "W-UNRELIABLE-R",
+      "revisionId": "R1",
+      "selectedRevisionIds": [
+        "R1"
+      ],
+      "setting": "icu",
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "exitReason": null,
+      "start": "2026-01-24T08:00:00Z",
+      "end": "2026-01-25T08:00:00Z",
+      "candidateStatus": "observed",
+      "referenceStatus": "unreliable",
+      "revisionGroups": 1,
+      "duplicateRows": 0,
+      "reasons": [
+        "reference_unreliable"
+      ]
+    },
+    {
+      "patientId": "P4",
+      "admissionId": "A2",
+      "windowId": "W-OVERLAP-B",
+      "revisionId": "R1",
+      "selectedRevisionIds": [
+        "R1"
+      ],
+      "setting": "icu",
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "exitReason": null,
+      "start": "2026-01-20T20:00:00Z",
+      "end": "2026-01-21T20:00:00Z",
+      "candidateStatus": "observed",
+      "referenceStatus": "observed",
+      "revisionGroups": 1,
+      "duplicateRows": 0,
+      "reasons": [
+        "overlap"
+      ]
+    },
+    {
+      "patientId": "Q1",
+      "admissionId": "A1",
+      "windowId": "W01",
+      "revisionId": "R1",
+      "selectedRevisionIds": [
+        "R1"
+      ],
+      "setting": "ward",
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "exitReason": null,
+      "start": "2026-01-01T08:00:00Z",
+      "end": "2026-01-02T08:00:00Z",
+      "candidateStatus": "observed",
+      "referenceStatus": "observed",
+      "revisionGroups": 1,
+      "duplicateRows": 0,
+      "reasons": []
+    },
+    {
+      "patientId": "Q1",
+      "admissionId": "A1",
+      "windowId": "W02",
+      "revisionId": "R1",
+      "selectedRevisionIds": [
+        "R1"
+      ],
+      "setting": "ward",
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "exitReason": null,
+      "start": "2026-01-02T08:00:00Z",
+      "end": "2026-01-03T08:00:00Z",
+      "candidateStatus": "observed",
+      "referenceStatus": "observed",
+      "revisionGroups": 1,
+      "duplicateRows": 0,
+      "reasons": []
+    },
+    {
+      "patientId": "Q2",
+      "admissionId": "A1",
+      "windowId": "W01",
+      "revisionId": "R1",
+      "selectedRevisionIds": [
+        "R1"
+      ],
+      "setting": "ward",
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "exitReason": null,
+      "start": "2026-01-01T08:00:00Z",
+      "end": "2026-01-02T08:00:00Z",
+      "candidateStatus": "observed",
+      "referenceStatus": "observed",
+      "revisionGroups": 1,
+      "duplicateRows": 0,
+      "reasons": []
+    },
+    {
+      "patientId": "Q2",
+      "admissionId": "A1",
+      "windowId": "W02",
+      "revisionId": "R1",
+      "selectedRevisionIds": [
+        "R1"
+      ],
+      "setting": "ward",
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "exitReason": null,
+      "start": "2026-01-02T08:00:00Z",
+      "end": "2026-01-03T08:00:00Z",
+      "candidateStatus": "observed",
+      "referenceStatus": "observed",
+      "revisionGroups": 1,
+      "duplicateRows": 0,
+      "reasons": []
+    }
+  ],
+  "settings": {
+    "icu": {
+      "countsStatus": "computed",
+      "counts": {
+        "patients": 4,
+        "admissions": 6,
+        "logicalWindows": 16,
+        "planned": 16,
+        "attempted": 15,
+        "complete": 14,
+        "candidateObserved": 12,
+        "referenceAvailable": 13,
+        "pairs": 6,
+        "revisionGroups": 17,
+        "duplicateRows": 1,
+        "unresolvedRevisions": 0,
+        "unknownAttempted": 0,
+        "unknownComplete": 0
+      },
+      "exclusions": [
+        {
+          "patientId": "P4",
+          "admissionId": "A1",
+          "windowId": "W-DEATH",
+          "revisionId": "R1",
+          "reasons": [
+            "not_attempted",
+            "incomplete_collection",
+            "candidate_unavailable",
+            "reference_unavailable"
+          ]
+        },
+        {
+          "patientId": "P4",
+          "admissionId": "A1",
+          "windowId": "W-FAILED",
+          "revisionId": "R1",
+          "reasons": [
+            "candidate_execution_failure"
+          ]
+        },
+        {
+          "patientId": "P4",
+          "admissionId": "A1",
+          "windowId": "W-INCOMPLETE",
+          "revisionId": "R1",
+          "reasons": [
+            "incomplete_collection"
+          ]
+        },
+        {
+          "patientId": "P4",
+          "admissionId": "A1",
+          "windowId": "W-MISSING-C",
+          "revisionId": "R1",
+          "reasons": [
+            "candidate_unavailable"
+          ]
+        },
+        {
+          "patientId": "P4",
+          "admissionId": "A1",
+          "windowId": "W-MISSING-R",
+          "revisionId": "R1",
+          "reasons": [
+            "reference_unavailable"
+          ]
+        },
+        {
+          "patientId": "P4",
+          "admissionId": "A1",
+          "windowId": "W-OVERLAP-A",
+          "revisionId": "R1",
+          "reasons": [
+            "overlap"
+          ]
+        },
+        {
+          "patientId": "P4",
+          "admissionId": "A1",
+          "windowId": "W-SHIFTED",
+          "revisionId": "R1",
+          "reasons": [
+            "candidate_interval_mismatch"
+          ]
+        },
+        {
+          "patientId": "P4",
+          "admissionId": "A1",
+          "windowId": "W-SUPPRESSED",
+          "revisionId": "R1",
+          "reasons": [
+            "candidate_expected_suppression"
+          ]
+        },
+        {
+          "patientId": "P4",
+          "admissionId": "A1",
+          "windowId": "W-UNRELIABLE-R",
+          "revisionId": "R1",
+          "reasons": [
+            "reference_unreliable"
+          ]
+        },
+        {
+          "patientId": "P4",
+          "admissionId": "A2",
+          "windowId": "W-OVERLAP-B",
+          "revisionId": "R1",
+          "reasons": [
+            "overlap"
+          ]
+        }
+      ],
+      "reasonCounts": {
+        "not_attempted": 1,
+        "incomplete_collection": 2,
+        "candidate_unavailable": 2,
+        "reference_unavailable": 2,
+        "candidate_execution_failure": 1,
+        "overlap": 2,
+        "candidate_interval_mismatch": 1,
+        "candidate_expected_suppression": 1,
+        "reference_unreliable": 1
+      },
+      "pairs": [
+        {
+          "patientId": "P1",
+          "admissionId": "A1",
+          "windowId": "W01",
+          "revisionId": "R1",
+          "start": "2026-01-01T08:00:00Z",
+          "end": "2026-01-02T08:00:00Z",
+          "candidate": 0,
+          "reference": 0,
+          "unit": "g N/24h",
+          "construct": "whole-body-nitrogen-balance",
+          "timeBasis": "explicit-offset-instants",
+          "candidateSource": "synthetic candidate placeholder",
+          "referenceSource": "synthetic independent placeholder; no physiological reference",
+          "candidateStart": "2026-01-01T08:00:00Z",
+          "candidateEnd": "2026-01-02T08:00:00Z",
+          "referenceStart": "2026-01-01T08:00:00Z",
+          "referenceEnd": "2026-01-02T08:00:00Z",
+          "referenceIndependentSyntheticAssertion": true,
+          "difference": 0,
+          "mean": 0
+        },
+        {
+          "patientId": "P1",
+          "admissionId": "A1",
+          "windowId": "W02",
+          "revisionId": "R1",
+          "start": "2026-01-02T08:00:00Z",
+          "end": "2026-01-03T08:00:00Z",
+          "candidate": -2,
+          "reference": -4,
+          "unit": "g N/24h",
+          "construct": "whole-body-nitrogen-balance",
+          "timeBasis": "explicit-offset-instants",
+          "candidateSource": "synthetic candidate placeholder",
+          "referenceSource": "synthetic independent placeholder; no physiological reference",
+          "candidateStart": "2026-01-02T08:00:00Z",
+          "candidateEnd": "2026-01-03T08:00:00Z",
+          "referenceStart": "2026-01-02T08:00:00Z",
+          "referenceEnd": "2026-01-03T08:00:00Z",
+          "referenceIndependentSyntheticAssertion": true,
+          "difference": 2,
+          "mean": -3
+        },
+        {
+          "patientId": "P1",
+          "admissionId": "A2",
+          "windowId": "W03",
+          "revisionId": "R1",
+          "start": "2026-01-05T08:00:00Z",
+          "end": "2026-01-06T08:00:00Z",
+          "candidate": 3,
+          "reference": -1,
+          "unit": "g N/24h",
+          "construct": "whole-body-nitrogen-balance",
+          "timeBasis": "explicit-offset-instants",
+          "candidateSource": "synthetic candidate placeholder",
+          "referenceSource": "synthetic independent placeholder; no physiological reference",
+          "candidateStart": "2026-01-05T08:00:00Z",
+          "candidateEnd": "2026-01-06T08:00:00Z",
+          "referenceStart": "2026-01-05T08:00:00Z",
+          "referenceEnd": "2026-01-06T08:00:00Z",
+          "referenceIndependentSyntheticAssertion": true,
+          "difference": 4,
+          "mean": 1
+        },
+        {
+          "patientId": "P2",
+          "admissionId": "A1",
+          "windowId": "W01",
+          "revisionId": "R1",
+          "start": "2026-01-01T08:00:00Z",
+          "end": "2026-01-02T08:00:00Z",
+          "candidate": 6,
+          "reference": 2,
+          "unit": "g N/24h",
+          "construct": "whole-body-nitrogen-balance",
+          "timeBasis": "explicit-offset-instants",
+          "candidateSource": "synthetic candidate placeholder",
+          "referenceSource": "synthetic independent placeholder; no physiological reference",
+          "candidateStart": "2026-01-01T08:00:00Z",
+          "candidateEnd": "2026-01-02T08:00:00Z",
+          "referenceStart": "2026-01-01T08:00:00Z",
+          "referenceEnd": "2026-01-02T08:00:00Z",
+          "referenceIndependentSyntheticAssertion": true,
+          "difference": 4,
+          "mean": 4
+        },
+        {
+          "patientId": "P2",
+          "admissionId": "A1",
+          "windowId": "W02",
+          "revisionId": "R1",
+          "start": "2026-01-02T08:00:00Z",
+          "end": "2026-01-03T08:00:00Z",
+          "candidate": 4,
+          "reference": -2,
+          "unit": "g N/24h",
+          "construct": "whole-body-nitrogen-balance",
+          "timeBasis": "explicit-offset-instants",
+          "candidateSource": "synthetic candidate placeholder",
+          "referenceSource": "synthetic independent placeholder; no physiological reference",
+          "candidateStart": "2026-01-02T08:00:00Z",
+          "candidateEnd": "2026-01-03T08:00:00Z",
+          "referenceStart": "2026-01-02T08:00:00Z",
+          "referenceEnd": "2026-01-03T08:00:00Z",
+          "referenceIndependentSyntheticAssertion": true,
+          "difference": 6,
+          "mean": 1
+        },
+        {
+          "patientId": "P3",
+          "admissionId": "A1",
+          "windowId": "W01",
+          "revisionId": "R1",
+          "start": "2026-01-01T08:00:00Z",
+          "end": "2026-01-02T08:00:00Z",
+          "candidate": 3,
+          "reference": -5,
+          "unit": "g N/24h",
+          "construct": "whole-body-nitrogen-balance",
+          "timeBasis": "explicit-offset-instants",
+          "candidateSource": "synthetic candidate placeholder",
+          "referenceSource": "synthetic independent placeholder; no physiological reference",
+          "candidateStart": "2026-01-01T08:00:00Z",
+          "candidateEnd": "2026-01-02T08:00:00Z",
+          "referenceStart": "2026-01-01T08:00:00Z",
+          "referenceEnd": "2026-01-02T08:00:00Z",
+          "referenceIndependentSyntheticAssertion": true,
+          "difference": 8,
+          "mean": -1
+        }
+      ],
+      "bias": {
+        "eligibleWindow": 4,
+        "patientWeighted": 5
+      },
+      "anova": {
+        "status": "estimable",
+        "reason": null,
+        "components": {
+          "N": 6,
+          "n": 3,
+          "withinSS": 10,
+          "betweenSS": 30,
+          "MSW": 3.3333333333333335,
+          "MSB": 15,
+          "divisor": 1.8333333333333333,
+          "varianceBetween": 6.363636363636363,
+          "varianceTotal": 9.696969696969697
+        },
+        "loa": {
+          "lower": -2.1034317222263397,
+          "upper": 10.10343172222634
+        }
+      },
+      "bootstrap": {
+        "status": "estimated",
+        "reason": null,
+        "seed": 20261025,
+        "replicates": 1000,
+        "replicatesRun": 1000,
+        "rng": "mulberry32",
+        "seedPolicy": "reset independently within each setting",
+        "sampling": "whole-patient-with-replacement",
+        "quantiles": [
+          0.025,
+          0.975
+        ],
+        "quantileMethod": "linear interpolation at (length - 1) * probability",
+        "biasValidReplicates": 1000,
+        "biasFailedReplicates": 0,
+        "anovaValidReplicates": 887,
+        "anovaFailedReplicates": 113,
+        "anovaFailures": {
+          "negative_between_component": 76,
+          "no_within_patient_repeats": 37
+        },
+        "biasCI": {
+          "eligibleWindow": {
+            "lower": 1.9999999999999998,
+            "upper": 8
+          },
+          "patientWeighted": {
+            "lower": 2,
+            "upper": 8
+          }
+        },
+        "loaCI": null
+      }
+    },
+    "ward": {
+      "countsStatus": "computed",
+      "counts": {
+        "patients": 2,
+        "admissions": 2,
+        "logicalWindows": 4,
+        "planned": 4,
+        "attempted": 4,
+        "complete": 4,
+        "candidateObserved": 4,
+        "referenceAvailable": 4,
+        "pairs": 4,
+        "revisionGroups": 4,
+        "duplicateRows": 0,
+        "unresolvedRevisions": 0,
+        "unknownAttempted": 0,
+        "unknownComplete": 0
+      },
+      "exclusions": [],
+      "reasonCounts": {},
+      "pairs": [
+        {
+          "patientId": "Q1",
+          "admissionId": "A1",
+          "windowId": "W01",
+          "revisionId": "R1",
+          "start": "2026-01-01T08:00:00Z",
+          "end": "2026-01-02T08:00:00Z",
+          "candidate": -2,
+          "reference": -3,
+          "unit": "g N/24h",
+          "construct": "whole-body-nitrogen-balance",
+          "timeBasis": "explicit-offset-instants",
+          "candidateSource": "synthetic candidate placeholder",
+          "referenceSource": "synthetic independent placeholder; no physiological reference",
+          "candidateStart": "2026-01-01T08:00:00Z",
+          "candidateEnd": "2026-01-02T08:00:00Z",
+          "referenceStart": "2026-01-01T08:00:00Z",
+          "referenceEnd": "2026-01-02T08:00:00Z",
+          "referenceIndependentSyntheticAssertion": true,
+          "difference": 1,
+          "mean": -2.5
+        },
+        {
+          "patientId": "Q1",
+          "admissionId": "A1",
+          "windowId": "W02",
+          "revisionId": "R1",
+          "start": "2026-01-02T08:00:00Z",
+          "end": "2026-01-03T08:00:00Z",
+          "candidate": 1,
+          "reference": 0,
+          "unit": "g N/24h",
+          "construct": "whole-body-nitrogen-balance",
+          "timeBasis": "explicit-offset-instants",
+          "candidateSource": "synthetic candidate placeholder",
+          "referenceSource": "synthetic independent placeholder; no physiological reference",
+          "candidateStart": "2026-01-02T08:00:00Z",
+          "candidateEnd": "2026-01-03T08:00:00Z",
+          "referenceStart": "2026-01-02T08:00:00Z",
+          "referenceEnd": "2026-01-03T08:00:00Z",
+          "referenceIndependentSyntheticAssertion": true,
+          "difference": 1,
+          "mean": 0.5
+        },
+        {
+          "patientId": "Q2",
+          "admissionId": "A1",
+          "windowId": "W01",
+          "revisionId": "R1",
+          "start": "2026-01-01T08:00:00Z",
+          "end": "2026-01-02T08:00:00Z",
+          "candidate": 2,
+          "reference": -1,
+          "unit": "g N/24h",
+          "construct": "whole-body-nitrogen-balance",
+          "timeBasis": "explicit-offset-instants",
+          "candidateSource": "synthetic candidate placeholder",
+          "referenceSource": "synthetic independent placeholder; no physiological reference",
+          "candidateStart": "2026-01-01T08:00:00Z",
+          "candidateEnd": "2026-01-02T08:00:00Z",
+          "referenceStart": "2026-01-01T08:00:00Z",
+          "referenceEnd": "2026-01-02T08:00:00Z",
+          "referenceIndependentSyntheticAssertion": true,
+          "difference": 3,
+          "mean": 0.5
+        },
+        {
+          "patientId": "Q2",
+          "admissionId": "A1",
+          "windowId": "W02",
+          "revisionId": "R1",
+          "start": "2026-01-02T08:00:00Z",
+          "end": "2026-01-03T08:00:00Z",
+          "candidate": 5,
+          "reference": 2,
+          "unit": "g N/24h",
+          "construct": "whole-body-nitrogen-balance",
+          "timeBasis": "explicit-offset-instants",
+          "candidateSource": "synthetic candidate placeholder",
+          "referenceSource": "synthetic independent placeholder; no physiological reference",
+          "candidateStart": "2026-01-02T08:00:00Z",
+          "candidateEnd": "2026-01-03T08:00:00Z",
+          "referenceStart": "2026-01-02T08:00:00Z",
+          "referenceEnd": "2026-01-03T08:00:00Z",
+          "referenceIndependentSyntheticAssertion": true,
+          "difference": 3,
+          "mean": 3.5
+        }
+      ],
+      "bias": {
+        "eligibleWindow": 2,
+        "patientWeighted": 2
+      },
+      "anova": {
+        "status": "estimable",
+        "reason": null,
+        "components": {
+          "N": 4,
+          "n": 2,
+          "withinSS": 0,
+          "betweenSS": 4,
+          "MSW": 0,
+          "MSB": 4,
+          "divisor": 2,
+          "varianceBetween": 2,
+          "varianceTotal": 2
+        },
+        "loa": {
+          "lower": -0.7718585822512662,
+          "upper": 4.771858582251266
+        }
+      },
+      "bootstrap": {
+        "status": "estimated",
+        "reason": null,
+        "seed": 20261025,
+        "replicates": 1000,
+        "replicatesRun": 1000,
+        "rng": "mulberry32",
+        "seedPolicy": "reset independently within each setting",
+        "sampling": "whole-patient-with-replacement",
+        "quantiles": [
+          0.025,
+          0.975
+        ],
+        "quantileMethod": "linear interpolation at (length - 1) * probability",
+        "biasValidReplicates": 1000,
+        "biasFailedReplicates": 0,
+        "anovaValidReplicates": 1000,
+        "anovaFailedReplicates": 0,
+        "anovaFailures": {},
+        "biasCI": {
+          "eligibleWindow": {
+            "lower": 1,
+            "upper": 3
+          },
+          "patientWeighted": {
+            "lower": 1,
+            "upper": 3
+          }
+        },
+        "loaCI": {
+          "lower": {
+            "lower": -0.7718585822512662,
+            "upper": 3
+          },
+          "upper": {
+            "lower": 1,
+            "upper": 4.771858582251266
+          }
+        }
+      }
+    }
+  },
+  "ledgerSummary": {
+    "logicalWindows": 20,
+    "unassignedSettingWindows": 0
+  },
+  "provenance": {
+    "nodeVersion": "v24.19.0",
+    "inputSha256": "cf94a043efc423b58742215f8956e4c8362837e6935f29de9bf11da4c70d99b1",
+    "inputBytes": 23356,
+    "analysisFiles": [
+      "analysis/agreement.mjs",
+      "analysis/run.mjs"
+    ],
+    "analysisFileSha256": {
+      "analysis/agreement.mjs": "24c14b6178d15b3de5ee80dee323b981ac57aad3a17a35f72e56f4e53b6fd0ce",
+      "analysis/run.mjs": "99d4659d935eac769785f255716777a7204b1afb8c2425458eb46c93d08780af"
+    },
+    "analysisSha256": "cf7e1b8c9717f9210d11ac30749bdfc6a6b33b198202934d37894c9cadcd4f36",
+    "analysisHashAlgorithm": "SHA-256 of UTF-8 bytes: ordered analysisFiles.map(file => file + '\\n' + UTF8(file)).join('\\n'); no newline normalization"
+  }
+}

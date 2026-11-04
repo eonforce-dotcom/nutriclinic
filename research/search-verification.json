@@ -1,0 +1,205 @@
+{
+  "schemaVersion": "nutriklinik-focused-search-verification-v1",
+  "verified": true,
+  "scope": "focused_pubmed_metadata_snapshot",
+  "cutoff": "2026-10-25",
+  "queryCount": 12,
+  "perQuery": [
+    {
+      "queryId": "icu-energyProtein",
+      "count": 289,
+      "retrieved": 289,
+      "complete": true,
+      "rawFile": "icu-energyProtein-esearch.json",
+      "warnings": {
+        "phrasesignored": [],
+        "quotedphrasesnotfound": [],
+        "outputmessages": [
+          "Restrictions achieved. start and count adjusted to 0, 9999"
+        ]
+      },
+      "errors": null
+    },
+    {
+      "queryId": "icu-metabolic",
+      "count": 92,
+      "retrieved": 92,
+      "complete": true,
+      "rawFile": "icu-metabolic-esearch.json",
+      "warnings": {
+        "phrasesignored": [],
+        "quotedphrasesnotfound": [],
+        "outputmessages": [
+          "Restrictions achieved. start and count adjusted to 0, 9999"
+        ]
+      },
+      "errors": null
+    },
+    {
+      "queryId": "icu-aminoAcids",
+      "count": 34,
+      "retrieved": 34,
+      "complete": true,
+      "rawFile": "icu-aminoAcids-esearch.json",
+      "warnings": {
+        "phrasesignored": [],
+        "quotedphrasesnotfound": [],
+        "outputmessages": [
+          "Restrictions achieved. start and count adjusted to 0, 9999"
+        ]
+      },
+      "errors": null
+    },
+    {
+      "queryId": "ward-energyProtein",
+      "count": 393,
+      "retrieved": 393,
+      "complete": true,
+      "rawFile": "ward-energyProtein-esearch.json",
+      "warnings": {
+        "phrasesignored": [],
+        "quotedphrasesnotfound": [],
+        "outputmessages": [
+          "Restrictions achieved. start and count adjusted to 0, 9999"
+        ]
+      },
+      "errors": null
+    },
+    {
+      "queryId": "ward-metabolic",
+      "count": 85,
+      "retrieved": 85,
+      "complete": true,
+      "rawFile": "ward-metabolic-esearch.json",
+      "warnings": {
+        "phrasesignored": [],
+        "quotedphrasesnotfound": [],
+        "outputmessages": [
+          "Restrictions achieved. start and count adjusted to 0, 9999"
+        ]
+      },
+      "errors": null
+    },
+    {
+      "queryId": "ward-aminoAcids",
+      "count": 57,
+      "retrieved": 57,
+      "complete": true,
+      "rawFile": "ward-aminoAcids-esearch.json",
+      "warnings": {
+        "phrasesignored": [],
+        "quotedphrasesnotfound": [],
+        "outputmessages": [
+          "Restrictions achieved. start and count adjusted to 0, 9999"
+        ]
+      },
+      "errors": null
+    },
+    {
+      "queryId": "icu-energyProtein-amendment01",
+      "count": 1153,
+      "retrieved": 1153,
+      "complete": true,
+      "rawFile": "icu-energyProtein-amendment01-esearch.json",
+      "warnings": {
+        "phrasesignored": [],
+        "quotedphrasesnotfound": [],
+        "outputmessages": [
+          "Restrictions achieved. start and count adjusted to 0, 9999"
+        ]
+      },
+      "errors": null
+    },
+    {
+      "queryId": "icu-metabolic-amendment01",
+      "count": 113,
+      "retrieved": 113,
+      "complete": true,
+      "rawFile": "icu-metabolic-amendment01-esearch.json",
+      "warnings": {
+        "phrasesignored": [],
+        "quotedphrasesnotfound": [],
+        "outputmessages": [
+          "Restrictions achieved. start and count adjusted to 0, 9999"
+        ]
+      },
+      "errors": null
+    },
+    {
+      "queryId": "icu-aminoAcids-amendment01",
+      "count": 186,
+      "retrieved": 186,
+      "complete": true,
+      "rawFile": "icu-aminoAcids-amendment01-esearch.json",
+      "warnings": {
+        "phrasesignored": [],
+        "quotedphrasesnotfound": [],
+        "outputmessages": [
+          "Restrictions achieved. start and count adjusted to 0, 9999"
+        ]
+      },
+      "errors": null
+    },
+    {
+      "queryId": "ward-energyProtein-amendment01",
+      "count": 1162,
+      "retrieved": 1162,
+      "complete": true,
+      "rawFile": "ward-energyProtein-amendment01-esearch.json",
+      "warnings": {
+        "phrasesignored": [],
+        "quotedphrasesnotfound": [],
+        "outputmessages": [
+          "Restrictions achieved. start and count adjusted to 0, 9999"
+        ]
+      },
+      "errors": null
+    },
+    {
+      "queryId": "ward-metabolic-amendment01",
+      "count": 97,
+      "retrieved": 97,
+      "complete": true,
+      "rawFile": "ward-metabolic-amendment01-esearch.json",
+      "warnings": {
+        "phrasesignored": [],
+        "quotedphrasesnotfound": [],
+        "outputmessages": [
+          "Restrictions achieved. start and count adjusted to 0, 9999"
+        ]
+      },
+      "errors": null
+    },
+    {
+      "queryId": "ward-aminoAcids-amendment01",
+      "count": 316,
+      "retrieved": 316,
+      "complete": true,
+      "rawFile": "ward-aminoAcids-amendment01-esearch.json",
+      "warnings": {
+        "phrasesignored": [],
+        "quotedphrasesnotfound": [],
+        "outputmessages": [
+          "Restrictions achieved. start and count adjusted to 0, 9999"
+        ]
+      },
+      "errors": null
+    }
+  ],
+  "queryMembershipCount": 3977,
+  "uniqueCandidateCount": 2544,
+  "metadataBatchCount": 26,
+  "metadataRecordCount": 2544,
+  "rawFileCount": 38,
+  "retrievalComplete": true,
+  "screeningStatus": "pending",
+  "extractionStatus": "pending",
+  "familyStatus": "unresolved",
+  "trialCount": null,
+  "eligibilityEvaluated": false,
+  "fullTextAccessEvaluated": false,
+  "qualityEvaluated": false,
+  "systematicReviewClaim": false,
+  "clinicalEffectsEvaluated": false,
+  "clinicalRuleChangeClaim": null
+}

@@ -1,0 +1,800 @@
+{
+  "schema": "nutriklinik-synthetic-agreement-v1",
+  "dataClass": "synthetic",
+  "config": {
+    "construct": "whole-body-nitrogen-balance",
+    "unit": "g N/24h",
+    "difference": "candidate-minus-reference",
+    "estimand": "eligible-window",
+    "method": "ba2007-varying-value-anova",
+    "residualAssumption": "independent-within-patient-synthetic",
+    "bootstrap": {
+      "seed": 20261025,
+      "replicates": 1000
+    }
+  },
+  "patients": [
+    {
+      "patientId": "P1",
+      "screened": true,
+      "eligible": true,
+      "enrolled": true
+    },
+    {
+      "patientId": "P2",
+      "screened": true,
+      "eligible": true,
+      "enrolled": true
+    },
+    {
+      "patientId": "P3",
+      "screened": true,
+      "eligible": true,
+      "enrolled": true
+    },
+    {
+      "patientId": "P4",
+      "screened": true,
+      "eligible": true,
+      "enrolled": true
+    },
+    {
+      "patientId": "Q1",
+      "screened": true,
+      "eligible": true,
+      "enrolled": true
+    },
+    {
+      "patientId": "Q2",
+      "screened": true,
+      "eligible": true,
+      "enrolled": true
+    },
+    {
+      "patientId": "E1",
+      "screened": true,
+      "eligible": true,
+      "enrolled": false
+    },
+    {
+      "patientId": "S1",
+      "screened": true,
+      "eligible": false,
+      "enrolled": false
+    },
+    {
+      "patientId": "U1",
+      "screened": false,
+      "eligible": false,
+      "enrolled": false
+    }
+  ],
+  "windows": [
+    {
+      "patientId": "P1",
+      "admissionId": "A1",
+      "windowId": "W01",
+      "revisionId": "R1",
+      "selected": true,
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "setting": "icu",
+      "start": "2026-01-01T08:00:00Z",
+      "end": "2026-01-02T08:00:00Z",
+      "exitReason": null,
+      "candidate": {
+        "status": "observed",
+        "value": 0,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-01T08:00:00Z",
+        "end": "2026-01-02T08:00:00Z",
+        "source": "synthetic candidate placeholder"
+      },
+      "reference": {
+        "status": "observed",
+        "value": 0,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-01T08:00:00Z",
+        "end": "2026-01-02T08:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    },
+    {
+      "patientId": "P1",
+      "admissionId": "A1",
+      "windowId": "W02",
+      "revisionId": "R1",
+      "selected": true,
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "setting": "icu",
+      "start": "2026-01-02T08:00:00Z",
+      "end": "2026-01-03T08:00:00Z",
+      "exitReason": null,
+      "candidate": {
+        "status": "observed",
+        "value": -2,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-02T08:00:00Z",
+        "end": "2026-01-03T08:00:00Z",
+        "source": "synthetic candidate placeholder"
+      },
+      "reference": {
+        "status": "observed",
+        "value": -4,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-02T08:00:00Z",
+        "end": "2026-01-03T08:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    },
+    {
+      "patientId": "P1",
+      "admissionId": "A2",
+      "windowId": "W03",
+      "revisionId": "R1",
+      "selected": true,
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "setting": "icu",
+      "start": "2026-01-05T08:00:00Z",
+      "end": "2026-01-06T08:00:00Z",
+      "exitReason": null,
+      "candidate": {
+        "status": "observed",
+        "value": 3,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-05T08:00:00Z",
+        "end": "2026-01-06T08:00:00Z",
+        "source": "synthetic candidate placeholder"
+      },
+      "reference": {
+        "status": "observed",
+        "value": -1,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-05T08:00:00Z",
+        "end": "2026-01-06T08:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    },
+    {
+      "patientId": "P2",
+      "admissionId": "A1",
+      "windowId": "W01",
+      "revisionId": "R1",
+      "selected": true,
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "setting": "icu",
+      "start": "2026-01-01T08:00:00Z",
+      "end": "2026-01-02T08:00:00Z",
+      "exitReason": null,
+      "candidate": {
+        "status": "observed",
+        "value": 6,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-01T08:00:00Z",
+        "end": "2026-01-02T08:00:00Z",
+        "source": "synthetic candidate placeholder"
+      },
+      "reference": {
+        "status": "observed",
+        "value": 2,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-01T08:00:00Z",
+        "end": "2026-01-02T08:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    },
+    {
+      "patientId": "P2",
+      "admissionId": "A1",
+      "windowId": "W02",
+      "revisionId": "R1",
+      "selected": true,
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "setting": "icu",
+      "start": "2026-01-02T08:00:00Z",
+      "end": "2026-01-03T08:00:00Z",
+      "exitReason": null,
+      "candidate": {
+        "status": "observed",
+        "value": 4,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-02T08:00:00Z",
+        "end": "2026-01-03T08:00:00Z",
+        "source": "synthetic candidate placeholder"
+      },
+      "reference": {
+        "status": "observed",
+        "value": -2,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-02T08:00:00Z",
+        "end": "2026-01-03T08:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    },
+    {
+      "patientId": "P3",
+      "admissionId": "A1",
+      "windowId": "W01",
+      "revisionId": "R1",
+      "selected": true,
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "setting": "icu",
+      "start": "2026-01-01T08:00:00Z",
+      "end": "2026-01-02T08:00:00Z",
+      "exitReason": null,
+      "candidate": {
+        "status": "observed",
+        "value": 3,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-01T08:00:00Z",
+        "end": "2026-01-02T08:00:00Z",
+        "source": "synthetic candidate placeholder"
+      },
+      "reference": {
+        "status": "observed",
+        "value": -5,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-01T08:00:00Z",
+        "end": "2026-01-02T08:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    },
+    {
+      "patientId": "Q1",
+      "admissionId": "A1",
+      "windowId": "W01",
+      "revisionId": "R1",
+      "selected": true,
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "setting": "ward",
+      "start": "2026-01-01T08:00:00Z",
+      "end": "2026-01-02T08:00:00Z",
+      "exitReason": null,
+      "candidate": {
+        "status": "observed",
+        "value": -2,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-01T08:00:00Z",
+        "end": "2026-01-02T08:00:00Z",
+        "source": "synthetic candidate placeholder"
+      },
+      "reference": {
+        "status": "observed",
+        "value": -3,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-01T08:00:00Z",
+        "end": "2026-01-02T08:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    },
+    {
+      "patientId": "Q1",
+      "admissionId": "A1",
+      "windowId": "W02",
+      "revisionId": "R1",
+      "selected": true,
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "setting": "ward",
+      "start": "2026-01-02T08:00:00Z",
+      "end": "2026-01-03T08:00:00Z",
+      "exitReason": null,
+      "candidate": {
+        "status": "observed",
+        "value": 1,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-02T08:00:00Z",
+        "end": "2026-01-03T08:00:00Z",
+        "source": "synthetic candidate placeholder"
+      },
+      "reference": {
+        "status": "observed",
+        "value": 0,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-02T08:00:00Z",
+        "end": "2026-01-03T08:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    },
+    {
+      "patientId": "Q2",
+      "admissionId": "A1",
+      "windowId": "W01",
+      "revisionId": "R1",
+      "selected": true,
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "setting": "ward",
+      "start": "2026-01-01T08:00:00Z",
+      "end": "2026-01-02T08:00:00Z",
+      "exitReason": null,
+      "candidate": {
+        "status": "observed",
+        "value": 2,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-01T08:00:00Z",
+        "end": "2026-01-02T08:00:00Z",
+        "source": "synthetic candidate placeholder"
+      },
+      "reference": {
+        "status": "observed",
+        "value": -1,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-01T08:00:00Z",
+        "end": "2026-01-02T08:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    },
+    {
+      "patientId": "Q2",
+      "admissionId": "A1",
+      "windowId": "W02",
+      "revisionId": "R1",
+      "selected": true,
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "setting": "ward",
+      "start": "2026-01-02T08:00:00Z",
+      "end": "2026-01-03T08:00:00Z",
+      "exitReason": null,
+      "candidate": {
+        "status": "observed",
+        "value": 5,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-02T08:00:00Z",
+        "end": "2026-01-03T08:00:00Z",
+        "source": "synthetic candidate placeholder"
+      },
+      "reference": {
+        "status": "observed",
+        "value": 2,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-02T08:00:00Z",
+        "end": "2026-01-03T08:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    },
+    {
+      "patientId": "P4",
+      "admissionId": "A1",
+      "windowId": "W-MISSING-C",
+      "revisionId": "R1",
+      "selected": true,
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "setting": "icu",
+      "start": "2026-01-10T08:00:00Z",
+      "end": "2026-01-11T08:00:00Z",
+      "exitReason": null,
+      "candidate": {
+        "status": "unavailable",
+        "value": null,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-10T08:00:00Z",
+        "end": "2026-01-11T08:00:00Z",
+        "source": "synthetic candidate placeholder"
+      },
+      "reference": {
+        "status": "observed",
+        "value": 0,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-10T08:00:00Z",
+        "end": "2026-01-11T08:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    },
+    {
+      "patientId": "P4",
+      "admissionId": "A1",
+      "windowId": "W-SUPPRESSED",
+      "revisionId": "R1",
+      "selected": true,
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "setting": "icu",
+      "start": "2026-01-11T08:00:00Z",
+      "end": "2026-01-12T08:00:00Z",
+      "exitReason": null,
+      "candidate": {
+        "status": "expected_suppression",
+        "value": null,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-11T08:00:00Z",
+        "end": "2026-01-12T08:00:00Z",
+        "source": "synthetic candidate placeholder"
+      },
+      "reference": {
+        "status": "observed",
+        "value": 0,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-11T08:00:00Z",
+        "end": "2026-01-12T08:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    },
+    {
+      "patientId": "P4",
+      "admissionId": "A1",
+      "windowId": "W-FAILED",
+      "revisionId": "R1",
+      "selected": true,
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "setting": "icu",
+      "start": "2026-01-12T08:00:00Z",
+      "end": "2026-01-13T08:00:00Z",
+      "exitReason": null,
+      "candidate": {
+        "status": "execution_failure",
+        "value": null,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-12T08:00:00Z",
+        "end": "2026-01-13T08:00:00Z",
+        "source": "synthetic candidate placeholder"
+      },
+      "reference": {
+        "status": "observed",
+        "value": 0,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-12T08:00:00Z",
+        "end": "2026-01-13T08:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    },
+    {
+      "patientId": "P4",
+      "admissionId": "A1",
+      "windowId": "W-INCOMPLETE",
+      "revisionId": "R1",
+      "selected": true,
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": false,
+      "setting": "icu",
+      "start": "2026-01-13T08:00:00Z",
+      "end": "2026-01-14T08:00:00Z",
+      "exitReason": null,
+      "candidate": {
+        "status": "observed",
+        "value": 1,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-13T08:00:00Z",
+        "end": "2026-01-14T08:00:00Z",
+        "source": "synthetic candidate placeholder"
+      },
+      "reference": {
+        "status": "observed",
+        "value": 0,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-13T08:00:00Z",
+        "end": "2026-01-14T08:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    },
+    {
+      "patientId": "P4",
+      "admissionId": "A1",
+      "windowId": "W-SHIFTED",
+      "revisionId": "R1",
+      "selected": true,
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "setting": "icu",
+      "start": "2026-01-14T08:00:00Z",
+      "end": "2026-01-15T08:00:00Z",
+      "exitReason": null,
+      "candidate": {
+        "status": "observed",
+        "value": 1,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-14T09:00:00Z",
+        "end": "2026-01-15T09:00:00Z",
+        "source": "synthetic candidate placeholder"
+      },
+      "reference": {
+        "status": "observed",
+        "value": 0,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-14T08:00:00Z",
+        "end": "2026-01-15T08:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    },
+    {
+      "patientId": "P4",
+      "admissionId": "A1",
+      "windowId": "W-OVERLAP-A",
+      "revisionId": "R1",
+      "selected": true,
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "setting": "icu",
+      "start": "2026-01-20T08:00:00Z",
+      "end": "2026-01-21T08:00:00Z",
+      "exitReason": null,
+      "candidate": {
+        "status": "observed",
+        "value": 1,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-20T08:00:00Z",
+        "end": "2026-01-21T08:00:00Z",
+        "source": "synthetic candidate placeholder"
+      },
+      "reference": {
+        "status": "observed",
+        "value": 0,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-20T08:00:00Z",
+        "end": "2026-01-21T08:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    },
+    {
+      "patientId": "P4",
+      "admissionId": "A2",
+      "windowId": "W-OVERLAP-B",
+      "revisionId": "R1",
+      "selected": true,
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "setting": "icu",
+      "start": "2026-01-20T20:00:00Z",
+      "end": "2026-01-21T20:00:00Z",
+      "exitReason": null,
+      "candidate": {
+        "status": "observed",
+        "value": 1,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-20T20:00:00Z",
+        "end": "2026-01-21T20:00:00Z",
+        "source": "synthetic candidate placeholder"
+      },
+      "reference": {
+        "status": "observed",
+        "value": 0,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-20T20:00:00Z",
+        "end": "2026-01-21T20:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    },
+    {
+      "patientId": "P4",
+      "admissionId": "A1",
+      "windowId": "W-MISSING-R",
+      "revisionId": "R1",
+      "selected": true,
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "setting": "icu",
+      "start": "2026-01-23T08:00:00Z",
+      "end": "2026-01-24T08:00:00Z",
+      "exitReason": null,
+      "candidate": {
+        "status": "observed",
+        "value": 1,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-23T08:00:00Z",
+        "end": "2026-01-24T08:00:00Z",
+        "source": "synthetic candidate placeholder"
+      },
+      "reference": {
+        "status": "unavailable",
+        "value": null,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-23T08:00:00Z",
+        "end": "2026-01-24T08:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    },
+    {
+      "patientId": "P4",
+      "admissionId": "A1",
+      "windowId": "W-UNRELIABLE-R",
+      "revisionId": "R1",
+      "selected": true,
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "setting": "icu",
+      "start": "2026-01-24T08:00:00Z",
+      "end": "2026-01-25T08:00:00Z",
+      "exitReason": null,
+      "candidate": {
+        "status": "observed",
+        "value": 1,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-24T08:00:00Z",
+        "end": "2026-01-25T08:00:00Z",
+        "source": "synthetic candidate placeholder"
+      },
+      "reference": {
+        "status": "unreliable",
+        "value": null,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-24T08:00:00Z",
+        "end": "2026-01-25T08:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    },
+    {
+      "patientId": "P4",
+      "admissionId": "A1",
+      "windowId": "W-DEATH",
+      "revisionId": "R1",
+      "selected": true,
+      "planned": true,
+      "attempted": false,
+      "collectionComplete": false,
+      "setting": "icu",
+      "start": "2026-01-26T08:00:00Z",
+      "end": "2026-01-27T08:00:00Z",
+      "exitReason": "death",
+      "candidate": {
+        "status": "unavailable",
+        "value": null,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-26T08:00:00Z",
+        "end": "2026-01-27T08:00:00Z",
+        "source": "synthetic candidate placeholder"
+      },
+      "reference": {
+        "status": "unavailable",
+        "value": null,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-26T08:00:00Z",
+        "end": "2026-01-27T08:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    },
+    {
+      "patientId": "P1",
+      "admissionId": "A1",
+      "windowId": "W01",
+      "revisionId": "R0",
+      "selected": false,
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "setting": "icu",
+      "start": "2026-01-01T08:00:00Z",
+      "end": "2026-01-02T08:00:00Z",
+      "exitReason": null,
+      "candidate": {
+        "status": "observed",
+        "value": 999,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-01T08:00:00Z",
+        "end": "2026-01-02T08:00:00Z",
+        "source": "synthetic unselected prior revision"
+      },
+      "reference": {
+        "status": "observed",
+        "value": 0,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-01T08:00:00Z",
+        "end": "2026-01-02T08:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    },
+    {
+      "patientId": "P1",
+      "admissionId": "A1",
+      "windowId": "W01",
+      "revisionId": "R1",
+      "selected": true,
+      "planned": true,
+      "attempted": true,
+      "collectionComplete": true,
+      "setting": "icu",
+      "start": "2026-01-01T08:00:00Z",
+      "end": "2026-01-02T08:00:00Z",
+      "exitReason": null,
+      "candidate": {
+        "status": "observed",
+        "value": 0,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-01T08:00:00Z",
+        "end": "2026-01-02T08:00:00Z",
+        "source": "synthetic candidate placeholder"
+      },
+      "reference": {
+        "status": "observed",
+        "value": 0,
+        "unit": "g N/24h",
+        "construct": "whole-body-nitrogen-balance",
+        "start": "2026-01-01T08:00:00Z",
+        "end": "2026-01-02T08:00:00Z",
+        "source": "synthetic independent placeholder; no physiological reference",
+        "independent": true
+      }
+    }
+  ]
+}
