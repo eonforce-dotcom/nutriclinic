@@ -42,7 +42,7 @@ Current registration [NCT05932134](https://clinicaltrials.gov/study/NCT05932134)
 
 The paper describes not reducing study protein for renal failure. That is **not** a NutriClinic renal exception or an evidence-backed individual prescription; RRT-specific numbers/losses and collection validity remain unestablished. Reference 29 identifies the [previous 2022 RCC weaning-protocol report](https://pubmed.ncbi.nlm.nih.gov/36297079/), whose original abstract describes an observational record analysis, not verified reuse of this randomized cohort. Participant overlap remains unquantified; no independent participant total is added.
 
-No clinical target, dose, neurological/renal gate or binary metabolic state changes. See [clinical-module methods](./CLINICAL-MODULES-METHODS.md), [metabolic limits](./METABOLIC-METHODS-AND-VALIDATION.md) and the [independent-reference worksheet](./REFERENCE-FEASIBILITY-DECISION-RECORD.md). The finding supports bounded source context; it does not complete human screening or clinical validation.
+No clinical target, dose, neurological/renal gate or binary metabolic state changes. See [clinical-module methods](./CLINICAL-MODULES-METHODS.md), [metabolic limits](./METABOLIC-METHODS-AND-VALIDATION.md) and the [independent-reference worksheet](./REFERENCE-FEASIBILITY-DECISION-RECORD.md). The finding supports bounded source context; it does not complete human screening.
 
 ## Türkçe özet
 

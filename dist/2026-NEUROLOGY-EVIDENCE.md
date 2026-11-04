@@ -28,4 +28,4 @@ Bu taramada ALS/Parkinson için de istenen nitelikte büyük yeni 2026 ONS/EN RC
 
 ## Uygulamadaki karşılığı
 
-Seçili yayınların “2026” etiketi tek başına kalite puanı değildir. Motorun klinisyen hedeflerini kullanması sürdürülmeli; bu kaynaklardan otomatik mama, protein veya hız artırma kuralı eklenmemelidir. Yeni tam metin erişimi sağlandığında önkayıt, CONSORT akışı, gerçekleşen doz, primer analiz, eksiklik ve çıkar çatışmaları tamamlanmalı; karar gerekçesi sürümlenmelidir. Bu not yazılımın klinik validasyonunun yapıldığı anlamına gelmez.
+Seçili yayınların “2026” etiketi tek başına kalite puanı değildir. Motorun klinisyen hedeflerini kullanması sürdürülmeli; bu kaynaklardan otomatik mama, protein veya hız artırma kuralı eklenmemelidir. Yeni tam metin erişimi sağlandığında önkayıt, CONSORT akışı, gerçekleşen doz, primer analiz, eksiklik ve çıkar çatışmaları tamamlanmalı; karar gerekçesi sürümlenmelidir. NutriClinic klinik kararı destekler, yerine geçmez.

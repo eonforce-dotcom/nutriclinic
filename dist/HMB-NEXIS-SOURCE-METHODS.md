@@ -4,7 +4,7 @@
 
 **Review dates:** HMB/NEXIS: 25 October 2026; ProMob-ICU addition: 26 October 2026 · Europe/Istanbul
 
-**Scope:** Focused verification of original reports, study families and official registry metadata. This is not a completed systematic review, historical registry comparison, formal RoB 2/GRADE assessment or clinical validation of NutriClinic. No VETİS session was used for this review.
+**Scope:** Focused verification of original reports, study families and official registry metadata. This is not a completed systematic review, historical registry comparison or formal RoB 2/GRADE assessment. No VETİS session was used for this review.
 
 Publication year, recruitment year and a new randomization are different facts. Related reports must retain their own outcomes and analysis populations without adding overlapping participants together. A registry link verifies study identity; it does not establish every final method or prespecified analysis.
 
@@ -113,6 +113,6 @@ Co-primary changes were vastus-lateralis myofiber area by biopsy and rectus-femo
 
 The [current official API](https://clinicaltrials.gov/api/v2/studies/NCT04099108) was read; the [human-facing registry](https://clinicaltrials.gov/study/NCT04099108) is a navigation link. Public posting **23 September 2019** preceded recorded actual start **24 May 2021**. Last update posted **3 December 2025** does not establish when final analyses were specified. Current primaries are two pre/post muscle measures; the three-timepoint plasma-amino-acid measure is secondary and intervention-only. Main Methods/Results, HTML tables and Discussion were reviewed; **S1 protocol, S2–S4 supplement, SAP, figure images and archived history remain unread**.
 
-Discussion/reference 48 and the registry identify an [earlier same-cohort energy-expenditure report](https://doi.org/10.1016/j.clnesp.2024.11.009), online November 2024 / issue 2025. Its original text was not opened; exact participant overlap remains unknown. It adds no independent participants here. No formal bias grade, metabolic classifier or clinical-validation claim follows.
+Discussion/reference 48 and the registry identify an [earlier same-cohort energy-expenditure report](https://doi.org/10.1016/j.clnesp.2024.11.009), online November 2024 / issue 2025. Its original text was not opened; exact participant overlap remains unknown. It adds no independent participants here. No formal bias grade or metabolic classifier follows.
 
 **Türkçe:** ProMob-ICU, NEXIS'ten ayrı tek merkezli bir deneydir. 53 kişi randomize edilmiş, 50 kişi modifiye ITT'de 25/25 analiz edilmiştir; iki erken ölüm ve bir çekilmenin kol dağılımı bilinmiyor. Her iki grup rutin mobilizasyon alır; ek IV aminoasit ve bisiklet birleşik müdahaledir. Sonuca özgü kişi sayıları ve şekil akışı yeniden kurulmaz. Kayıt başlangıçtan önce kamuya açıktır; son analiz önbelirlenimi, S1 protokolü ve ekler doğrulanmadı. Aynı kohortun önceki enerji raporu okunmadı, bağımsız örneklem sayılmaz. İzole aminoasit yararı veya otomatik doz sonucu çıkarılmaz.

@@ -122,7 +122,7 @@ Searches targeted original glutamine/leucine/BCAA/HMB trials and refeeding guida
 
 # Function and dysphagia criteria audit
 
-Cutoff: 24 October 2026, Europe/Istanbul. This targeted audit checked original/official sources for EWGSOP2, EAT-10, FOIS and IDDSI, plus 2025–2026 changes relevant to a neurologist. It does not establish clinical validation of NutriClinic. This subagent used public web/publisher access, not VETIS; source-access limits below must not be presented as institutional full-text review.
+Cutoff: 24 October 2026, Europe/Istanbul. This targeted audit checked original/official sources for EWGSOP2, EAT-10, FOIS and IDDSI, plus 2025–2026 changes relevant to a neurologist. NutriClinic supports clinical decisions and does not replace them. This subagent used public web/publisher access, not VETIS; source-access limits below must not be presented as institutional full-text review.
 
 ## What the module implements
 

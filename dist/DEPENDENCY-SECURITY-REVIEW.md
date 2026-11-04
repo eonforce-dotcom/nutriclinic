@@ -49,7 +49,7 @@ Npm and OSV returned no published advisory for pdfjs-dist6.2.108at this check. T
 
 A separate clean-runtime check extracted97runtime/application files from the release into a temporary directory, with no node_modules and no npm install. The real loopback server started with the bundled24.22.1runtime. Synthetic SQLite write, stale-revision rejection, cross-origin rejection, backup/safety-restore and saved-state recovery after process restart passed. The database was not publicly served by static paths. No production patient data was copied. The receipt is work/dependency-audit-20261028/clean-runtime-verification.json. This is an HTTP/storage integration check, not a native browser pass.
 
-The parser smoke tests use a test-only DOMMatrix placeholder and Uint8Array.toHex byte-format adapter because the browser build is exercised in Node24. They do not claim native browser coverage for every PDF. Chrome155is installed on the audited workstation; PDF.js6uses modern browser APIs. Older browser compatibility and all complex/image PDFs are not certified. Clinical arithmetic/evidence/search/analysis bytes are unchanged; technical tests are not clinical validation.
+The parser smoke tests use a test-only DOMMatrix placeholder and Uint8Array.toHex byte-format adapter because the browser build is exercised in Node24. They do not claim native browser coverage for every PDF. Chrome155is installed on the audited workstation; PDF.js6uses modern browser APIs. Older browser compatibility and all complex/image PDFs are not certified. Clinical arithmetic/evidence/search/analysis bytes are unchanged.
 
 ## Future dependency rules and packaging
 

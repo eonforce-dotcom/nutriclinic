@@ -1,6 +1,6 @@
 # Deng 2026 — physiological-window source methods
 
-Original-source review: **26 October 2026**. This note concerns *Nutritional adequacy is associated with improved survival within specific physiological windows in critically ill patients*, [DOI 10.1016/j.clnesp.2026.105009](https://doi.org/10.1016/j.clnesp.2026.105009). It documents a bounded source review, without a systematic-review claim, formal risk-of-bias grade or clinical validation.
+Original-source review: **26 October 2026**. This note concerns *Nutritional adequacy is associated with improved survival within specific physiological windows in critically ill patients*, [DOI 10.1016/j.clnesp.2026.105009](https://doi.org/10.1016/j.clnesp.2026.105009). It documents a bounded source review, without a systematic-review claim or formal risk-of-bias grade.
 
 ## Access and study identity
 

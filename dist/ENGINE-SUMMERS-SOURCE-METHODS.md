@@ -1,6 +1,6 @@
 # ENGINE and Summers/PROMS — source and method audit
 
-**Checked:** 25 October 2026, Europe/Istanbul. **Interface integration:** 0.3.5. English main text; Turkish interpretation notes below. This document consolidates two completed focused original-source audits. It is not a new search, exhaustive systematic review, formal RoB 2/GRADE assessment or clinical validation. Current registry records, indexed original passages and directly read documents are distinguished. Neither study creates an individual protein-dose rule or a binary anabolic/catabolic label.
+**Checked:** 25 October 2026, Europe/Istanbul. **Interface integration:** 0.3.5. English main text; Turkish interpretation notes below. This document consolidates two completed focused original-source audits. It is not a new search, exhaustive systematic review or formal RoB 2/GRADE assessment. Current registry records, indexed original passages and directly read documents are distinguished. Neither study creates an individual protein-dose rule or a binary anabolic/catabolic label.
 
 ## 1. Publication identity and counting / Kimlik ve sayım
 

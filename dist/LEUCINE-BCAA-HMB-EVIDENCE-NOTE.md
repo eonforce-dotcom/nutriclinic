@@ -1,6 +1,6 @@
 # Lösin, BCAA ve HMB: kaynakları ayırarak değerlendirme
 
-**25 Ekim 2026 güncellemesi:** Berger 2026 ikincil HMB yayını yapılandırılmış kitaplığa ve klinik karşılaştırmaya eklendi. Lausanne ana çalışması, Fujian egzersiz/HMB deneyinden ayrıdır; Fujian yayınları arasındaki katılımcı örtüşmesi korunur. UCR’nin doğrulanmamış analit/birim temeli uygulamanın oranlarına veya takviye dozuna çevrilmez. Yeni erişim/yöntem denetimi: [HMB ve NEXIS](./HMB-NEXIS-SOURCE-METHODS.md). Aşağıda daha önceki odaklı bileşen incelemesi korunur; bu not sistematik derleme veya klinik validasyon değildir.
+**25 Ekim 2026 güncellemesi:** Berger 2026 ikincil HMB yayını yapılandırılmış kitaplığa ve klinik karşılaştırmaya eklendi. Lausanne ana çalışması, Fujian egzersiz/HMB deneyinden ayrıdır; Fujian yayınları arasındaki katılımcı örtüşmesi korunur. UCR’nin doğrulanmamış analit/birim temeli uygulamanın oranlarına veya takviye dozuna çevrilmez. Yeni erişim/yöntem denetimi: [HMB ve NEXIS](./HMB-NEXIS-SOURCE-METHODS.md). Aşağıda daha önceki odaklı bileşen incelemesi korunur; bu not sistematik derleme değildir.
 
 **Kesit:** 23 Ekim 2026. Bu hedefli tarama sistematik derleme değildir. Çalışma dozları aşağıda araştırmayı tanımlamak içindir; hasta reçetesi değildir. Yazılıma otomatik aminoasit ekleme kuralı eklenmedi.
 

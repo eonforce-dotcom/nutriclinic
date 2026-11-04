@@ -1,6 +1,6 @@
 # NutriClinic clinical modules — methods and limits
 
-Research interface v0.2.0 · evidence reviewed through **24 October 2026**. Adult ICU and ward populations. Software verification is not clinical validation.
+Research interface v0.2.0 · evidence reviewed through **24 October 2026**. Adult ICU and ward populations. NutriClinic supports clinical decisions and does not replace them.
 
 ## Primary purpose and decision sequence
 
@@ -56,7 +56,7 @@ Sources: [butyrate IBD trial](https://pubmed.ncbi.nlm.nih.gov/41354580/), [recta
 
 Input changes clear applicable clinical verification and evidence-review confirmation. Language changes preserve measurements and user-entered text. Clinical measures, candidate outputs and approach reasoning are included in JSON/CSV; original imported records are preserved, external results are not trusted, and confirmations must be renewed. Source IDs, evidence cutoff, timestamps and engine/assessment hashes support reproducibility. The assessment hash covers core and added clinical calculations; it is not a certification or immutable audit log.
 
-Patient data remain in the open tab's memory. Locale preference alone persists locally. There is no institutional patient database, access-control system for patient records, or prospective clinical validation. Save the research export before refreshing. Thesis use requires an approved protocol, independent clinical reference assessment, patient-level validation, predefined outcomes and institutional data governance.
+Patient data remain in the open tab's memory. Locale preference alone persists locally. There is no institutional patient database or access-control system for patient records. Save the research export before refreshing. Thesis use requires an approved protocol, independent clinical reference assessment, patient-level validation, predefined outcomes and institutional data governance.
 
 ## Türkçe kapsam özeti
 
@@ -95,7 +95,7 @@ Main fields below belong to `input`; additional fields belong to `clinicalProfil
 
 UCR additionally checks main `creatinine` and clinical `ureaValue`, `ureaAnalyte`, `ureaUnit`. Creatinine must satisfy the existing `import.mjs:labDefs.creatinine` **0.1–30 mg/dL data-acceptance interval**, not a clinical normal range. CRP instead checks main `crp` and clinical `crpULN`. Rechecking a confirmation does not remove an invalid-field flag. Measured zero urea/CRP is retained; valid unrelated error keys do not suppress the independent proxy. These helper guards are specific to the paired markers, not a claim that every evaluator implements the same metadata gate.
 
-Existing technical examples are in `tests/clinical-context.test.mjs` (dependency isolation, malformed metadata, reconfirmation, boundaries and zero), `engine.test.mjs` (arithmetic/laboratory/collection/refeeding/plan), `criteria-malnutrition.test.mjs`, `criteria-function.test.mjs`, `followup-engine.test.mjs` and `decision-review.test.mjs`. They are technical rule checks, not independent physiological reference measurements or clinical validation.
+Existing technical examples are in `tests/clinical-context.test.mjs` (dependency isolation, malformed metadata, reconfirmation, boundaries and zero), `engine.test.mjs` (arithmetic/laboratory/collection/refeeding/plan), `criteria-malnutrition.test.mjs`, `criteria-function.test.mjs`, `followup-engine.test.mjs` and `decision-review.test.mjs`. They are technical rule checks, not independent physiological reference measurements.
 
 ### Source methods and investigator decisions
 
@@ -105,7 +105,7 @@ The [ICU/ward UCR original-source methods](./UCR-ORIGINAL-SOURCE-METHODS.md) pre
 
 ## Implemented reference map — local 0.3.15 / 26 October 2026
 
-The preceding crosswalk records the 0.3.14 implementation. In 0.3.15, the new pure `core-rule-provenance.mjs` provides an additive **record-level** `coreRuleProvenance` map; `engine.mjs` and its `evaluate()` return shape remain unchanged. The map's `outputPaths` refer to existing core output groups. It is documentation provenance, not measured data provenance, reviewer confirmation, a complete proof of every guard, or clinical validation.
+The preceding crosswalk records the 0.3.14 implementation. In 0.3.15, the new pure `core-rule-provenance.mjs` provides an additive **record-level** `coreRuleProvenance` map; `engine.mjs` and its `evaluate()` return shape remain unchanged. The map's `outputPaths` refer to existing core output groups. It is documentation provenance, not measured data provenance, reviewer confirmation or a complete proof of every guard.
 
 | Output group | Mapped IDs and bounded role |
 |---|---|
@@ -114,7 +114,7 @@ The preceding crosswalk records the 0.3.14 implementation. In 0.3.15, the new pu
 | NLR | No dedicated formula source mapped; laboratory validity policies remain local. |
 | PNI | `onodera-pni-1984`: documentary formula context, independently unverified original formula; `aspen-visceral-2021`: interpretation context. |
 | Approximate nitrogen / metabolic description | `jccng-2024`: approximate method context; `espen-kidney-2024`: applicability context. This is not proof of net muscle anabolism. |
-| Refeeding risk | `nice-cg32`: risk framework, not diagnosis of developed syndrome or validation of all local prechecks. |
+| Refeeding risk | `nice-cg32`: risk framework, not diagnosis of developed syndrome. |
 | Formula plan / references | `espen-icu-2023`: clinical context only. Arithmetic uses physician-entered targets; it does not select an optimum dose. |
 
 `scope` is `reference-map-only`, `clinicalValidation` is always false, and local policy codes are explicitly separated from source support. The shared laboratory date check does not establish independently matching specimen times. Source titles/access/HTTPS links in the expandable EN/TR panel come from the canonical catalog. Source IDs and allowed roles are checked during release. The map and renderer are included in the assessment hash; core/analysis/evidence calculations and frozen-search contents remain unchanged.

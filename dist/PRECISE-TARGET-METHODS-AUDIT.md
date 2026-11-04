@@ -5,7 +5,7 @@
 **Review date:** 24 October 2026 · Europe/Istanbul  
 **Scope:** Two existing NutriClinic trial records; original publications, protocols, statistical analysis plans and official registries.
 
-This focused audit verifies study relationships and records the methods documents actually accessed. It does not constitute a systematic review, a complete historical registry comparison, a formal RoB 2 or GRADE assessment, or clinical validation of NutriClinic. Previously extracted treatment results were not re-extracted. Protocols, registries and analysis plans are supporting documents for the existing trials; they do not add independent trials or participants to the evidence count.
+This focused audit verifies study relationships and records the methods documents actually accessed. It does not constitute a systematic review, a complete historical registry comparison, or a formal RoB 2 or GRADE assessment. Previously extracted treatment results were not re-extracted. Protocols, registries and analysis plans are supporting documents for the existing trials; they do not add independent trials or participants to the evidence count.
 
 **Türkçe kullanım notu:** Bu belge iki mevcut çalışmanın kimliğini ve yöntem sürümlerini açıklar. Güncel bir kayıt sayfasının okunması, bütün analizlerin hasta alımından önce belirlendiğini göstermez. Bu denetimde VETİS kullanılmadı; erişim düzeyleri aşağıda kaynak bazında belirtilmiştir.
 

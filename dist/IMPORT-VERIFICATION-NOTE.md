@@ -1,6 +1,6 @@
 # File review and provenance verification / Aktarım ve kaynak izi
 
-24 October2026 · interface0.3.2 · synthetic data only. This is software verification, not clinical validation or evidence of patient benefit.
+24 October2026 · interface0.3.2 · synthetic data only. This is software verification, not evidence of patient benefit.
 
 ## Correct browser entry point
 
@@ -42,4 +42,4 @@ Research JSON was also exported and reopened through its visible chooser in the 
 
 Bu sürümde dosya seçimi görünür yükleme alanından uçtan uca test edildi. Farklı kan/UUN tarihleri ayrı kaldı; “aktarımı temizle” sonrasında ölçümlerle birlikte kaynak izi de korundu. Büyük dosyada önceki aktar düğmesi kaldırılıp kalıcı hata gösterildi.
 
-Yavaş biten eski dosyanın yeni olguyu/önizlemeyi geri yazması düzeltildi. Dokuz test uygulamanın gerçek işleyicilerini kontrollü gecikmelerle çalıştırır; ayrıca tarayıcıda CSV ve JSON kaynak çıktısı incelendi. Bunlar yazılım doğruluğunu sınar; klinik validasyon, OCR başarımı veya hasta yararı göstermez. PDF sayfa düzeni doğrulaması ve gerçek klinik çalışma ayrı aşamalardır.
+Yavaş biten eski dosyanın yeni olguyu/önizlemeyi geri yazması düzeltildi. Dokuz test uygulamanın gerçek işleyicilerini kontrollü gecikmelerle çalıştırır; ayrıca tarayıcıda CSV ve JSON kaynak çıktısı incelendi. Bunlar yazılım doğruluğunu sınar; OCR başarımı veya hasta yararı göstermez. PDF sayfa düzeni doğrulaması ve gerçek klinik çalışma ayrı aşamalardır.
