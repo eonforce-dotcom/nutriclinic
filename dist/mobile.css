@@ -1,0 +1,54 @@
+/* Phone layout (2026-11-06). Loaded after every other stylesheet; apart from the two rules
+   below, only narrow or touch screens change. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+.decision-patient-context strong { margin-right: 7px; }
+
+@media (max-width: 650px) {
+  /* Safari on iPhone zooms into any text field under 16px and stays zoomed; this must win over every field rule. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="button"]):not([type="submit"]),
+  select, textarea { font-size: 16px !important; }
+  .input-wrap input, .field select, .field > input { min-height: 47px; }
+  .input-wrap input { padding-right: 70px; }
+  .input-wrap .unit { top: 14px; right: 12px; }
+
+  /* Top bar in one row: menu on the left, access and language on the right. */
+  .topbar { gap: 8px; }
+  .breadcrumb { flex: 1 1 auto; max-width: none; font-size: 0; }
+  .breadcrumb span { display: none; }
+  .breadcrumb strong { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 13px; }
+  .topmeta { gap: 8px; }
+  .access-bar .access-link { min-height: 40px; padding: 8px 11px; white-space: nowrap; font-size: 12px; }
+  .card-head > .button { flex-shrink: 0; white-space: nowrap; }
+  .language-control { padding: 0; border: 0; background: transparent; box-shadow: none; }
+  .language-control select { min-height: 40px; padding: 8px 28px 8px 10px; border: 1px solid #cbdcd6; border-radius: 9px; }
+
+  /* Smallest captions stay readable on a phone. */
+  .eyebrow, .pill, .tag, .nav-count, .workflow-label, .workflow-detail, .metrics article > span, .footnote, .bottom-bar, .input-wrap .unit,
+  .field > small, .metrics small, .criteria-card small, .criteria-status, .check-field > span,
+  .dropzone small, .lab-index-grid small, .lab-index-grid > div:nth-child(n) small, .plan-stats small,
+  .plan-stats strong small, .evidence-doi, .evidence-hold, .evidence-focus, .evidence-details small,
+  .study-lineage > small, .evidence-card .evidence-meta > span, .evidence-card .evidence-meta > span:last-child,
+  .evidence-card .evidence-meta .tag, #view-decisions .decision-tag { font-size: 11px; }
+  .evidence-card .study-meta, .evidence-card .study-meta strong { font-size: 11px !important; }
+  .brand small { font-size: 9px; }
+
+  /* Easier to hit with a finger. */
+  input[type="checkbox"], input[type="radio"] { width: 20px; height: 20px; }
+}
+
+@media (max-width: 480px) {
+  /* The page heading already names the section; the top bar keeps only the controls. */
+  .breadcrumb { display: none; }
+  .topmeta { margin-left: auto; }
+
+  /* Buttons that carry a sentence take the full width instead of wrapping word by word. */
+  .start-guide-actions, #localRecordStatus .button-row { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .start-guide-actions > *, #localRecordStatus .button-row > * { width: 100%; }
+  #view-decisions .decision-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* A phone held sideways is wider than 650px but still zooms into small text fields. */
+@media (pointer: coarse) and (max-height: 500px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="button"]):not([type="submit"]),
+  select, textarea { font-size: 16px !important; }
+}
