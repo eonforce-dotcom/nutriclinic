@@ -20,7 +20,9 @@ dysphagia (FOIS, IDDSI, EAT-10), nutritional risk (NRS 2002), malnutrition (GLIM
 replacement therapy, refeeding risk and non-nutritional calories (propofol, dextrose) all change the result. ESPEN
 2015, AND/ASPEN and EWGSOP2 (sarcopenia) assessments are shown with their sources. An invalid value is shown under its
 own field with the accepted range. Laboratory values are entered in the laboratory's own unit (for example mg/dL or
-mmol/L) and converted; phosphate during feeding detects refeeding hypophosphataemia.
+mmol/L) and converted; phosphate during feeding detects refeeding hypophosphataemia. Laboratory results can be imported
+from a CSV or JSON file read on the device; the laboratory's own reference intervals mark low and high values; SOFA-2
+and a recorded SAPS II total are shown for ICU patients.
 
 > **NutriClinic supports clinical decisions and does not replace them.** Review every recommendation at the
 > bedside together with its inputs and sources.
@@ -28,7 +30,7 @@ mmol/L) and converted; phosphate during feeding detects refeeding hypophosphatae
 - Live service: <https://sahnoroloji.org/nutriclinic/>
 - Previous workspace (saved patients, detailed assessment): <https://sahnoroloji.org/nutriclinic2/>; its source is in
   [`nutriclinic2/`](nutriclinic2/)
-- Version: 1.2.0 (7 November 2026); clinical rules and sources: [`docs/CLINICAL-RULES.md`](docs/CLINICAL-RULES.md)
+- Version: 1.3.0 (7 November 2026); clinical rules and sources: [`docs/CLINICAL-RULES.md`](docs/CLINICAL-RULES.md)
 
 ## Privacy
 

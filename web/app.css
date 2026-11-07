@@ -164,6 +164,11 @@ main { max-width: 880px; margin: 0 auto; padding: 16px; }
 .field-error { color: var(--danger); font-size: .84rem; font-weight: 600; line-height: 1.35; margin: 0; }
 .unit-select { border: 0; border-left: 1px solid var(--line); background: var(--surface-2); color: var(--text); padding: 0 8px; font-size: .9rem; min-height: 46px; max-width: 45%; cursor: pointer; }
 .unit-select:focus { outline: 2px solid var(--focus); outline-offset: -2px; }
+table.limits td, table.limits th { padding: 4px 6px; vertical-align: top; }
+table.limits .input-wrap input { min-height: 38px; padding: 6px 8px; min-width: 64px; }
+table.limits .field-error { font-size: .75rem; max-width: 160px; }
+.import-text { max-height: 260px; overflow: auto; white-space: pre-wrap; background: var(--surface-2); border-radius: 10px; padding: 10px; font-size: .85rem; }
+input[type="file"] { font-size: .95rem; max-width: 100%; }
 .field-error[hidden] { display: none; }
 details.more { border: 1px dashed var(--line); border-radius: 12px; padding: 10px 12px; margin: 0; }
 details.more[open] { border-style: solid; background: color-mix(in srgb, var(--surface-2) 50%, transparent); }

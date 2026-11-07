@@ -179,6 +179,18 @@ export const SOURCES = {
     pmid: '40506980', doi: '10.3390/diagnostics15111408',
     used: { tr: 'Sürekli böbrek replasman tedavisi üre/kreatinin oranını düşürür; çalışmada yüksek grup ≥75 (mg/dL:mg/dL).', en: 'Continuous kidney replacement therapy lowers the urea/creatinine ratio; the study\'s high group was ≥75 (mg/dL:mg/dL).' },
   },
+  'sofa2-2025': {
+    short: 'SOFA-2 2025',
+    cite: 'Ranzani OT, Singer M, Salluh JIF, et al. Development and Validation of the Sequential Organ Failure Assessment (SOFA)-2 Score. JAMA. 2025;334(23):2090-2103.',
+    pmid: '41159833', doi: '10.1001/jama.2025.20516',
+    used: { tr: 'Altı organ bileşeni (beyin, solunum, kardiyovasküler, karaciğer, böbrek, hemostaz) 0–4; toplam yalnız altısı bilinince. Ciddiyet bağlamıdır, beslenme dozu değiştirmez.', en: 'Six organ components (brain, respiratory, cardiovascular, liver, kidney, haemostasis) 0–4; a total only when all six are known. Severity context; does not change nutrition doses.' },
+  },
+  'saps2-1993': {
+    short: 'SAPS II',
+    cite: 'Le Gall JR, Lemeshow S, Saulnier F. A new Simplified Acute Physiology Score (SAPS II) based on a European/North American multicenter study. JAMA. 1993;270(24):2957-2963.',
+    pmid: '8254858', doi: '10.1001/jama.270.24.2957',
+    used: { tr: 'Klinisyenin özgün 17 değişkenli formdan hesapladığı toplam kaydedilir; yeniden hesaplanmaz.', en: 'The total calculated by the clinician from the original 17-variable form is recorded; it is not recalculated.' },
+  },
   'ueg-esnm-2025': {
     short: { tr: 'UEG/ESNM 2025 · Disfaji', en: 'UEG/ESNM 2025 · Dysphagia' },
     cite: 'Mari A, Calabrese F, Pasta A, et al. Esophageal and Oropharyngeal Dysphagia: Clinical Recommendations From the United European Gastroenterology and European Society for Neurogastroenterology and Motility. United European Gastroenterol J. 2025;13(6):855-901.',

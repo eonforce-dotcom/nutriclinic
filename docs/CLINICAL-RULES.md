@@ -1,6 +1,6 @@
 # NutriClinic staged recommender — clinical rules
 
-Version 1.2.0 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
+Version 1.3.0 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
 
 NutriClinic supports clinical decisions and does not replace them. Every recommendation is reviewed at the bedside
 together with its inputs and sources.
@@ -66,6 +66,8 @@ the code and the full texts before it was fixed or declined.
 | PNI-1984 | Onodera T, et al. Prognostic nutritional index. Nihon Geka Gakkai Zasshi 1984;85:1001-1005 | 6438478 |
 | UCR-2019 | Haines RW, et al. Elevated urea-to-creatinine ratio after major trauma. Intensive Care Med 2019;45:1718-1731 | 31531715 |
 | UCR-CRRT-2025 | Markl-Le Levé A, et al. The urea-creatinine ratio is affected by CRRT. Diagnostics (Basel) 2025;15:1408 | 40506980 |
+| SOFA-2-2025 | Ranzani OT, et al. Development and validation of the SOFA-2 score. JAMA 2025;334:2090-2103 | 41159833 |
+| SAPS-II-1993 | Le Gall JR, et al. A new Simplified Acute Physiology Score (SAPS II). JAMA 1993;270:2957-2963 | 8254858 |
 | UEG-ESNM-2025 | Mari A, et al. Esophageal and oropharyngeal dysphagia: UEG/ESNM recommendations. United European Gastroenterol J 2025;13:855-901 | 40543044 |
 
 ## Body weight
@@ -275,6 +277,30 @@ clinician's laboratory, entered in the unit of the value. The laboratory part wa
 feeding, warnings when an answer is overruled, findings recorded even when the box was ticked, sources per finding,
 an exact 0.16 mmol/L fall not counted as more than 0.16, an unknown unit message, the three PNI categories).
 
+### Reference intervals, import and ICU severity
+
+- **Reference intervals.** The laboratory's own lower and upper limits can be entered for eleven tests, in the unit
+  of the value. They mark low and high values on the result page, give the CRP / upper-limit ratio, and (K, P, Mg
+  lower limits) decide the low pre-feeding level. No population interval is ever assumed. A lower limit above the
+  upper limit is shown as an error and the pair is not used.
+- **Import.** A CSV (comma, semicolon or tab, detected outside quotes; header with test, value and unit, optionally
+  date; Turkish headers accepted; two columns with the same meaning or rows wider than the header are reported) or
+  JSON file is read on the device, never sent. A row without a unit is not imported. Test names are matched in Turkish and English (for
+  example fosfor, potasyum, BUN, nötrofil#); units are mapped to the unit lists; dates as YYYY-MM-DD or DD.MM.YYYY.
+  Rows are previewed with their problems; the latest valid row of each test is preselected; only chosen rows are
+  written into the fields; when the laboratory's limits are already entered for a test, the imported value is
+  converted into their unit so they keep their meaning. A TXT file is shown for reading. PDF is not read (it would need a new library; the
+  clinician decides).
+- **SOFA-2** (SOFA-2-2025, Table 2 of the corrected publisher text, as in the previous version): brain (GCS with
+  delirium), respiratory (PaO2/FiO2 with advanced support or ECMO), cardiovascular (norepinephrine + epinephrine dose,
+  other vasopressor, mechanical support, MAP), liver (bilirubin), kidney (kidney replacement from the kidney answer;
+  creatinine with urine output), haemostasis (platelets). The total is given only when all six components are
+  known; it is shown only when a SOFA-2 input was entered.
+- **SAPS II** (SAPS-II-1993): the clinician's recorded total from the original form; not recalculated.
+- Both are severity context and never change a nutrition dose.
+- Part 2b was audited by an independent model (Codex, GPT-6.1 Sol, high reasoning) while the Gemini and Antigravity
+  Claude quotas were exhausted: 5 findings, all fixed.
+
 ## Notes shown when relevant
 
 - Diabetes.
@@ -302,7 +328,7 @@ early PN in severe malnutrition, oedema, loss duration, stroke screening, sarcop
 fixes).
 
 `tests/labs.test.mjs` checks unit conversions, errors in the entered unit, NLR, PNI, the urea/creatinine ratio,
-phosphate rules, lower limits and their effect on the plan (8 tests).
+phosphate rules, lower limits, import, reference flags, SOFA-2, the audit fixes and their effect on the plan (12 tests).
 
 `tests/engine.test.mjs` checks the rules against 45 hand-calculated cases, covering:
 

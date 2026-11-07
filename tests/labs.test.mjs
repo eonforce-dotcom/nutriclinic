@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { recommend } from '../web/engine.mjs';
-import { checkLab, readLab, labIndices, phosphateDrop } from '../web/labs.mjs';
+import { checkLab, readLab, labIndices, phosphateDrop, parseCSV, importText, labFlags, sofa2 } from '../web/labs.mjs';
 import { SOURCES } from '../web/sources.mjs';
 
 const close = (a, b, tol = 0.01) => assert.ok(Math.abs(a - b) <= tol, `${a} ≠ ${b}`);
@@ -126,4 +126,60 @@ test('Audit fixes: an unticked hypophosphataemia box is overruled with a warning
   const low = recommend({ ...icu, potassium: '3.0', potassiumLow: '3.5' });
   assert.ok(low.labs.findings.includes('lowDuringFeeding'));
   assert.equal(checkLab('potassium', '4', 'g/L').code, 'unit');
+});
+
+test('Import: Turkish CSV headers and names, units, dates; the latest row of a test is preselected', () => {
+  const csv = 'Tetkik;Değer;Birim;Tarih\nFosfor;2,3;mg/dL;06.11.2026\nPotasyum;3,4;mmol/L;2026-11-05\nPotasyum;3,9;mmol/L;2026-11-06\nBUN;20;mg/dL;\nNötrofil#;5,2;10^3/uL;\nHemoglobin;12;g/dL;\nKreatinin;140;µmol/L;31.02.2026';
+  assert.equal(parseCSV(csv).length, 7);
+  const rows = importText('lab.csv', csv);
+  const by = (t) => rows.find((r) => r.test === t);
+  assert.equal(by('Fosfor').key, 'phosphate');
+  assert.equal(by('Fosfor').date, '2026-11-06');
+  assert.equal(by('BUN').unit, 'BUN mg/dL');
+  assert.equal(by('Nötrofil#').unit, '10³/µL');
+  assert.equal(by('Hemoglobin').error, 'test');
+  assert.equal(by('Kreatinin').error, 'date');
+  const pot = rows.filter((r) => r.key === 'potassium');
+  assert.deepEqual(pot.map((r) => r.selected), [false, true]);
+  const json = importText('lab.json', JSON.stringify([{ test: 'CRP', value: 12, unit: 'mg/L', date: '2026-11-06' }, { test: 'Albümin', value: '3,1', unit: 'g/dL' }]));
+  assert.equal(json.filter((r) => r.selected).length, 2);
+  assert.throws(() => parseCSV('a,b\n1,2'), /header/);
+  assert.throws(() => importText('x.json', '{"a":1}'), /json/);
+});
+
+test('Reference flags and the CRP ratio from the laboratory limits', () => {
+  assert.deepEqual(labFlags({ potassium: 3.1, potassiumLow: 3.5, potassiumHigh: 5.1, crp: 50, crpLow: null, crpHigh: 5, albumin: 40, albuminLow: null, albuminHigh: null }), { potassium: 'low', crp: 'high' });
+  const r = recommend({ setting: 'ward', age: 60, sex: 'male', heightCm: 175, weightKg: 75, swallow: 'safe', oralIntakePct: 80, kidney: 'normal', crp: '50', crpHigh: '5' });
+  close(r.labs.indices.crpRatio, 10, 1e-9);
+  assert.equal(r.labs.flags.crp, 'high');
+});
+
+test('SOFA-2: components, total only when all six are known, ICU only', () => {
+  const s = sofa2({ gcs: 14, delirium: false, pao2: 80, fio2: 0.4, ventilation: 'none', cvMechanical: false, ne: 0.15, epi: 0, otherVaso: false, map: 65, bilirubin: 2.5, rrt: false, creatinine: 1.5, urine: 'oliguria12', platelets: 90 });
+  assert.deepEqual(s.components, { brain: 1, respiratory: 2, cardiovascular: 2, liver: 1, kidney: 2, hemostasis: 2 });
+  assert.equal(s.total, 10);
+  assert.equal(sofa2({ gcs: null, delirium: null, pao2: 60, fio2: 1, ventilation: 'advanced', cvMechanical: null, ne: null, epi: null, otherVaso: null, map: null, bilirubin: null, rrt: true, creatinine: null, urine: null, platelets: null }).total, null);
+  const icu = { setting: 'icu', age: 60, sex: 'male', heightCm: 175, weightKg: 75, icuDay: 2, swallow: 'unsafe', gi: 'ok', shock: 'none', kidney: 'normal', creatinine: '1.5' };
+  const r = recommend({ ...icu, sofaGcs: 14, sofaDelirium: 'no', sofaPao2: 80, sofaFio2: 40, sofaVent: 'none', sofaMechanical: 'no', sofaNe: 0.15, sofaEpi: 0, sofaOtherVaso: 'no', sofaMap: 65, bilirubin: '2.5', sofaUrine: 'oliguria12', platelets: '90', saps2: 41 });
+  assert.equal(r.icuScores.sofa2.total, 10);
+  assert.equal(r.icuScores.saps2, 41);
+  assert.ok(r.sources.includes('sofa2-2025') && r.sources.includes('saps2-1993'));
+  assert.equal(recommend({ ...icu, kidney: 'crrt' }).icuScores.sofa2.entered, false);
+  assert.equal(recommend({ ...icu, setting: 'ward', sofaGcs: 14 }).icuScores, undefined);
+  assert.deepEqual(recommend({ ...icu, sofaFio2: 15 }).invalid, ['sofaFio2']);
+});
+
+test('Codex audit fixes: missing unit, inverted limits, quoted delimiter, wide rows and duplicate headers', () => {
+  const noUnit = importText('a.json', JSON.stringify([{ test: 'potassium', value: 4 }]));
+  assert.equal(noUnit[0].error, 'unit-missing');
+  assert.deepEqual(labFlags({ potassium: 4, potassiumLow: 5, potassiumHigh: 3 }), { potassium: 'inverted' });
+  const ward = { setting: 'ward', age: 60, sex: 'female', heightCm: 160, weightKg: 60, swallow: 'safe', oralIntakePct: 60, kidney: 'normal', feeding: 'none', weightLossPct: 0, lowIntakeDays: 0, alcohol: 'no', riskDrugs: 'no' };
+  const inv = recommend({ ...ward, potassium: '3.1', potassiumLow: '5', potassiumHigh: '3' });
+  assert.deepEqual(inv.labs.lowKeys, []);
+  assert.ok(inv.warnings.some((w) => w.tr.includes('alt sınır üst sınırdan büyük')));
+  const quoted = parseCSV('test,value,unit,"note;detail"\npotassium,4,mmol/L,x');
+  assert.equal(quoted[0].value, '4');
+  const wide = importText('w.csv', 'test,value,unit\npotassium,4,mmol/L,extra');
+  assert.equal(wide[0].error, 'wide');
+  assert.throws(() => parseCSV('test,value,unit,value\npotassium,4,mmol/L,5'), /header-dup/);
 });

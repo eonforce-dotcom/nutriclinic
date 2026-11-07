@@ -8,12 +8,12 @@
 
 import { B } from './text.mjs';
 import { evaluateScales, swallowStatus, FOIS_TEXT as FOIS_NAMES, IDDSI_FOOD, IDDSI_DRINK } from './scales.mjs';
-import { LAB_KEYS, readLab, labIndices, phosphateDrop } from './labs.mjs';
+import { LAB_KEYS, readLab, labIndices, phosphateDrop, labFlags, sofa2, invertedLimits, LIMIT_KEYS } from './labs.mjs';
 
 const IDDSI_NAMES = { food: IDDSI_FOOD, drink: IDDSI_DRINK };
 
 export { B };
-export const ENGINE_VERSION = '1.2.0';
+export const ENGINE_VERSION = '1.3.0';
 export const RULES_DATE = '2026-11-07';
 export const INTENDED_USE = B('NutriClinic klinik kararı destekler, yerine geçmez. Her öneri hasta başında, girdileri ve kaynaklarıyla birlikte değerlendirilir.', 'NutriClinic supports clinical decisions and does not replace them. Every recommendation is reviewed at the bedside with its inputs and sources.');
 
@@ -106,6 +106,14 @@ export const FIELD_LIMITS = Object.freeze({
   fois: { min: 1, max: 7, integer: 'strict' },
   iddsiFood: { min: 3, max: 7, integer: 'strict' },
   iddsiFluid: { min: 0, max: 4, integer: 'strict' },
+  // SOFA-2 inputs (ICU) and the recorded SAPS II total.
+  sofaGcs: { min: 3, max: 15, integer: 'strict' },
+  sofaPao2: { min: 1, max: 800 },
+  sofaFio2: { min: 21, max: 100 },
+  sofaMap: { min: 1, max: 200 },
+  sofaNe: { min: 0, max: 10 },
+  sofaEpi: { min: 0, max: 10 },
+  saps2: { min: 0, max: 163, integer: 'strict' },
 });
 // null when the value is empty or valid; otherwise { code: 'nan' | 'integer' | 'range', min, max }.
 export function checkNumber(key, value) {
@@ -176,8 +184,15 @@ export function normalize(raw = {}) {
     eat10: int('eat10'), fois: int('fois'), iddsiFood: int('iddsiFood'), iddsiFluid: int('iddsiFluid'),
     swallowAssessment: pick('swallowAssessment', ['none', 'bedside', 'fees', 'vfss']),
     impairedAlertness: flag('impairedAlertness'), unsafeSigns: flag('unsafeSigns'),
+    sofaGcs: int('sofaGcs'), sofaDelirium: flag('sofaDelirium'), sofaPao2: num('sofaPao2'), sofaFio2: num('sofaFio2'),
+    sofaVent: pick('sofaVent', ['none', 'advanced', 'ecmo']), sofaMap: num('sofaMap'), sofaNe: num('sofaNe'), sofaEpi: num('sofaEpi'),
+    sofaOtherVaso: flag('sofaOtherVaso'), sofaMechanical: flag('sofaMechanical'),
+    sofaUrine: pick('sofaUrine', ['normal', 'oliguria6', 'oliguria12', 'oliguria24', 'anuria12']), saps2: int('saps2'),
   };
-  if (p.setting === 'ward') { p.icuDay = null; p.measuredEE = null; p.propofolMlH = null; p.trauma = null; }
+  if (p.setting === 'ward') {
+    p.icuDay = null; p.measuredEE = null; p.propofolMlH = null; p.trauma = null;
+    for (const k of ['sofaGcs', 'sofaDelirium', 'sofaPao2', 'sofaFio2', 'sofaVent', 'sofaMap', 'sofaNe', 'sofaEpi', 'sofaOtherVaso', 'sofaMechanical', 'sofaUrine', 'saps2']) p[k] = null;
+  }
   if (p.setting === 'icu') { p.pressureUlcer = null; p.aspenGrip = null; } // grip is not an AND/ASPEN criterion in the ICU
   if (p.sex !== 'female') p.pregnant = null;
   if (p.weightLossPct === null && p.usualWeightKg !== null && p.weightKg !== null) {
@@ -811,7 +826,9 @@ export function recommend(raw = {}) {
   // Before feeding: a value below the laboratory's lower limit is a low pre-feeding level (nice-cg32 Box 1);
   // phosphate <0.65 mmol/L is low in any laboratory. No population reference interval is assumed.
   const labs = p.labs;
-  const below = (k) => (labs[k] !== null && labs[`${k}Low`] !== null ? labs[k] < labs[`${k}Low`] : null);
+  const below = (k) => (labs[k] !== null && labs[`${k}Low`] !== null && !invertedLimits(labs, k) ? labs[k] < labs[`${k}Low`] : null);
+  const inverted = LIMIT_KEYS.filter((k) => invertedLimits(labs, k));
+  if (inverted.length) result.warnings.push(B(`Referans aralığında alt sınır üst sınırdan büyük (${inverted.map((k) => LAB_WORD[k]?.tr ?? k).join(', ')}): bu aralık kullanılmadı. Laboratuvar kartında düzeltin.`, `Reference interval with the lower limit above the upper limit (${inverted.map((k) => LAB_WORD[k]?.en ?? k).join(', ')}): this interval is not used. Correct it on the laboratory card.`));
   const ELECTROLYTES = ['potassium', 'phosphate', 'magnesium'];
   p.labFindings = [];
   p.lowLabKeys = [];
@@ -834,7 +851,22 @@ export function recommend(raw = {}) {
       p.labFindings.push('normalBeforeFeeding');
     }
   }
-  result.labs = { values: labs, indices: labIndices(labs), findings: p.labFindings, lowKeys: p.lowLabKeys };
+  const indices = labIndices(labs);
+  if (labs.crp !== null && labs.crpHigh !== null && labs.crpHigh > 0) indices.crpRatio = labs.crp / labs.crpHigh;
+  result.labs = { values: labs, indices, findings: p.labFindings, lowKeys: p.lowLabKeys, flags: labFlags(labs) };
+  // ICU severity (context only): SOFA-2 from the entered components (kidney replacement from the kidney answer,
+  // creatinine, bilirubin and platelets from the laboratory card); SAPS II as the clinician's recorded total.
+  if (icu) {
+    const rrt = p.kidney === 'ihd' || p.kidney === 'crrt' ? true : p.kidney === 'normal' || p.kidney === 'aki' ? false : null;
+    const sofa = sofa2({ gcs: p.sofaGcs, delirium: p.sofaDelirium, pao2: p.sofaPao2, fio2: p.sofaFio2 === null ? null : p.sofaFio2 / 100, ventilation: p.sofaVent,
+      cvMechanical: p.sofaMechanical, ne: p.sofaNe, epi: p.sofaEpi, otherVaso: p.sofaOtherVaso, map: p.sofaMap, bilirubin: labs.bilirubin, rrt,
+      creatinine: labs.creatinine, urine: p.sofaUrine, platelets: labs.platelets });
+    // Shown only when a SOFA-2 input was entered (kidney replacement alone does not start the score).
+    sofa.entered = [p.sofaGcs, p.sofaDelirium, p.sofaPao2, p.sofaFio2, p.sofaVent, p.sofaMap, p.sofaNe, p.sofaEpi, p.sofaOtherVaso, p.sofaMechanical, p.sofaUrine, labs.bilirubin, labs.platelets].some((x) => x !== null);
+    result.icuScores = { sofa2: sofa, saps2: p.saps2 };
+    if (sofa.entered) src('sofa2-2025');
+    if (p.saps2 !== null) src('saps2-1993');
+  }
   labSources(result.labs).forEach((id) => src(id));
   const rf = refeedingRisk(p, m);
   const nb = nitrogenBalance(p);
@@ -994,7 +1026,11 @@ export function recommend(raw = {}) {
 
 // ---------------------------------------------------------------------------------------------
 // Scale helpers.
-const LAB_WORD = { potassium: B('potasyum', 'potassium'), phosphate: B('fosfor', 'phosphate'), magnesium: B('magnezyum', 'magnesium') };
+const LAB_WORD = {
+  potassium: B('potasyum', 'potassium'), phosphate: B('fosfor', 'phosphate'), magnesium: B('magnezyum', 'magnesium'), creatinine: B('kreatinin', 'creatinine'),
+  urea: B('üre', 'urea'), albumin: B('albümin', 'albumin'), crp: B('CRP', 'CRP'), neutrophils: B('nötrofil', 'neutrophils'), lymphocytes: B('lenfosit', 'lymphocytes'),
+  lactate: B('laktat', 'lactate'), vitD: B('25(OH)D', '25(OH)D'),
+};
 const SWALLOW_WORD = { safe: B('güvenle yiyebilir', 'can eat safely'), modified: B('kıvam ayarlı diyet', 'texture-modified diet'), unsafe: B('ağızdan beslenmez', 'no oral feeding') };
 const SWALLOW_FROM = { entered: B('yutma sorusu', 'swallowing question'), fois: B('FOIS', 'FOIS'), iddsi: B('IDDSI', 'IDDSI'), alertness: B('uyanıklık bozukluğu', 'impaired alertness'), signs: B('güvensizlik bulgusu', 'unsafe signs') };
 function swallowConflict(sw) {

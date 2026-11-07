@@ -3,7 +3,7 @@
 // Copyright (C) 2026 Gökay Duman
 import { recommend, normalize, checkNumber, checkProduct, ENGINE_VERSION, RULES_DATE, PRODUCT_DEFAULTS } from './engine.mjs';
 import { swallowStatus, FOIS_TEXT, IDDSI_FOOD, IDDSI_DRINK } from './scales.mjs';
-import { LABS, LAB_KEYS, checkLab, defaultUnit, unitKey } from './labs.mjs';
+import { LABS, LAB_KEYS, LIMIT_KEYS, checkLab, defaultUnit, unitKey, importText } from './labs.mjs';
 import { SOURCES } from './sources.mjs';
 import { getInitialLocale, LANGUAGE_STORAGE_KEY } from './initial-locale.mjs';
 
@@ -91,6 +91,7 @@ const r10 = (x) => Math.round(x / 10) * 10;
 // ---------------------------------------------------------------------------------------------
 // Steps and fields
 const yesNoUnknown = [{ value: 'yes', label: T.yes }, { value: 'no', label: T.no }, { value: 'unknown', label: T.unknown }];
+const yesNo = [{ value: 'yes', label: T.yes }, { value: 'no', label: T.no }];
 // "unlock": small coloured sentence shown while the field is empty, saying what entering it adds.
 // Effective swallowing (the most cautious entered finding) and BMI, for showing the right questions.
 const effectiveSwallow = (v) => swallowStatus(normalize(v).p).value;
@@ -264,13 +265,12 @@ const STEPS = [
       ...(v.feeding === 'ongoing' ? [{ key: 'phosphateBefore', type: 'lab', label: ['Beslenme başlamadan önceki fosfor', 'Phosphate before feeding started'], hint: ['Düşüşü hesaplamak için', 'To calculate the fall'] }] : []),
       { key: 'potassium', type: 'lab', label: ['Potasyum', 'Potassium'] },
       { key: 'magnesium', type: 'lab', label: ['Magnezyum', 'Magnesium'] },
-      { key: 'more-limits', type: 'more', label: ['Laboratuvarınızın alt sınırları: K, P, Mg', 'Your laboratory’s lower limits: K, P, Mg'], lead: ['Raporunuzdaki referans aralığının alt değeri, değerle aynı birimde. Hazır bir değer konmaz.', 'The lower value of the reference interval on your report, in the same unit as the value. No default is assumed.'],
-        unlock: ['Alt sınırları girerseniz beslenme öncesi düşüklüğü (NICE) ben belirlerim; girilmezse 5. adımdaki soru geçerlidir.', 'Enter the lower limits and I decide whether the pre-feeding level is low (NICE); otherwise the question in step 5 applies.'],
-        fields: [
-          { key: 'potassiumLow', type: 'lab', label: ['Potasyum alt sınırı', 'Potassium lower limit'] },
-          { key: 'phosphateLow', type: 'lab', label: ['Fosfor alt sınırı', 'Phosphate lower limit'] },
-          { key: 'magnesiumLow', type: 'lab', label: ['Magnezyum alt sınırı', 'Magnesium lower limit'] },
-        ] },
+      { key: 'more-limits', type: 'more', label: ['Laboratuvarınızın referans aralıkları', 'Your laboratory’s reference intervals'], lead: ['Raporunuzdaki alt ve üst sınırlar, değerle aynı birimde. Hazır bir değer konmaz.', 'The lower and upper limits on your report, in the same unit as the value. No default is assumed.'],
+        unlock: ['K, P ve Mg alt sınırlarını girerseniz beslenme öncesi düşüklüğü (NICE) ben belirlerim; diğer sınırlar sonuçta düşük/yüksek işareti ve CRP oranı verir.', 'Enter the K, P and Mg lower limits and I decide whether the pre-feeding level is low (NICE); the other limits give low/high marks and the CRP ratio in the result.'],
+        fields: [{ key: 'limits-table', type: 'limits', rows: LIMIT_KEYS }] },
+      { key: 'more-import', type: 'more', label: ['Dosyadan aktar (CSV, JSON, TXT)', 'Import from a file (CSV, JSON, TXT)'],
+        unlock: ['Laboratuvar dökümünü CSV ya da JSON olarak verirseniz değerleri önizleyip seçerek aktarırım.', 'Give a laboratory export as CSV or JSON and I preview the values and import the ones you choose.'],
+        fields: [{ key: 'import', type: 'import', label: ['Dosya seçin', 'Choose a file'], hint: ['Dosya bu cihazda okunur, hiçbir yere gönderilmez. CSV/JSON sütunları: test, value (değer) ve unit (birim) gerekli; date (tarih) isteğe bağlı. TXT dosyası okunması için gösterilir.', 'The file is read on this device and sent nowhere. CSV/JSON columns: test, value and unit are required; date is optional. A TXT file is shown for reading.'] }] },
       { key: 'crp', type: 'lab', label: ['CRP', 'CRP'], unlock: v.setting === 'ward' ? ['CRP’yi girerseniz yüksek inflamasyonda (>100 mg/L) beslenme desteğine beklenen yanıtı belirtirim.', 'Enter CRP to flag the expected response to nutrition support with high inflammation (>100 mg/L).'] : ['CRP’yi girerseniz inflamasyon bağlamını sonuçta gösteririm.', 'Enter CRP to show the inflammatory context in the result.'] },
       { key: 'albumin', type: 'lab', label: ['Albümin', 'Albumin'], hint: ['Malnütrisyon ölçütü değildir; PNI için', 'Not a malnutrition criterion; used for PNI'] },
       { key: 'lymphocytes', type: 'lab', label: ['Lenfosit (mutlak sayı)', 'Lymphocytes (absolute count)'], unlock: ['Albümin ve lenfositle PNI’yi, nötrofille NLR’yi hesaplarım (yalnız bilgi; doz değişmez).', 'With albumin and lymphocytes I calculate PNI, with neutrophils NLR (context only; no dose change).'] },
@@ -279,6 +279,25 @@ const STEPS = [
       { key: 'creatinine', type: 'lab', label: ['Kreatinin', 'Creatinine'] },
       ...(v.setting !== 'ward' ? [{ key: 'lactate', type: 'lab', label: ['Laktat', 'Lactate'] }] : []),
       { key: 'vitD', type: 'lab', label: ['25(OH) D vitamini', '25(OH) vitamin D'], unlock: ['25(OH)D girerseniz D vitamini eksikliğine göre öneride bulunurum.', 'Enter 25(OH)D for a vitamin D recommendation.'] },
+      ...(v.setting !== 'ward' ? [{ key: 'more-sofa', type: 'more', label: ['SOFA-2 ve SAPS II (isteğe bağlı)', 'SOFA-2 and SAPS II (optional)'],
+        lead: ['Aynı 24 saatin en kötü değerleri. Böbrek bileşeni 3. adımdaki diyaliz seçimini ve bu karttaki kreatinini kullanır. Ciddiyet bağlamıdır; beslenme dozunu değiştirmez.', 'Worst values of the same 24 hours. The kidney component uses the dialysis answer in step 3 and the creatinine on this card. Severity context; it does not change nutrition doses.'],
+        unlock: ['Altı organ bileşenini girerseniz SOFA-2 toplamını hesaplarım; eksik bileşen sıfır sayılmaz.', 'Enter the six organ components and I calculate the SOFA-2 total; a missing component is not counted as zero.'],
+        fields: [
+          { key: 'sofaGcs', type: 'num', label: ['Glasgow koma skalası', 'Glasgow coma scale'], unit: ['3–15', '3–15'] },
+          { key: 'sofaDelirium', type: 'seg', label: ['Deliryum', 'Delirium'], options: yesNo },
+          { key: 'sofaPao2', type: 'num', label: ['PaO₂', 'PaO₂'], unit: ['mmHg', 'mmHg'] },
+          { key: 'sofaFio2', type: 'num', label: ['FiO₂', 'FiO₂'], unit: ['%', '%'] },
+          { key: 'sofaVent', type: 'seg', stack: true, wide: true, label: ['Solunum desteği', 'Respiratory support'], options: [{ value: 'none', label: ['İleri destek yok', 'No advanced support'] }, { value: 'advanced', label: ['Özgün tanıma göre ileri destek', 'Advanced support under the original definition'] }, { value: 'ecmo', label: ['Solunumsal ECMO', 'Respiratory ECMO'] }] },
+          { key: 'sofaMap', type: 'num', label: ['Ortalama arter basıncı', 'Mean arterial pressure'], unit: ['mmHg', 'mmHg'] },
+          { key: 'sofaNe', type: 'num', label: ['Noradrenalin hızı', 'Norepinephrine rate'], unit: ['µg/kg/dk', 'µg/kg/min'] },
+          { key: 'sofaEpi', type: 'num', label: ['Adrenalin hızı', 'Epinephrine rate'], unit: ['µg/kg/dk', 'µg/kg/min'] },
+          { key: 'sofaOtherVaso', type: 'seg', label: ['Başka vazopresör ya da inotrop', 'Any other vasopressor or inotrope'], options: yesNo },
+          { key: 'sofaMechanical', type: 'seg', label: ['Tanıma göre kardiyovasküler mekanik destek', 'Cardiovascular mechanical support per definition'], options: yesNo },
+          { key: 'bilirubin', type: 'lab', label: ['Total bilirubin', 'Total bilirubin'] },
+          { key: 'platelets', type: 'lab', label: ['Trombosit', 'Platelets'] },
+          { key: 'sofaUrine', type: 'seg', stack: true, wide: true, label: ['İdrar çıkışı', 'Urine output'], options: [{ value: 'normal', label: ['Ölçüt yok', 'No criterion'] }, { value: 'oliguria6', label: ['6–12 saat <0,5 mL/kg/saat', '<0.5 mL/kg/h for 6–12 h'] }, { value: 'oliguria12', label: ['≥12 saat <0,5 mL/kg/saat', '<0.5 mL/kg/h for ≥12 h'] }, { value: 'oliguria24', label: ['≥24 saat <0,3 mL/kg/saat', '<0.3 mL/kg/h for ≥24 h'] }, { value: 'anuria12', label: ['≥12 saat anüri', 'Anuria for ≥12 h'] }] },
+          { key: 'saps2', type: 'num', label: ['SAPS II toplamı (özgün formdan)', 'SAPS II total (original form)'], unit: ['0–163', '0–163'] },
+        ] }] : []),
     ],
   },
 ];
@@ -338,6 +357,18 @@ function fieldHtml(f) {
     const boxes = f.items.map((c) => `<label class="check"><input type="checkbox" data-check="${c.key}" ${v[c.key] === true ? 'checked' : ''}><span>${esc(L(c.label))}</span></label>`).join('');
     return `<div class="field${wide}"><span class="label">${esc(L(f.label))}</span><div class="checks">${boxes}</div>${unlockHtml(f, !f.items.some((c) => v[c.key] === true))}</div>`;
   }
+  if (f.type === 'limits') {
+    const cell = (k, side) => {
+      const key = `${k}${side}`;
+      const val = v[key] ?? '';
+      const err = fieldError({ key, type: 'lab' }, val);
+      const name = `${L(LAB_NAMES[k])} ${L(side === 'Low' ? ['alt sınırı', 'lower limit'] : ['üst sınırı', 'upper limit'])}`;
+      return `<td><div class="input-wrap${err ? ' invalid' : ''}"><input id="f-${key}" data-key="${key}" inputmode="decimal" autocomplete="off" value="${esc(val)}" aria-label="${esc(name)}" aria-describedby="err-${key}"${err ? ' aria-invalid="true"' : ''}></div><p class="field-error" id="err-${key}" aria-live="polite"${err ? '' : ' hidden'}>${esc(err ?? '')}</p></td>`;
+    };
+    const rows = f.rows.map((k) => `<tr><th scope="row" class="l">${esc(L(LAB_NAMES[k]))}</th><td class="l">${esc(v[unitKey(k)] ?? defaultUnit(k))}</td>${cell(k, 'Low')}${cell(k, 'High')}</tr>`).join('');
+    return `<div class="field wide"><div class="table-wrap"><table class="limits"><thead><tr><th class="l">Test</th><th class="l">${esc(L(['Birim', 'Unit']))}</th><th>${esc(L(['Alt sınır', 'Lower limit']))}</th><th>${esc(L(['Üst sınır', 'Upper limit']))}</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  }
+  if (f.type === 'import') return importHtml(f);
   if (f.type === 'more') {
     // Optional block: closed until opened or until one of its fields has a value.
     const filledIn = f.fields.some(hasValue);
@@ -350,11 +381,80 @@ function fieldHtml(f) {
 function hasValue(f) {
   const v = state.values;
   if (f.type === 'checks') return f.items.some((c) => v[c.key] === true);
+  if (f.type === 'limits') return f.rows.some((k) => ['Low', 'High'].some((side) => String(v[`${k}${side}`] ?? '').trim() !== ''));
+  if (f.type === 'import') return Boolean(state.import);
   if (f.type === 'more') return f.fields.some(hasValue);
   const x = v[f.key];
   return x !== undefined && x !== null && String(x).trim() !== '' && x !== 'unknown';
 }
-const flatFields = (fields) => fields.flatMap((f) => (f.type === 'more' ? flatFields(f.fields) : [f]));
+const flatFields = (fields) => fields.flatMap((f) => (f.type === 'more' ? flatFields(f.fields)
+  : f.type === 'limits' ? f.rows.flatMap((k) => ['Low', 'High'].map((side) => ({ key: `${k}${side}`, type: 'lab', label: [`${LAB_NAMES[k][0]} ${side === 'Low' ? 'alt' : 'üst'} sınırı`, `${LAB_NAMES[k][1]} ${side === 'Low' ? 'lower' : 'upper'} limit`] })))
+    : [f]));
+
+// ---------------------------------------------------------------------------------------------
+// File import: read on this device (CSV, JSON, TXT); nothing is stored or sent.
+const IMPORT_ERRORS = {
+  test: ['Test tanınmadı', 'Unknown test'], unit: ['Birim tanınmadı', 'Unknown unit'], value: ['Sayı değil', 'Not a number'],
+  range: ['Kabul aralığı dışında', 'Outside the accepted range'], date: ['Tarih tanınmadı', 'Unknown date'], row: ['Satır okunamadı', 'Row not readable'],
+  'unit-missing': ['Birim yok', 'No unit'], wide: ['Satırda başlıktan fazla sütun var', 'More cells than header columns'],
+};
+const FILE_ERRORS = {
+  quote: ['CSV tırnakları eşleşmiyor.', 'CSV quotes do not match.'],
+  header: ['CSV başlığında en az "test" ve "value" (ya da "tetkik" ve "değer") sütunları olmalı.', 'The CSV header needs at least "test" and "value" columns.'],
+  'header-dup': ['CSV başlığında aynı anlamda iki sütun var (örneğin iki değer sütunu): birini kaldırın.', 'The CSV header has two columns with the same meaning (for example two value columns): remove one.'],
+  json: ['JSON dosyası bir satır listesi olmalı.', 'The JSON file must be a list of rows.'],
+  size: ['En çok 300 satır aktarılabilir.', 'At most 300 rows can be imported.'],
+  big: ['Dosya 10 MB sınırını aşıyor.', 'The file exceeds 10 MB.'],
+  pdf: ['PDF şu an okunmuyor: değerleri elle girin ya da laboratuvar dökümünü CSV olarak alın.', 'PDF is not read for now: enter the values by hand or export the laboratory results as CSV.'],
+  type: ['Desteklenen dosyalar: CSV, JSON, TXT.', 'Supported files: CSV, JSON, TXT.'],
+};
+function importHtml(f) {
+  const imp = state.import;
+  let body = '';
+  if (imp?.error) body = `<p class="field-error">${esc(L(FILE_ERRORS[imp.error] ?? FILE_ERRORS.type))}</p>`;
+  else if (imp?.done !== undefined) body = `<p class="hint">${esc(L([`${imp.done} değer aktarıldı; kartlardaki alanlara yazıldı.`, `${imp.done} values imported into the fields.`]))}</p>`;
+  else if (imp?.text !== undefined) body = `<p class="hint">${esc(L(['Metindeki değerleri ilgili alanlara elle girin.', 'Enter the values from the text into the fields by hand.']))}</p><pre class="import-text">${esc(imp.text.slice(0, 100000))}</pre>`;
+  else if (imp?.rows) {
+    const rows = imp.rows.map((r) => `<tr><td>${r.error ? '' : `<input type="checkbox" data-import-row="${r.i}" ${r.selected ? 'checked' : ''} aria-label="${esc(r.test)}">`}</td><td class="l">${esc(r.test)}${r.key ? ` → ${esc(L(LAB_NAMES[r.key]))}` : ''}</td><td class="l">${esc(r.value ?? r.rawValue)} ${esc(r.unit ?? r.rawUnit)}</td><td class="l">${esc(r.date ?? '')}</td><td class="l">${r.error ? `<span class="chip high">${esc(L(IMPORT_ERRORS[r.error]))}</span>` : ''}</td></tr>`).join('');
+    const n = imp.rows.filter((r) => r.selected).length;
+    body = `<div class="table-wrap"><table><thead><tr><th></th><th class="l">Test</th><th class="l">${esc(L(['Değer', 'Value']))}</th><th class="l">${esc(L(['Tarih', 'Date']))}</th><th class="l"></th></tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="actions"><button type="button" class="btn" data-act="import-clear">${esc(L(['Vazgeç', 'Cancel']))}</button><button type="button" class="btn primary" data-act="import-apply" ${n ? '' : 'disabled'}>${esc(L([`Seçilenleri aktar (${n})`, `Import selected (${n})`]))}</button></div>`;
+  }
+  return `<div class="field wide"><label for="f-import">${esc(L(f.label))}</label><input type="file" id="f-import" data-import="1" accept=".csv,.json,.txt,.pdf,text/csv,application/json,text/plain"><p class="hint">${esc(L(f.hint))}</p>${body}</div>`;
+}
+async function readImport(file) {
+  const ext = file.name.toLowerCase().split('.').pop();
+  if (file.size > 10 * 1024 * 1024) return { error: 'big' };
+  if (ext === 'pdf') return { error: 'pdf' };
+  if (!['csv', 'json', 'txt'].includes(ext)) return { error: 'type' };
+  const text = await file.text();
+  if (ext === 'txt') return { text };
+  try { return { rows: importText(file.name, text) }; } catch (err) { return { error: FILE_ERRORS[err.message] ? err.message : ext === 'json' ? 'json' : 'header' }; }
+}
+// When the laboratory's limits are already entered for a test, the imported value is converted into the unit of
+// those limits (so they keep their meaning); otherwise the value keeps its own unit.
+const decimal = (x) => String(Number(x.toPrecision(4))).replace('.', lang === 'tr' ? ',' : '.');
+function applyImport() {
+  const chosen = (state.import?.rows ?? []).filter((r) => r.selected && !r.error).sort((x, y) => (x.date || '').localeCompare(y.date || ''));
+  for (const r of chosen) {
+    const current = state.values[unitKey(r.key)] ?? defaultUnit(r.key);
+    const hasLimits = ['Low', 'High'].some((side) => String(state.values[`${r.key}${side}`] ?? '').trim() !== '');
+    if (hasLimits && current !== r.unit) {
+      const fromF = LABS[r.key].units.find(([u]) => u === r.unit)[1];
+      const toF = LABS[r.key].units.find(([u]) => u === current)[1];
+      state.values[r.key] = decimal((Number(String(r.value).replace(',', '.')) * fromF) / toF);
+    } else {
+      state.values[r.key] = r.value;
+      state.values[unitKey(r.key)] = r.unit;
+    }
+  }
+  state.import = { done: chosen.length };
+}
+function redrawCards() {
+  const scroll = window.scrollY;
+  renderCards();
+  window.scrollTo({ top: scroll });
+}
 
 // ---------------------------------------------------------------------------------------------
 // Field errors: shown under the field itself, saying what is wrong and what is accepted.
@@ -380,7 +480,15 @@ function fieldError(f, value) {
   if (f?.type === 'lab') {
     const unit = state.values[unitKey(f.key)] ?? defaultUnit(f.key);
     const err = checkLab(f.key, value, unit);
-    return err ? errorText(err, unit, value) : null;
+    if (err) return errorText(err, unit, value);
+    // An upper limit below the lower limit (same unit) is an input error.
+    if (f.key.endsWith('High')) {
+      const lowKey = f.key.replace(/High$/, 'Low');
+      const lo = Number(String(state.values[lowKey] ?? '').trim().replace(',', '.'));
+      const hi = Number(String(value ?? '').trim().replace(',', '.'));
+      if (String(value ?? '').trim() && String(state.values[lowKey] ?? '').trim() && Number.isFinite(lo) && Number.isFinite(hi) && lo > hi) return L(['Üst sınır alt sınırdan küçük olamaz.', 'The upper limit cannot be below the lower limit.']);
+    }
+    return null;
   }
   if (!f || f.type !== 'num') return null;
   const err = checkNumber(f.key, value);
@@ -819,25 +927,32 @@ const LAB_NAMES = {
   potassium: ['Potasyum', 'Potassium'], phosphate: ['Fosfor', 'Phosphate'], phosphateBefore: ['Beslenme öncesi fosfor', 'Phosphate before feeding'],
   magnesium: ['Magnezyum', 'Magnesium'], creatinine: ['Kreatinin', 'Creatinine'], urea: ['Üre', 'Urea'], albumin: ['Albümin', 'Albumin'],
   crp: ['CRP', 'CRP'], neutrophils: ['Nötrofil', 'Neutrophils'], lymphocytes: ['Lenfosit', 'Lymphocytes'], lactate: ['Laktat', 'Lactate'], vitD: ['25(OH)D', '25(OH)D'],
-  potassiumLow: ['Potasyum alt sınırı', 'Potassium lower limit'], phosphateLow: ['Fosfor alt sınırı', 'Phosphate lower limit'], magnesiumLow: ['Magnezyum alt sınırı', 'Magnesium lower limit'],
+  bilirubin: ['Bilirubin', 'Bilirubin'], platelets: ['Trombosit', 'Platelets'],
 };
 function labsHtml(r) {
   const l = r.labs;
   if (!l) return '';
-  const entered = LAB_KEYS.filter((k) => l.values[k] !== null);
+  const entered = LAB_KEYS.filter((k) => !LABS[k].unitOf && l.values[k] !== null);
   if (!entered.length) return '';
+  const FLAG = { low: ['↓ düşük', '↓ low'], high: ['↑ yüksek', '↑ high'], normal: ['aralıkta', 'within range'] };
   const digits = (x) => (Math.abs(x) >= 100 ? 0 : Math.abs(x) >= 10 ? 1 : 2);
   const rows = entered.map((k) => {
     const unit = state.values[unitKey(k)] ?? defaultUnit(k);
     const canonical = LABS[k].canonical;
     const shown = `${esc(String(state.values[k]).trim())} ${esc(unit)}`;
     const conv = unit !== canonical && LABS[k].units.find(([u]) => u === unit)?.[1] !== 1 ? ` = ${nf(l.values[k], digits(l.values[k]))} ${esc(canonical === '10^9/L' ? '10⁹/L' : canonical)}` : '';
-    return `<tr><td class="l">${esc(L(LAB_NAMES[k]))}</td><td class="l">${shown}${conv}</td></tr>`;
+    const lo = String(state.values[`${k}Low`] ?? '').trim();
+    const hi = String(state.values[`${k}High`] ?? '').trim();
+    const ref = lo && hi ? `${lo}–${hi}` : lo ? `≥${lo}` : hi ? `≤${hi}` : '';
+    const limits = LIMIT_KEYS.includes(k) && ref ? ` <span class="muted">(ref. ${esc(ref)})</span>` : '';
+    const flag = l.flags?.[k] && FLAG[l.flags[k]] ? ` <span class="chip ${l.flags[k] === 'normal' ? 'ok' : 'high'}">${esc(L(FLAG[l.flags[k]]))}</span>` : '';
+    return `<tr><td class="l">${esc(L(LAB_NAMES[k]))}</td><td class="l">${shown}${conv}${limits}${flag}</td></tr>`;
   }).join('');
   const ix = l.indices;
   const items = [];
   if (ix.nlr !== undefined) items.push(scaleRow('NLR', 'info', [L([`Nötrofil/lenfosit oranı ${nf(ix.nlr, 1)}. Sistemik inflamasyon ve stres göstergesidir; tek başına karar vermez.`, `Neutrophil-to-lymphocyte ratio ${nf(ix.nlr, 1)}. A marker of systemic inflammation and stress; it decides nothing on its own.`])], ['nlr-2001']));
   if (ix.pni !== undefined) items.push(scaleRow('PNI', 'info', [L([`PNI ${nf(ix.pni, 1)} (Onodera). Özgün cerrahi çalışmada >45 güvenli, 40–45 riskli, <40 sakıncalı. Albümin inflamasyonda düşer; malnütrisyon ölçütü değildir.`, `PNI ${nf(ix.pni, 1)} (Onodera). In the original surgical study >45 was safe, 40–45 risky and <40 possibly contraindicated. Albumin falls with inflammation; it is not a malnutrition criterion.`])], ['pni-1984']));
+  if (ix.crpRatio !== undefined) items.push(scaleRow(L(['CRP / üst sınır', 'CRP / upper limit']), 'info', [L([`${nf(ix.crpRatio, 1)} kat. İnflamasyon bağlamıdır; tek başına karar vermez.`, `${nf(ix.crpRatio, 1)} times. Inflammatory context; it decides nothing on its own.`])], []));
   if (ix.ucrMass !== undefined) items.push(scaleRow(L(['Üre/kreatinin oranı', 'Urea/creatinine ratio']), 'info', [
     L([`${nf(ix.ucrMass, 0)} (mg/dL:mg/dL) · ${nf(ix.ucrMolar, 0)} (mmol/L:mmol/L). Katabolizma için araştırma belirtecidir; doz değiştirmez. Bir çalışmada yüksek grup ≥75 (mg/dL:mg/dL) idi.`, `${nf(ix.ucrMass, 0)} (mg/dL:mg/dL) · ${nf(ix.ucrMolar, 0)} (mmol/L:mmol/L). A research marker of catabolism; it does not change the dose. One study’s high group was ≥75 (mg/dL:mg/dL).`]),
     r.input.kidney === 'crrt' ? L(['Sürekli böbrek replasman tedavisi oranı düşürür: yorumlamayın.', 'Continuous kidney replacement therapy lowers the ratio: do not interpret it.']) : r.input.kidney === 'aki' || r.input.kidney === 'ihd' ? L(['Böbrek yetmezliğinde üre ve kreatinin birikir: oran dikkatle yorumlanır.', 'Urea and creatinine accumulate in kidney failure: interpret the ratio with care.']) : null,
@@ -853,6 +968,26 @@ function labsHtml(r) {
   return `<section class="card"><details data-details="labs"${open}><summary>${esc(L(['Laboratuvar', 'Laboratory']))}</summary>
     ${findings.length ? `<ul class="lines">${findings.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
     <div class="table-wrap"><table><tbody>${rows}</tbody></table></div>${items.join('')}</details></section>`;
+}
+
+// ICU severity scores (context only).
+const ORGANS = { brain: ['Beyin', 'Brain'], respiratory: ['Solunum', 'Respiratory'], cardiovascular: ['Kardiyovasküler', 'Cardiovascular'], liver: ['Karaciğer', 'Liver'], kidney: ['Böbrek', 'Kidney'], hemostasis: ['Hemostaz', 'Haemostasis'] };
+function icuScoresHtml(r) {
+  const s = r.icuScores;
+  if (!s || (!s.sofa2.entered && s.saps2 === null)) return '';
+  const rows = [];
+  if (s.sofa2.entered) {
+    const c = s.sofa2.components;
+    const parts = Object.keys(ORGANS).map((k) => `${L(ORGANS[k])} ${c[k] ?? '?'}`).join(' · ');
+    rows.push(scaleRow('SOFA-2', s.sofa2.total !== null ? 'info' : 'incomplete', [
+      s.sofa2.total !== null ? L([`Toplam ${s.sofa2.total} / 24.`, `Total ${s.sofa2.total} / 24.`]) : L([`${s.sofa2.known}/6 bileşen bilinir; bilinenlerin toplamı ${s.sofa2.partial}. Eksik bileşen sıfır sayılmaz.`, `${s.sofa2.known}/6 components known; their sum is ${s.sofa2.partial}. A missing component is not zero.`]),
+      parts,
+      L(['Ciddiyet bağlamıdır; beslenme dozunu değiştirmez.', 'Severity context; it does not change nutrition doses.']),
+    ], ['sofa2-2025']));
+  }
+  if (s.saps2 !== null) rows.push(scaleRow('SAPS II', 'info', [L([`Kaydedilen toplam ${s.saps2} (klinisyenin özgün formdan hesabı; yeniden hesaplanmaz).`, `Recorded total ${s.saps2} (the clinician's calculation from the original form; not recalculated).`])], ['saps2-1993']));
+  const open = state.openDetails.has('icu-scores') ? ' open' : '';
+  return `<section class="card"><details data-details="icu-scores"${open}><summary>${esc(L(['Yoğun bakım ciddiyet skorları', 'ICU severity scores']))}</summary>${rows.join('')}</details></section>`;
 }
 
 function sourcesHtml(r) {
@@ -912,7 +1047,7 @@ function renderResult() {
     box.innerHTML = `<section class="card summary"><span class="route">${esc(L(ROUTE_TEXT[r.route.kind] ?? ['', '']))}</span><h2>${esc(t('todayPlan'))}</h2><p class="big">${esc(L(['Miktar hesaplamak için kilo ya da boy gerekli.', 'Weight or height is needed to calculate amounts.']))}</p></section>${missingHtml(r)}${scalesHtml(r)}${actions}`;
     return;
   }
-  box.innerHTML = summaryHtml(r) + suppHtml(r) + tableHtml(r) + missingHtml(r) + scalesHtml(r) + labsHtml(r) + notesHtml(r) + detailsHtml(r) + sourcesHtml(r) + actions;
+  box.innerHTML = summaryHtml(r) + suppHtml(r) + tableHtml(r) + missingHtml(r) + scalesHtml(r) + labsHtml(r) + icuScoresHtml(r) + notesHtml(r) + detailsHtml(r) + sourcesHtml(r) + actions;
 }
 
 function renderFooter() {
@@ -989,6 +1124,8 @@ document.addEventListener('click', (e) => {
     return;
   }
   const act = el.dataset.act;
+  if (act === 'import-apply') { applyImport(); redrawCards(); return; }
+  if (act === 'import-clear') { state.import = null; redrawCards(); return; }
   if ((act === 'next' || act === 'show') && state.view === 'cards') {
     const bad = flatFields(STEPS[state.step - 1].fields(state.values)).find((f) => (f.type === 'num' || f.type === 'lab') && fieldError(f, state.values[f.key]));
     if (bad) { showFieldErrors(); focusField(bad.key); return; }
@@ -998,10 +1135,23 @@ document.addEventListener('click', (e) => {
   else if (act === 'show') go('result');
   else if (act === 'edit') go(state.step);
   else if (act === 'print') window.print();
-  else if (act === 'new') { state.values = { setting: state.values.setting ?? 'icu' }; state.product = {}; state.openDetails.clear(); go(1); }
+  else if (act === 'new') { state.values = { setting: state.values.setting ?? 'icu' }; state.product = {}; state.import = null; state.openDetails.clear(); go(1); }
 });
 
 document.addEventListener('change', (e) => {
+  const fileInput = e.target.closest('input[data-import]');
+  if (fileInput) {
+    const file = fileInput.files?.[0];
+    if (file) readImport(file).then((imp) => { state.import = imp; state.openMore.add('more-import'); redrawCards(); });
+    return;
+  }
+  const importRow = e.target.closest('input[data-import-row]');
+  if (importRow) {
+    const row = state.import?.rows?.[Number(importRow.dataset.importRow)];
+    if (row) row.selected = importRow.checked;
+    redrawCards();
+    return;
+  }
   const unitSelect = e.target.closest('select[data-unit]');
   if (unitSelect) {
     const key = unitSelect.dataset.unit;
