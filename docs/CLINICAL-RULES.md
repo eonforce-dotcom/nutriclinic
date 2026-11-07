@@ -1,6 +1,6 @@
 # NutriClinic staged recommender — clinical rules
 
-Version 1.7.0 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
+Version 1.7.1 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
 
 NutriClinic supports clinical decisions and does not replace them. Every recommendation is reviewed at the bedside
 together with its inputs and sources.
@@ -337,13 +337,21 @@ three or more letters. Only result flags (H, L, *, ↑, ↓), dates and times, a
 may stand between the name, the value and the unit; any other word ends the line, so a qualified test such as
 "Bilirubin direkt", "Kreatinin (idrar)" or "Kreatinin kinaz" is never read as the plain test, and a censored result
 ("<0,5", "≥ 200") or a reference range is never taken as a value. Every row shows its report line and page and goes
-through the same unit and range checks as a CSV row. A name that mixes urea and BUN ("Üre (BUN)") is not read, because
+through the same unit and range checks as a CSV row. A test whose result cannot be read - a censored value ("<0,5",
+"> 6,5"), a comment ("hemolizli", "çalışılmadı"), only a reference range (any dash form, "to", "ile"), several numbers
+after a unit written first, or nothing - still gives a row that cannot be imported, so an older result of the same
+test is never preselected in its place. Under a heading that names another specimen (idrar, BOS, periton, plevra,
+dren sıvısı …) results are not taken as serum values until a blood heading (serum, kan, biyokimya, hemogram …).
+Single-letter specimen marks (S, P) count only in brackets. A name that mixes urea and BUN ("Üre (BUN)") is not read, because
 BUN is converted (× 2.144). A part of a line that is not one of these tests (the left column of a two-column report) is
 passed over without importing anything, so a test right after it can still be read. One row per test is preselected
 only when it is unambiguous (a single result, identical results, or a single latest-dated result) and the test has no
 recognised but unusable row; when the text has more than 300 results or 20 000 lines nothing is preselected. Otherwise
 the clinician chooses, and only one value per test can be imported. A comparator in a CSV row's test name or value
-("CRP <", "<0,5") is reported as a censored value and not imported. A scanned PDF without text cannot be read.
+("CRP <", "<0,5") is reported as a censored value and not imported; a row with more cells than the header, a value
+split by an unquoted decimal comma in a comma-separated file, or (in JSON) two fields of the same meaning is refused,
+and blocks preselection of its test. A slash date is read day-first only when the day is above 12; otherwise it counts
+as undated. Numbers are plain decimals ("0x7D0" or "1e3" are not read). A scanned PDF without text cannot be read.
 
 ## Number entry
 

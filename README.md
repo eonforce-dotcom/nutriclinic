@@ -30,7 +30,7 @@ and a recorded SAPS II total are shown for ICU patients.
 - Live service: <https://sahnoroloji.org/nutriclinic/>
 - Previous workspace (saved patients, detailed assessment): <https://sahnoroloji.org/nutriclinic2/>; its source is in
   [`nutriclinic2/`](nutriclinic2/)
-- Version: 1.7.0 (7 November 2026); clinical rules and sources: [`docs/CLINICAL-RULES.md`](docs/CLINICAL-RULES.md)
+- Version: 1.7.1 (7 November 2026); clinical rules and sources: [`docs/CLINICAL-RULES.md`](docs/CLINICAL-RULES.md)
 
 ## Privacy
 

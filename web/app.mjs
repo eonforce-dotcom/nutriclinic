@@ -409,6 +409,10 @@ const IMPORT_ERRORS = {
   'unit-missing': ['Birim yok', 'No unit'], wide: ['Satırda başlıktan fazla sütun var', 'More cells than header columns'],
   grouping: ['Belirsiz sayı (binlik ayırıcı ya da üç ondalık): elle girin', 'Ambiguous number (thousands separator or three decimals): enter it by hand'],
   censored: ['Sınır değer (<, >): aktarılmaz', 'Censored value (<, >): not imported'],
+  'no-value': ['Sonuç okunamadı (yalnız aralık, yorum ya da bölünmüş satır)', 'No result read (range only, a comment or a split line)'],
+  specimen: ['İdrar ya da başka sıvı bölümünde: serum değeri değil', 'In a urine or other fluid section: not a serum value'],
+  split: ['Ondalık virgül hücreyi bölmüş olabilir: değeri elle girin', 'A decimal comma may have split the cell: enter the value by hand'],
+  dup: ['Aynı anlamda iki alan var', 'Two fields with the same meaning'],
 };
 const FILE_ERRORS = {
   quote: ['CSV tırnakları eşleşmiyor.', 'CSV quotes do not match.'],
@@ -554,10 +558,10 @@ function applyImport() {
   for (const r of chosen) {
     const current = state.values[unitKey(r.key)] ?? defaultUnit(r.key);
     const hasLimits = ['Low', 'High'].some((side) => String(state.values[`${r.key}${side}`] ?? '').trim() !== '');
-    if (hasLimits && current !== r.unit) {
-      const fromF = LABS[r.key].units.find(([u]) => u === r.unit)[1];
-      const toF = LABS[r.key].units.find(([u]) => u === current)[1];
-      state.values[r.key] = decimal((Number(String(r.value).replace(',', '.')) * fromF) / toF);
+    const from = LABS[r.key].units.find(([u]) => u === r.unit);
+    const to = LABS[r.key].units.find(([u]) => u === current);
+    if (hasLimits && current !== r.unit && from && to) {
+      state.values[r.key] = decimal((Number(String(r.value).replace(',', '.')) * from[1]) / to[1]);
     } else {
       state.values[r.key] = r.value;
       state.values[unitKey(r.key)] = r.unit;

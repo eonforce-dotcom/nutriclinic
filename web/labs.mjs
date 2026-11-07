@@ -40,7 +40,7 @@ const toNumber = (v) => {
   if (typeof v === 'number') return Number.isFinite(v) ? v : null;
   if (typeof v !== 'string') return null;
   const t = v.trim().replace(',', '.');
-  if (!t || !/^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/.test(t)) return null;
+  if (!t || !/^[+-]?(\d+(\.\d*)?|\.\d+)$/.test(t)) return null;
   const x = Number(t);
   return Number.isFinite(x) ? x : null;
 };
@@ -159,12 +159,20 @@ const UNIT_MAP = {
   bilirubin: { 'mg/dl': 'mg/dL', 'umol/l': 'µmol/L' },
   platelets: CELL_UNITS,
 };
+// '' = no date; null = not a date. 05/11/2026 may be 5 November or 11 May: a slash date is read day-first only when
+// its day is above 12 (otherwise it counts as undated); dot dates (05.11.2026) are day-first.
 const isoDate = (x) => {
   const t = String(x ?? '').trim();
   if (!t) return '';
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(t) || /^(\d{2})[./](\d{2})[./](\d{4})$/.exec(t);
-  if (!m) return null;
-  const [y, mo, d] = m[1].length === 4 ? [m[1], m[2], m[3]] : [m[3], m[2], m[1]];
+  let y;
+  let mo;
+  let d;
+  let m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(t);
+  if (m) [, y, mo, d] = m;
+  else if ((m = /^(\d{2})([./])(\d{2})\2(\d{4})$/.exec(t))) {
+    [, d, , mo, y] = m;
+    if (m[2] === '/' && Number(d) <= 12 && Number(mo) <= 12 && d !== mo) return '';
+  } else return null;
   const iso = `${y}-${mo}-${d}`;
   const dt = new Date(`${iso}T12:00:00Z`);
   return Number.isFinite(dt.getTime()) && dt.toISOString().slice(0, 10) === iso ? iso : null;
@@ -173,17 +181,20 @@ const isoDate = (x) => {
 // One row of a file → { key, value, unit, date } or { error }; error codes are translated by the interface.
 export function importRow(row) {
   if (!row || typeof row !== 'object' || Array.isArray(row)) return { error: 'row' };
-  if (row.__wide) return { test: String(Object.values(row)[0] ?? '').slice(0, 60), rawUnit: '', rawValue: '', error: 'wide' };
-  const pick = (...names) => {
-    for (const n of names) { const hit = Object.keys(row).find((k) => nameKey(k) === n); if (hit !== undefined) return row[hit]; }
-    return undefined;
-  };
-  const test = String(pick('test', 'tetkik', 'analiz', 'name', 'ad') ?? '').trim();
-  const rawUnit = pick('unit', 'birim');
-  const rawValue = pick('value', 'deger', 'sonuc', 'result');
-  const date = isoDate(pick('date', 'tarih'));
+  // Fields by meaning; two fields of the same meaning (for example "value" and "değer") are an error, not a choice.
+  const fields = [['test', 'tetkik', 'analiz', 'name', 'ad'], ['value', 'deger', 'sonuc', 'result'], ['unit', 'birim'], ['date', 'tarih']]
+    .map((names) => Object.keys(row).filter((k) => names.includes(nameKey(k))));
+  const pick = (n) => (fields[n].length ? row[fields[n][0]] : undefined);
+  const test = String(pick(0) ?? '').trim();
+  const rawUnit = pick(2);
+  const rawValue = pick(1);
+  const date = isoDate(pick(3));
   const base = { test: test.slice(0, 60), rawUnit: String(rawUnit ?? '').slice(0, 30), rawValue: String(rawValue ?? '').slice(0, 30) };
   const key = ALIASES.get(nameKey(test));
+  // Rows that cannot be read still carry their test, so that another row of the same test is not preselected.
+  if (row.__wide) return { ...base, ...(key ? { key } : {}), error: 'wide' };
+  if (row.__split) return { ...base, ...(key ? { key } : {}), error: 'split' };
+  if (fields.some((f) => f.length > 1)) return { ...base, ...(key ? { key } : {}), error: 'dup' };
   // A comparator in the test name or the value ("CRP <", "<0,5") is a censored result: never an exact value.
   if (/[<>≤≥]/.test(test) || /[<>≤≥]/.test(String(rawValue ?? ''))) return { ...base, ...(key ? { key } : {}), error: 'censored' };
   if (!key) return { ...base, error: 'test' };
@@ -237,9 +248,12 @@ export function parseCSV(text) {
   const ROLE = (n) => (['test', 'tetkik', 'analiz', 'name', 'ad'].includes(n) ? 'test' : ['value', 'deger', 'sonuc', 'result'].includes(n) ? 'value' : ['unit', 'birim'].includes(n) ? 'unit' : ['date', 'tarih'].includes(n) ? 'date' : n);
   const roles = names.map(ROLE).filter(Boolean);
   if (new Set(roles).size !== roles.length) throw new Error('header-dup');
+  const valueAt = names.findIndex((n) => ROLE(n) === 'value');
   return rows.map((r) => {
     const obj = Object.fromEntries(header.map((h, i) => [h, (r[i] ?? '').trim()]));
-    if (r.length > header.length && r.slice(header.length).some((x) => x.trim())) obj.__wide = true;
+    if (r.length > header.length) obj.__wide = true; // any extra cell, even an empty one
+    // "4,2" written without quotes in a comma-separated file splits into "4" and "2".
+    if (delimiter === ',' && valueAt >= 0 && /^\d+$/.test((r[valueAt] ?? '').trim()) && /^\d+$/.test((r[valueAt + 1] ?? '').trim())) obj.__split = true;
     return obj;
   });
 }
@@ -314,36 +328,48 @@ export function sofa2(s) {
 // ---------------------------------------------------------------------------------------------
 // Laboratory results in a report's text (for example a PDF): one or more "<test> <value> <unit>" segments per line,
 // read from the left. Around the value (between the name and the value, or the value and its unit) only result flags
-// (H, L, *, ↑ …), dates and times and specimen words (serum, plazma …) may stand; the unit may also come just before
-// the value. Any other word ends the line, so "Bilirubin direkt 0,3" is not read as total bilirubin, "Kreatinin
-// (idrar) 80" not as serum creatinine and "CRP < 0,5" (a censored result) not at all; a reference range is never taken
-// as a result, nor a name that mixes urea and BUN. A second test on the same line is read only right after the first
-// one's unit (and its reference range). Test names need three or more letters (K or P alone are ambiguous in free text). Every row goes through the
-// same checks as a file row, carries its report line and page, and is preselected only when it is unambiguous.
+// (H, L, *, ↑ …), dates and times and specimen words (serum, plazma …; single letters only in brackets) may stand; the
+// unit may also come just before the value. Any other word ends the line, so "Bilirubin direkt 0,3" is not read as
+// total bilirubin and "Kreatinin (idrar) 80" not as serum creatinine. A known test whose result cannot be read - a
+// censored value ("<0,5", "> 6,5"), a comment ("hemolizli", "çalışılmadı"), only a reference range, several numbers
+// after a unit, or nothing - still gives a row that cannot be imported, so an older result of the same test is never
+// preselected in its place. Under a heading that names another specimen (idrar, BOS, periton sıvısı …) results are
+// not taken as serum values until a blood heading. A name that mixes urea and BUN is not read. A second test on the
+// same line is read only right after the first one's unit and reference range. Test names need three or more letters
+// (K or P alone are ambiguous in free text). Every row goes through the same checks as a file row, carries its report
+// line and page, and is preselected only when it is unambiguous.
 const SPECIMEN = new Set(['serum', 'plazma', 'plasma', 'kan', 'blood', 'tamkan', 'wholeblood', 'venoz', 'venous', 'venozkan', 'arteriyel', 'arterial', 'arteriyelkan', 's', 'p', 'sp', 'inorganik', 'inorganic', 'kantitatif', 'quantitative', 'nefelometrik', 'turbidimetrik']);
+const BLOOD = new Set(['serum', 'plazma', 'plasma', 'kan', 'blood', 'venoz', 'venous', 'arteriyel', 'arterial']);
 const BRACKETED = new Set(['total', 'toplam', 'abs', 'mutlak', 'absolute', '#', '25oh']);
+// Heading words: a specimen other than blood, and blood sections that end such a part of the report.
+const OTHER_SPECIMEN = new Set(['idrar', 'idrari', 'idrarda', 'urine', 'urinary', 'spot', 'bos', 'csf', 'likor', 'sivi', 'sivisi', 'fluid', 'plevra', 'plevral', 'pleural', 'periton', 'peritoneal', 'asit', 'assit', 'ascites', 'ascitic', 'dren', 'drain', 'sinovyal', 'synovial', 'gaita', 'diski', 'stool', 'feces', 'tukuruk', 'saliva', 'perikard', 'perikardiyal', 'pericardial']);
+const BLOOD_HEADING = new Set(['serum', 'plazma', 'plasma', 'kan', 'blood', 'hemogram', 'biyokimya', 'biyokimyasi', 'biochemistry', 'elektrolitler', 'electrolytes', 'hematoloji', 'hematology', 'haematology']);
+// A result given as a comment instead of a value.
+const COMMENT = /^(hemoli|haemoli|calisil|pihti|lipem|ikter|iptal|redd|beklen|yetersiz|tekrar|pending|cancel|clott|insufficien|reject)/;
 const FLAG = /^(\(?(h|l|hh|ll|h\*|l\*)\)?|\*{1,2}|!{1,2}|↑{1,2}|↓{1,2})$/i;
 const DATE_TIME = /^(\d{1,2}[./]\d{1,2}[./]\d{2,4}|\d{4}-\d{2}-\d{2}|\d{1,2}:\d{2}(:\d{2})?)$/;
 const VALUE = /^(\d+(?:[.,]\d+)?)(?:\*{1,2}|!{1,2}|↑|↓|h|l)?$/i;
-const RANGE = /^(\(?\d+(?:[.,]\d+)?[-–]\d+(?:[.,]\d+)?\)?|[<>≤≥]=?\d+(?:[.,]\d+)?)$/;
-const DASH = /^[-–—]/;
+// Every dash form (hyphen, en and em dash, minus sign, full-width, tilde) and "to"/"ile" mark a range.
+const RANGE = /^(\(?\d+(?:[.,]\d+)?[-‐‑‒–—―−﹘﹣－~]\d+(?:[.,]\d+)?\)?|[<>≤≥]=?\d+(?:[.,]\d+)?)$/;
+const DASH = /^[-‐‑‒–—―−﹘﹣－~]/;
+const RANGE_WORD = /^([-‐‑‒–—―−﹘﹣－~]|to|ile)$/i;
 const MAX_TEXT_ROWS = 300;
 const MAX_TEXT_LINES = 20000;
 const textDate = (t) => {
-  const m = /^(\d{1,2})[./](\d{1,2})[./](\d{4})$/.exec(t);
-  return isoDate(m ? `${m[1].padStart(2, '0')}.${m[2].padStart(2, '0')}.${m[3]}` : /^\d{4}-\d{2}-\d{2}$/.test(t) ? t : '') || '';
+  const m = /^(\d{1,2})([./])(\d{1,2})\2(\d{4})$/.exec(t);
+  return isoDate(m ? `${m[1].padStart(2, '0')}${m[2]}${m[3].padStart(2, '0')}${m[2]}${m[4]}` : /^\d{4}-\d{2}-\d{2}$/.test(t) ? t : '') || '';
 };
 const COMPARATOR = /[<>≤≥=]/;
 // Urea names that report BUN (urea nitrogen): a name mixing both ("Üre (BUN)") is not read, since BUN is converted.
 const BUN_NAMES = new Set(['bun', 'kanureazotu']);
-// A specimen word, bare (letters only) or in brackets; in brackets also "(total)", "(#)", "(25-OH)" or the test's own
-// short name with the same basis. A token with a comparator is never a qualifier ("(serum)<" ends the line).
+// A specimen word, bare (letters only, three or more) or in brackets; in brackets also "(total)", "(#)", "(25-OH)" or
+// the test's own short name with the same basis. A token with a comparator is never a qualifier.
 function qualifier(tok, key, bunName) {
   if (COMPARATOR.test(tok)) return false;
   const m = /^\(([^()]*)\)$/.exec(tok);
   if (!m && !/^\p{L}+$/u.test(tok)) return false;
   const inner = nameKey(m ? m[1] : tok);
-  if (SPECIMEN.has(inner)) return true;
+  if (SPECIMEN.has(inner) && (m || inner.length >= 3)) return true;
   if (!m) return false;
   return BRACKETED.has(inner) || (ALIASES.get(inner) === key && BUN_NAMES.has(inner) === bunName);
 }
@@ -368,8 +394,14 @@ function segmentAt(tokens, start) {
     const hit = testName(words.join(' '));
     if (hit) return resultAfter(tokens, start + k, hit.key, hit.test); // the longest known name wins; no shorter retry
   }
-  return null;
+  // "Serum kreatinin 1,0": a blood specimen word before the name.
+  if (start + 2 < tokens.length && /^\p{L}+$/u.test(tokens[start]) && BLOOD.has(nameKey(tokens[start]))) return segmentAt(tokens, start + 1);
+  // A known name with nothing after it: no value on this line.
+  const alone = start < tokens.length && tokens.slice(start).every(nameToken) ? testName(tokens.slice(start).join(' ')) : null;
+  return alone ? { key: alone.key, name: alone.test, error: 'no-value', raw: '', end: tokens.length } : null;
 }
+// After a known test name: { key, name, value, unit, date, end }; or a row that cannot be imported ({ key, name,
+// error, raw, end }); or null when the next word makes it another test ("Bilirubin direkt").
 function resultAfter(tokens, from, key, name) {
   const bunName = BUN_NAMES.has(nameKey(name));
   const units = UNIT_MAP[key];
@@ -386,6 +418,7 @@ function resultAfter(tokens, from, key, name) {
     if (DATE_TIME.test(t)) { date ||= textDate(t); return true; }
     return FLAG.test(t) || qualifier(t, key, bunName);
   };
+  const fail = (error, raw = '') => ({ key, name, error, raw: raw.slice(0, 30), end: tokens.length });
   let j = from;
   let before = null;
   while (j < tokens.length) {
@@ -395,16 +428,27 @@ function resultAfter(tokens, from, key, name) {
     before = u;
     j = u.next;
   }
-  const m = VALUE.exec(tokens[j] ?? '');
-  if (!m || DASH.test(tokens[j + 1] ?? '')) return null; // no result here, or the start of a reference range
+  const t = tokens[j];
+  if (t === undefined) return fail('no-value');
+  if (COMPARATOR.test(t)) return fail('censored', VALUE.test(tokens[j + 1] ?? '') ? `${t} ${tokens[j + 1]}` : t);
+  if (RANGE.test(t)) return fail('no-value', t); // only a reference range
+  const m = VALUE.exec(t);
+  if (!m) return COMMENT.test(nameKey(t)) ? fail('no-value', t) : null;
+  const next = tokens[j + 1] ?? '';
+  if (DASH.test(next) || RANGE_WORD.test(next)) return fail('no-value', `${t} ${next}`); // "3,5 - 5,1": a range
   let p = j + 1;
   let unit = before?.unit ?? '';
-  if (!before) {
+  if (before) {
+    // Unit first: a bare number after the value means a range or earlier results ("mmol/L 3,5 5,1 4,2").
+    let q = p;
+    while (q < tokens.length && FLAG.test(tokens[q])) q += 1;
+    if (VALUE.test(tokens[q] ?? '')) return fail('no-value', `${t} ${tokens[q]}`);
+  } else {
     while (p < tokens.length && noise(tokens[p])) p += 1;
     const u = unitAt(p);
     if (u) { unit = u.unit; p = u.next; } else if (p < tokens.length) { unit = tokens[p]; p += 1; } // shown with an error
   }
-  if (DASH.test(tokens[p] ?? '')) return null; // "3,5 mmol/L - 5,1 mmol/L" is a reference range
+  if (DASH.test(tokens[p] ?? '') || RANGE_WORD.test(tokens[p] ?? '')) return fail('no-value', `${t} ${unit}`.trim()); // "3,5 mmol/L - 5,1 mmol/L"
   return { key, name, value: m[1], unit, date, end: p };
 }
 // The end of a part of a line that is not one of our tests ("Hemoglobin 12,1 g/dL" in a two-column report), or -1.
@@ -427,6 +471,7 @@ export function rowsFromText(text) {
   const found = [];
   let lines = 0;
   let truncated = false;
+  let section = null; // a heading naming a specimen other than blood, until a blood heading
   reading: for (let pi = 0; pi < pages.length; pi += 1) {
     for (const raw of String(pages[pi] ?? '').split(/\r?\n/)) {
       const line = raw.replace(/\s+/g, ' ').trim();
@@ -438,27 +483,40 @@ export function rowsFromText(text) {
       let i = 0;
       while (i < tokens.length && DATE_TIME.test(tokens[i])) i += 1; // a date or time opening the row
       let first = true;
+      let any = false;
       while (i < tokens.length) {
         const seg = segmentAt(tokens, i);
         let p = seg ? seg.end : otherEnd(tokens, i);
         if (p < 0) break;
+        any = true;
         while (p < tokens.length && FLAG.test(tokens[p])) p += 1;
         if (RANGE.test(tokens[p] ?? '')) p += 1;
-        else if (VALUE.test(tokens[p] ?? '') && /^[-–—]$/.test(tokens[p + 1] ?? '') && VALUE.test(tokens[p + 2] ?? '')) p += 3;
+        else if (VALUE.test(tokens[p] ?? '') && RANGE_WORD.test(tokens[p + 1] ?? '') && VALUE.test(tokens[p + 2] ?? '')) p += 3;
         if (seg) {
           // The report text behind the row: the whole line when short, otherwise this test's own part of it.
           const from = first ? 0 : i;
-          const source = line.length <= 160 ? line : `${from > 0 ? '… ' : ''}${tokens.slice(from, p).join(' ').slice(0, 200)}${p < tokens.length ? ' …' : ''}`;
-          found.push({ ...seg, date: seg.date || (dates.length === 1 ? dates[0] : ''), line: source, page: Array.isArray(text) ? pi + 1 : null });
+          const own = line.length <= 160 ? line : `${from > 0 ? '… ' : ''}${tokens.slice(from, p).join(' ').slice(0, 200)}${p < tokens.length ? ' …' : ''}`;
+          found.push({ ...seg, date: seg.date || (dates.length === 1 ? dates[0] : ''), line: section ? `[${section}] ${own}` : own, page: Array.isArray(text) ? pi + 1 : null, section });
         }
         while (p < tokens.length && (FLAG.test(tokens[p]) || DATE_TIME.test(tokens[p]))) p += 1;
         if (p <= i) break;
         i = p;
         first = false;
       }
+      // A short line without a result may be a heading that names the specimen of the results below it.
+      if (!any && tokens.length <= 10) {
+        const words = tokens.map(nameKey);
+        if (words.some((w) => OTHER_SPECIMEN.has(w))) section = line.slice(0, 60);
+        else if (words.some((w) => BLOOD_HEADING.has(w))) section = null;
+      }
     }
   }
   if (!truncated && found.length > MAX_TEXT_ROWS) truncated = 'rows';
-  const rows = found.slice(0, MAX_TEXT_ROWS).map((r, i) => ({ i, ...importRow({ test: r.name, value: r.value, unit: r.unit, date: r.date }), line: r.line, page: r.page }));
+  const rows = found.slice(0, MAX_TEXT_ROWS).map((r, i) => {
+    const where = { i, line: r.line, page: r.page };
+    if (r.error) return { ...where, test: r.name.slice(0, 60), key: r.key, rawValue: r.raw, rawUnit: '', error: r.error };
+    const row = { ...where, ...importRow({ test: r.name, value: r.value, unit: r.unit, date: r.date }) };
+    return r.section && !row.error ? { ...row, error: 'specimen' } : row;
+  });
   return { rows: preselect(rows, { none: Boolean(truncated) }), truncated };
 }

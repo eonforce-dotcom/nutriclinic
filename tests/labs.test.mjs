@@ -200,7 +200,7 @@ test('Report text (PDF): laboratory lines recognised; single-letter names and ce
 });
 
 test('Report text (PDF): censored results, qualified tests, reference ranges and neighbouring values are never taken', () => {
-  const count = (line) => rowsFromText(line).rows.length;
+  const count = (line) => rowsFromText(line).rows.filter((r) => !r.error).length; // importable rows
   for (const line of ['CRP < 0,5 mg/L', 'CRP <0,5 mg/L', 'Potasyum > 6,5 mmol/L', 'CRP ≤0,5 mg/L', 'CRP ≥ 200 mg/L']) assert.equal(count(line), 0, line);
   for (const line of ['Kreatinin (idrar) 12 mg/dL', 'İdrar kreatinin 80 mg/dL', 'Bilirubin direkt 0,3 mg/dL', 'Bilirubin direct 2.0 mg/dL', 'Kreatinin kinaz 150 U/L', 'Mikroalbumin 30 mg/L']) assert.equal(count(line), 0, line);
   for (const line of ['Urea - Creatinine 1.2 mg/dL', 'CRP 1e2 mg/L 5 mg/L', 'Potasyum 3,5-5,1 mmol/L', 'Potasyum 3,5 - 5,1 mmol/L', 'Potasyum mmol/L 3,5 - 5,1']) assert.equal(count(line), 0, line);
@@ -240,7 +240,7 @@ test('Report text (PDF): flags, units before or around the value, dates, qualifi
 });
 
 test('Report text (PDF): second check of the fixes', () => {
-  const count = (line) => rowsFromText(line).rows.length;
+  const count = (line) => rowsFromText(line).rows.filter((r) => !r.error).length; // importable rows
   // Comparators glued to a qualifier, a urea name with a BUN qualifier, a range written with units.
   for (const line of ['CRP (serum)≤ 0.5 mg/L', 'CRP (serum)< 0.5 mg/L', 'Urea (BUN) 26 mg/dL', 'Üre (BUN) 26 mg/dL', 'BUN (Üre) 26 mg/dL', 'Potasyum 3,5 mmol/L - 5,1 mmol/L']) assert.equal(count(line), 0, line);
   // A time, date or specimen word between the value and its unit.
@@ -268,6 +268,44 @@ test('Report text (PDF): second check of the fixes', () => {
   assert.equal(checkLab('urea', '+1.000', 'mg/dL').code, 'grouping');
   assert.equal(checkNumber('measuredEE', '+1.800').code, 'grouping');
   assert.equal(checkProduct('ons.kcal', '+1.200').code, 'grouping');
+});
+
+test('Report text (PDF): an unreadable result of a test blocks preselection of its other results (independent review)', () => {
+  const rows = (text) => rowsFromText(text).rows;
+  // A newer censored or commented result: the older value is not preselected; the unreadable row keeps its test.
+  const newer = rows('07.11.2026 Potasyum >6,5 mmol/L\n05.11.2026 Potasyum 4,2 mmol/L');
+  assert.deepEqual(newer.map((r) => [r.key, r.error, r.selected, r.choose]), [['potassium', 'censored', false, false], ['potassium', undefined, false, true]]);
+  assert.equal(rows('CRP <0,5 mg/L\nCRP 12 mg/L').filter((r) => r.selected).length, 0);
+  assert.equal(rows('Potasyum Hemolizli\nPotasyum 4,2 mmol/L').filter((r) => r.selected).length, 0);
+  assert.equal(rows('Potasyum\nPotasyum 4,2 mmol/L').filter((r) => r.selected).length, 0);
+  // Ranges and earlier results next to a unit written first; every dash form and "to".
+  for (const line of ['Potasyum mmol/L 3,5 5,1 4,2', 'Potasyum mmol/L 3.5 to 5.1 4.2', 'Kreatinin mg/dL 0,9 1,4 2,8', 'Potasyum 3,5 mmol/L − 5,1 mmol/L', 'Potasyum 3,5 mmol/L ‐ 5,1 mmol/L', 'Potasyum 3,5 mmol/L － 5,1 mmol/L', 'Potasyum 3,5 mmol/L ~ 5,1 mmol/L', 'Potasyum 3,5 mmol/L to 5,1 mmol/L']) {
+    const r = rows(line);
+    assert.deepEqual(r.map((x) => x.error), ['no-value'], line);
+  }
+  assert.deepEqual(rows('Potasyum mmol/L 4,2 3,5−5,1').map((x) => [x.value, x.error]), [['4,2', undefined]]);
+  // Specimen headings: results below a urine or fluid heading are not serum values, until a blood heading.
+  const urine = rows('İDRAR BİYOKİMYASI (SPOT İDRAR)\nKreatinin 25 mg/dL\nPotasyum 10 mmol/L\nBİYOKİMYA\nKreatinin 1,0 mg/dL');
+  assert.deepEqual(urine.map((r) => [r.key, r.error ?? 'ok']), [['creatinine', 'specimen'], ['potassium', 'specimen'], ['creatinine', 'ok']]);
+  assert.ok(urine[0].line.startsWith('[İDRAR BİYOKİMYASI'));
+  for (const text of ['BOS\nLaktat 2,1 mmol/L', 'PERİTON SIVISI\nAlbümin 1,2 g/dL', 'İdrar\nKreatinin 25 mg/dL']) assert.equal(rows(text)[0].error, 'specimen', text);
+  // Single-letter specimen marks only in brackets; a blood specimen word before the name.
+  assert.equal(rows('Magnezyum P 3,4 mg/dL').filter((r) => !r.error).length, 0);
+  assert.deepEqual(rows('Serum Kreatinin 1,0 mg/dL').map((r) => `${r.key}:${r.value}`), ['creatinine:1,0']);
+  // Slash dates are day-first only when unambiguous.
+  const us = rows('Potasyum 11/12/2026 4,4 mmol/L\nPotasyum 12/01/2026 2,4 mmol/L');
+  assert.deepEqual(us.map((r) => [r.date, r.selected, r.choose]), [['', false, true], ['', false, true]]);
+  assert.equal(rows('Potasyum 25/11/2026 4,4 mmol/L')[0].date, '2026-11-25');
+  // Files: a decimal comma splitting a cell, a wide row with its test, two fields of the same meaning.
+  assert.equal(importText('a.csv', 'test,unit,value,note\nPotasyum,mmol/L,4,2')[0].error, 'split');
+  assert.equal(importText('a.csv', 'test,unit,value,flag\nPotasyum,mmol/L,4,2,')[0].error, 'wide');
+  const wide = importText('a.csv', 'test,value,unit\nPotasyum,4,2,mmol/L\nPotasyum,3.9,mmol/L');
+  assert.deepEqual(wide.map((r) => [r.key, r.error, r.selected]), [['potassium', 'wide', false], ['potassium', undefined, false]]);
+  assert.equal(importText('a.json', JSON.stringify([{ test: 'Potasyum', value: '4', 'değer': '5,2', unit: 'mmol/L' }]))[0].error, 'dup');
+  // Plain decimal numbers only.
+  assert.equal(checkNumber('measuredEE', '0x7D0').code, 'nan');
+  assert.equal(checkNumber('measuredEE', '1e3').code, 'nan');
+  assert.equal(checkLab('crp', '1e2', 'mg/L').code, 'nan');
 });
 
 test('Thousands separators are refused instead of being read as a decimal point', () => {
