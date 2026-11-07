@@ -1,6 +1,6 @@
 # NutriClinic staged recommender — clinical rules
 
-Version 1.9.0 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
+Version 1.9.1 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
 
 NutriClinic supports clinical decisions and does not replace them. Every recommendation is reviewed at the bedside
 together with its inputs and sources.
@@ -374,16 +374,25 @@ data nothing can be kept, and the page says so.
 
 "Also keep cases on the site" under My cases is off until the clinician ticks it; its one-line note says that cases
 are then anonymised and kept in the site's database. Unticked, cases stay on the device only. When ticked, each case is
-sent without its label (the only free text in a case) under a random case code such as NC-7K3P-Q2M9; the device keeps
-the label and the whole case and shows the code next to the case and in the report, so the clinician sees the real
-patient while the site holds only the clinical values. The site accepts only numbers, true/false and short choice
-identifiers without spaces, so no name or other free text can be stored. A device identifies its copies with a random
-token kept in the browser (the site stores only its SHA-256): only that device and the administrator can see a copy.
-The administrator sees every copy, anonymised, on a separate page behind the site's password; a short source tag tells
-the copies of one device apart and is not an identity. Each change is sent shortly afterwards; deleting a case on the
-device deletes its copy; unticking deletes all copies of the device (when the site cannot be reached, the box stays
-ticked and the page says so). At most 200 cases (2 MB) per device and 5000 devices; requests are rate-limited per
-client; writing stops while the server has less than 5 GB free.
+sent anonymised under a random case code such as NC-7K3P-Q2M9: only the answers to the form's questions shown for the
+case (numbers as typed, the chosen answers, ticks, laboratory units), the age as a band (under 18, 18-19, five-year
+bands from 20 to 89, 90 or over; the bands start at the ages the rules use: 18, 65 and 70), the product label values,
+the follow-up and the chosen evidence options. The label and anything else stay on the device, which keeps the whole
+case and shows the code next to the case and in the report, so the clinician sees the real patient. The site refuses
+any other value - a value must be a number of at most six digits before and four after the decimal mark, true/false,
+one of the application's own answer words (a fixed list, checked against the form by a test) or a laboratory unit - so
+no name, ID number, telephone number, e-mail address or date can be stored; a plain age sent by a page opened before
+1.9.1 is kept as its band, and copies stored by 1.9.0 were scrubbed in the same way. A device identifies its copies with a random token kept in the browser (the site stores only its SHA-256):
+only that device and the administrator can see a copy. The administrator sees every copy on a separate page behind
+the site's password, anonymised: the day of saving only, listed by day and case code, and nothing about the sending
+device; the targets shown there use the middle of the age band. Strictly, the copies are pseudonymised: the device that sent a copy can match its code
+to its own case. Each change is sent shortly afterwards; deleting a case on the device deletes its copy; unticking
+stops sending at once and deletes all copies of the device - when the site cannot be reached, the device keeps trying
+until they are deleted and the page says so; after that the site refuses the device's token, so a sending still under
+way stores nothing. At most 200 cases (2 MB) per device and 5000 devices; a device's first copy counts against a daily
+limit of new devices per internet address (30; an IPv6 address by its /64 network; the address is kept hashed with a
+salt that exists only in the service's memory and changes every day, for that day only); requests are rate-limited
+per client; writing stops while the server has less than 5 GB free.
 
 ## Notes shown when relevant
 

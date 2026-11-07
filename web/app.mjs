@@ -8,8 +8,8 @@ import { LABS, LAB_KEYS, LIMIT_KEYS, checkLab, defaultUnit, unitKey, importText,
 import { followupSummary, checkFollowupValue, FOLLOWUP_FIELDS, MAX_FOLLOWUP_ROWS } from './followup.mjs';
 import { SOURCES } from './sources.mjs';
 import { getInitialLocale, LANGUAGE_STORAGE_KEY } from './initial-locale.mjs';
-import { newCaseId, deviceStorageOn, setDeviceStorage, listCases, getCase, putCase, renameCase, deleteCase, clearCases, setCurrentCaseId, caseToReopen, markSite, clearSiteMarks, cleanLabel as cleanCaseLabel, MAX_CASES } from './cases.mjs';
-import { TOKEN_KEY, PENDING_KEY, isToken, newToken, siteApi, pushCases } from './vault.mjs';
+import { newCaseId, deviceStorageOn, setDeviceStorage, listCases, getCase, putCase, renameCase, deleteCase, clearCases, setCurrentCaseId, caseToReopen, markSite, clearSiteMarks, cleanLabel as cleanCaseLabel, MAX_CASES, DEVICE_KEY } from './cases.mjs';
+import { TOKEN_KEY, PENDING_KEY, WIPE_KEY, SITE_CODE, isToken, newToken, siteApi, siteSchema, pushCases, wipeSite } from './vault.mjs';
 
 let lang = getInitialLocale();
 const state = { step: 1, values: { setting: 'icu' }, product: {}, followup: [], decisions: {}, view: 'cards', prevView: 'cards', evidenceQuery: '', evidenceKind: '', openDetails: new Set(), openMore: new Set(), caseId: null, caseLabel: '', example: false, reopened: null, siteMsg: null };
@@ -61,7 +61,7 @@ const T = {
   aaCol: ['Amino asit (g)', 'Amino acids (g)'],
   today: ['bugün', 'today'],
   intended: ['Klinik kararı destekler, yerine geçmez. Her öneriyi hasta başında, girdileri ve kaynaklarıyla birlikte değerlendirin.', 'Supports clinical decisions; does not replace them. Review every recommendation at the bedside together with its inputs and sources.'],
-  privacy: ['Vakalar bu tarayıcıda tutulur ve Vakalarım’dan silinebilir. Sitede saklamayı seçerseniz vakalar bu cihazda kişisel kodunuzla şifrelenip gönderilir; sunucu içeriği okuyamaz.', 'Cases are kept in this browser and can be deleted under My cases. If you choose to keep them on the site, they are encrypted on this device with your personal code before they are sent; the server cannot read them.'],
+  privacy: ['Vakalar bu tarayıcıda tutulur ve Vakalarım’dan silinebilir. Sitede saklamayı seçerseniz vakalar anonimleştirilerek sitedeki veritabanında da saklanır; kopyaları yalnız bu cihaz ve yönetici görür.', 'Cases are kept in this browser and can be deleted under My cases. If you choose to keep them on the site, they are anonymised and also kept in the site’s database; only this device and the administrator can see the copies.'],
   myCases: ['Vakalarım', 'My cases'],
   oldVersion: ['Önceki sürüm (kayıtlı hastalar ve ayrıntılı çalışma alanı)', 'Previous version (saved patients and detailed workspace)'],
   license: ['Lisans: AGPL-3.0 · Kaynak kodu', 'License: AGPL-3.0 · Source code'],
@@ -1109,7 +1109,7 @@ function shownValue(f) {
 function inputsHtml() {
   const rows = [];
   // The case code of this case's anonymised copy on the site (the site has no label, only this code).
-  const siteCode = site && state.caseId && deviceStore ? getCase(deviceStore, state.caseId)?.siteCode : null;
+  const siteCode = siteOn() && state.caseId && deviceStore ? getCase(deviceStore, state.caseId)?.siteCode : null;
   if (siteCode) rows.push(`<tr><th colspan="2" class="l">${esc(L(['Sitedeki anonim kopya', 'Anonymised copy on the site']))}</th></tr><tr><td class="l">${esc(L(['Site kodu', 'Site code']))}</td><td class="l">${esc(siteCode)}</td></tr>`);
   STEPS.forEach((s, i) => {
     const items = [];
@@ -1303,13 +1303,13 @@ function renderCases() {
   const box = $('#cases');
   const on = deviceOn();
   const list = on ? listCases(deviceStore) : [];
-  const rows = list.map((c) => `<tr${c.id === state.caseId ? ' class="current"' : ''}><td class="l"><input data-case-label="${esc(c.id)}" value="${esc(c.label)}" maxlength="40" autocomplete="off" placeholder="${esc(L(['Vaka kodu (ad yazmayın)', 'Case code (no names)']))}" aria-label="${esc(L(['Vaka kodu', 'Case code']))}"></td><td class="l">${esc(caseSummary(c.data))}${c.id === state.caseId ? ` <span class="chip ok">${esc(L(['açık', 'open']))}</span>` : ''}</td>${site ? `<td class="l"><code>${esc(c.siteCode ?? '…')}</code></td>` : ''}<td class="l">${esc(when(c.updatedAt))}</td><td class="l"><button type="button" class="btn" data-act="case-open" data-id="${esc(c.id)}">${esc(L(['Aç', 'Open']))}</button> <button type="button" class="btn" data-act="case-delete" data-id="${esc(c.id)}">${esc(L(['Sil', 'Delete']))}</button></td></tr>`).join('');
+  const rows = list.map((c) => `<tr${c.id === state.caseId ? ' class="current"' : ''}><td class="l"><input data-case-label="${esc(c.id)}" value="${esc(c.label)}" maxlength="40" autocomplete="off" placeholder="${esc(L(['Vaka kodu (ad yazmayın)', 'Case code (no names)']))}" aria-label="${esc(L(['Vaka kodu', 'Case code']))}"></td><td class="l">${esc(caseSummary(c.data))}${c.id === state.caseId ? ` <span class="chip ok">${esc(L(['açık', 'open']))}</span>` : ''}</td>${siteOn() ? `<td class="l"><code>${esc(c.siteCode ?? '…')}</code></td>` : ''}<td class="l">${esc(when(c.updatedAt))}</td><td class="l"><button type="button" class="btn" data-act="case-open" data-id="${esc(c.id)}">${esc(L(['Aç', 'Open']))}</button> <button type="button" class="btn" data-act="case-delete" data-id="${esc(c.id)}">${esc(L(['Sil', 'Delete']))}</button></td></tr>`).join('');
   box.innerHTML = `<section class="card"><h2>${esc(L(['Bu cihazdaki vakalar', 'Cases on this device']))}</h2>
-      <p class="lead">${esc(L(['Vakalar yalnız bu tarayıcıda saklanır, hiçbir yere gönderilmez. Bu tarayıcıyı kullanan herkes görebilir: ortak bilgisayarda işiniz bitince vakayı silin ya da saklamayı kapatın. Hasta adı ya da kimlik numarası yazmayın; vaka kodu kullanın. Son vaka, son değişikliğinden sonraki 12 saat içinde sayfa yeniden açılırsa kendiliğinden gelir.', 'Cases are kept only in this browser and sent nowhere. Anyone using this browser can see them: on a shared computer delete the case when you finish, or turn storage off. Do not write patient names or ID numbers; use a case code. The last case reopens by itself when the page is opened again within 12 hours of its last change.']))}</p>
+      <p class="lead">${esc(L(siteOn() ? ['Vakalar bu tarayıcıda saklanır; sitede saklama açık olduğu için anonimleştirilmiş kopyaları sitedeki veritabanında da tutulur (vaka kodu bu cihazda kalır). Bu tarayıcıyı kullanan herkes görebilir: ortak bilgisayarda işiniz bitince vakayı silin ya da saklamayı kapatın. Hasta adı ya da kimlik numarası yazmayın; vaka kodu kullanın. Son vaka, son değişikliğinden sonraki 12 saat içinde sayfa yeniden açılırsa kendiliğinden gelir.', 'Cases are kept in this browser; with site storage on, anonymised copies are also kept in the site’s database (the case code stays on this device). Anyone using this browser can see them: on a shared computer delete the case when you finish, or turn storage off. Do not write patient names or ID numbers; use a case code. The last case reopens by itself when the page is opened again within 12 hours of its last change.'] : ['Vakalar yalnız bu tarayıcıda saklanır, hiçbir yere gönderilmez. Bu tarayıcıyı kullanan herkes görebilir: ortak bilgisayarda işiniz bitince vakayı silin ya da saklamayı kapatın. Hasta adı ya da kimlik numarası yazmayın; vaka kodu kullanın. Son vaka, son değişikliğinden sonraki 12 saat içinde sayfa yeniden açılırsa kendiliğinden gelir.', 'Cases are kept only in this browser and sent nowhere. Anyone using this browser can see them: on a shared computer delete the case when you finish, or turn storage off. Do not write patient names or ID numbers; use a case code. The last case reopens by itself when the page is opened again within 12 hours of its last change.']))}</p>
       <label class="check"><input type="checkbox" data-device="toggle"${on ? ' checked' : ''}${deviceStore ? '' : ' disabled'}><span>${esc(L(['Vakaları bu cihazda sakla', 'Keep cases on this device']))}</span></label>
       ${deviceStore ? '' : `<p class="field-error">${esc(L(['Bu tarayıcı yerel saklamaya izin vermiyor (gizli pencere ya da engellenmiş site verisi): vakayı dosyaya kaydedin.', 'This browser does not allow local storage (private window or blocked site data): save the case to a file.']))}</p>`}
       ${deviceError ? `<p class="field-error">${esc(L(DEVICE_ERRORS[deviceError]))}</p>` : ''}
-      ${on ? (list.length ? `<div class="table-wrap"><table><thead><tr><th class="l">${esc(L(['Vaka kodu', 'Case code']))}</th><th class="l">${esc(L(['Özet', 'Summary']))}</th>${site ? `<th class="l">${esc(L(['Site kodu', 'Site code']))}</th>` : ''}<th class="l">${esc(L(['Son değişiklik', 'Last change']))}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div><p class="muted">${list.length}/${MAX_CASES}</p>` : `<p class="muted">${esc(L(['Bu cihazda saklanan vaka yok.', 'No case is kept on this device.']))}</p>`) : ''}
+      ${on ? (list.length ? `<div class="table-wrap"><table><thead><tr><th class="l">${esc(L(['Vaka kodu', 'Case code']))}</th><th class="l">${esc(L(['Özet', 'Summary']))}</th>${siteOn() ? `<th class="l">${esc(L(['Site kodu', 'Site code']))}</th>` : ''}<th class="l">${esc(L(['Son değişiklik', 'Last change']))}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div><p class="muted">${list.length}/${MAX_CASES}</p>` : `<p class="muted">${esc(L(['Bu cihazda saklanan vaka yok.', 'No case is kept on this device.']))}</p>`) : ''}
       <div class="actions"><button type="button" class="btn" data-act="cases-back">${esc(t('back'))}</button><button type="button" class="btn" data-act="case-new">${esc(L(['Yeni vaka', 'New case']))}</button>${on && list.length ? `<button type="button" class="btn" data-act="cases-clear">${esc(L(['Hepsini bu cihazdan sil', 'Delete all from this device']))}</button>` : ''}</div></section>${siteHtml()}`;
 }
 
@@ -1614,18 +1614,19 @@ document.addEventListener('click', (e) => {
   if (act === 'reopened-close') { state.reopened = null; renderDeviceNote(); return; }
   if (act === 'case-open') { const c = deviceStore ? getCase(deviceStore, el.dataset.id) : null; if (c) openDeviceCase(c); return; }
   if (act === 'case-delete') {
-    const question = site ? ['Bu vaka bu cihazdan ve sitedeki anonim kopyasıyla birlikte silinsin mi? Geri alınamaz.', 'Delete this case from this device together with its anonymised copy on the site? This cannot be undone.']
+    const question = siteOn() ? ['Bu vaka bu cihazdan ve sitedeki anonim kopyasıyla birlikte silinsin mi? Geri alınamaz.', 'Delete this case from this device together with its anonymised copy on the site? This cannot be undone.']
       : ['Bu vaka bu cihazdan silinsin mi? Geri alınamaz.', 'Delete this case from this device? This cannot be undone.'];
     if (!window.confirm(L(question))) return;
     const gone = getCase(deviceStore, el.dataset.id);
     deleteCase(deviceStore, el.dataset.id);
-    if (site && gone?.siteCode) { writePending([...readPending(), gone.siteCode]); pushNow(); }
+    if (siteOn() && gone?.siteCode) { writePending([...readPending(), gone.siteCode]); pushNow(); }
     if (el.dataset.id === state.caseId) resetCase({ setting: state.values.setting ?? 'icu' }); // the open case leaves the screen too
     render();
     return;
   }
   if (act === 'cases-clear') { clearDevice(); return; }
   if (act === 'site-push') { pushNow(); return; }
+  if (act === 'site-wipe') { retryWipe(); return; }
   if (act === 'decision-clear') { delete state.decisions[el.dataset.topic]; const y = window.scrollY; renderEvidence(); window.scrollTo({ top: y }); return; }
   if (act === 'evidence-back') { state.view = state.prevView === 'evidence' ? 'cards' : state.prevView; render(); window.scrollTo({ top: 0 }); return; }
   if (act === 'save-case') { saveCase(recommend(engineInput())); return; }
@@ -1780,47 +1781,69 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ---------------------------------------------------------------------------------------------
-// Cases on the site (vault.mjs), only when the clinician ticks it: each case is sent anonymised - without its label -
-// under a case code; this device keeps the label and matches the code to show the real case. On the site only this
-// device (by its token) and the administrator can see a copy. Unticked, cases stay on this device only.
+// Cases on the site (vault.mjs), only when the clinician ticks it: each case is sent anonymised - only the answers to
+// the form's questions, the age as a band, without the label - under a case code; this device keeps the whole case and
+// matches the code to show the real case. On the site only this device (by its token) and the administrator can see
+// a copy. Unticked, cases stay on this device only.
 const SITE_BASE = new URL('api/vault/', document.baseURI).href;
 let site = null; // { token, api, abort }
-let siteGen = 0; // changes whenever site storage is turned off here: a sending still running then changes nothing
+let siteGen = 0; // changes whenever site storage stops or changes here: a sending still running then changes nothing
 let pushing = false;
 let pushAgain = false;
 let currentPush = null;
 let pushTimer = null;
 let lastPush = null;
 let siteError = null;
+let wiping = null; // the deletion of the copies of a site storage turned off here, while it runs
+let wipeAgain = false;
+const wipeHeld = new Set(); // tokens to delete that this browser could not note in its storage (storage full)
 const SITE_TEXT = {
   offline: ['Siteye ulaşılamadı; vakalar bu cihazda duruyor, sonra yeniden gönderilecek.', 'The site could not be reached; the cases stay on this device and will be sent later.'],
   partial: ['Bazı vakalar siteye gönderilemedi; sonra yeniden denenecek.', 'Some cases could not be sent to the site; it will be tried again.'],
-  limit: ['Sitede bu cihaz için yer kalmadı (en çok 200 vaka): eski vakaları silin.', 'No room left on the site for this device (at most 200 cases): delete old cases.'],
-  'off-failed': ['Sitedeki kopyalar silinemedi (siteye ulaşılamadı); sitede saklama açık kaldı. Sonra yeniden deneyin.', 'The copies on the site could not be deleted (the site could not be reached); site storage stays on. Try again later.'],
+  'device-full': ['Sitede bu cihaz için yer kalmadı (en çok 200 vaka): eski vakaları silin.', 'No room left on the site for this device (at most 200 cases): delete old cases.'],
+  'site-full': ['Sitede şu an yer yok; vakalar bu cihazda duruyor, sonra yeniden denenecek.', 'The site has no room at the moment; the cases stay on this device and it will be tried again later.'],
+  'new-device': ['Bu internet bağlantısından bugün çok sayıda yeni cihaz siteye bağlandı (günlük sınır); vakalar bu cihazda duruyor, sonra yeniden denenecek.', 'Many new devices connected to the site from this internet connection today (daily limit); the cases stay on this device and it will be tried again later.'],
+  busy: ['Site şu an yoğun; vakalar bu cihazda duruyor, sonra yeniden denenecek.', 'The site is busy at the moment; the cases stay on this device and it will be tried again later.'],
+  'wipe-pending': ['Sitedeki anonim kopyalar henüz silinemedi (siteye ulaşılamadı); siteye ulaşılınca silinecek.', 'The anonymised copies on the site could not be deleted yet (the site could not be reached); they will be deleted once it can be reached.'],
 };
-const readPending = () => {
-  try { const x = JSON.parse(deviceStore.getItem(PENDING_KEY) ?? '[]'); return Array.isArray(x) ? x.filter((c) => typeof c === 'string' && /^NC-/.test(c)) : []; } catch { return []; }
+const storedToken = () => { try { return deviceStore?.getItem(TOKEN_KEY) ?? null; } catch { return null; } };
+// Site storage is on here: connected, or its token is stored (while the page is still connecting).
+function siteOn() { return Boolean(site) || isToken(storedToken()); }
+const readList = (key, ok) => {
+  try { const x = JSON.parse(deviceStore?.getItem(key) ?? '[]'); return Array.isArray(x) ? x.filter(ok) : []; } catch { return []; }
 };
-const writePending = (list) => { try { deviceStore.setItem(PENDING_KEY, JSON.stringify([...new Set(list)])); } catch { /* storage unavailable */ } };
+const writeList = (key, list) => {
+  try { if (list.length) deviceStore.setItem(key, JSON.stringify([...new Set(list)])); else deviceStore.removeItem(key); return true; } catch { return false; }
+};
+const readPending = () => readList(PENDING_KEY, (c) => typeof c === 'string' && SITE_CODE.test(c));
+const writePending = (list) => writeList(PENDING_KEY, list);
+const readWipe = () => readList(WIPE_KEY, isToken);
+// The questions of a case (those shown for its answers): what of it may be sent to the site.
+const caseFields = (values) => STEPS.flatMap((s) => flatFields(s.fields(values && typeof values === 'object' && !Array.isArray(values) ? values : {})));
+const plainApi = (token) => siteApi({ fetch: (...args) => window.fetch(...args), base: SITE_BASE, token });
 function connectSite(token) {
   const abort = new AbortController();
   return { token, abort, api: siteApi({ fetch: (...args) => window.fetch(...args), base: SITE_BASE, token, signal: abort.signal }) };
 }
-function forgetSite() {
+// Stops sending here at once: the waiting one, the running one (its calls are cut off) and any asked for meanwhile.
+function stopSite() {
+  clearTimeout(pushTimer);
+  pushAgain = false;
   siteGen += 1;
   site?.abort.abort();
   site = null;
   lastPush = null;
   siteError = null;
-  try { deviceStore?.removeItem(TOKEN_KEY); deviceStore?.removeItem(PENDING_KEY); } catch { /* storage unavailable */ }
-  if (deviceStore) clearSiteMarks(deviceStore);
 }
-// One sending at a time; a request during one runs once more afterwards.
+// One sending at a time; a request during one runs once more afterwards. Tabs of this browser take turns.
 function pushNow() {
   clearTimeout(pushTimer);
   if (!site || !deviceOn()) return Promise.resolve();
   if (currentPush) { pushAgain = true; return currentPush; }
-  currentPush = runPush().finally(() => {
+  const run = () => runPush();
+  let job;
+  try { job = navigator.locks?.request ? navigator.locks.request('nc-staged-site', run) : run(); } catch { job = run(); }
+  currentPush = Promise.resolve(job).catch(() => {}).finally(() => {
     currentPush = null;
     if (pushAgain) { pushAgain = false; pushNow(); }
   });
@@ -1829,61 +1852,93 @@ function pushNow() {
 async function runPush() {
   const gen = siteGen;
   const s = site;
-  const alive = () => gen === siteGen && site === s && deviceOn();
+  // Turned off or changed here or in another tab of this browser: nothing more is sent or marked.
+  const alive = () => gen === siteGen && site === s && deviceOn() && storedToken() === s?.token;
+  if (!alive()) return;
   const local = { list: () => (alive() ? listCases(deviceStore) : []), mark: (id, code, at) => alive() && markSite(deviceStore, id, code, at) };
   pushing = true;
   if (state.view === 'cases') renderCases();
+  let closed = false;
   try {
-    const res = await pushCases({ api: s.api, local, pending: readPending(), engine: ENGINE_VERSION });
-    if (!alive()) return;
-    writePending(readPending().filter((c) => !res.done.includes(c)));
-    lastPush = { at: new Date().toISOString(), ...res };
-    siteError = res.limit ? 'limit' : res.failed ? 'partial' : null;
+    const res = await pushCases({ api: s.api, local, pending: readPending(), engine: ENGINE_VERSION, schemaOf: (c) => siteSchema(caseFields(c.data?.values)), alive });
+    closed = res.closed && alive();
+    if (alive()) {
+      writePending(readPending().filter((c) => !res.done.includes(c)));
+      lastPush = { at: new Date().toISOString(), ...res };
+      siteError = res.limit === 'device' ? 'device-full' : res.limit === 'site' ? 'site-full' : res.busy === 'new-device' ? 'new-device' : res.busy ? 'busy' : res.failed ? 'partial' : null;
+    }
   } catch {
     if (alive()) siteError = 'offline';
   } finally {
     pushing = false;
   }
-  if (!alive()) return;
+  if (closed) {
+    // The site closed this token (its copies were deleted when site storage was turned off): off here too.
+    stopSite();
+    try { deviceStore?.removeItem(TOKEN_KEY); deviceStore?.removeItem(PENDING_KEY); } catch { /* storage unavailable */ }
+    if (deviceStore) clearSiteMarks(deviceStore);
+  }
   renderCasesButton();
   if (state.view === 'cases') renderCases();
 }
 const schedulePush = () => { if (site) { clearTimeout(pushTimer); pushTimer = setTimeout(pushNow, 3000); } };
-// Turning site storage off here deletes this device's copies on the site first; when that fails it stays on.
-async function deleteSiteCopies() {
-  if (!site) return true;
-  try {
-    const listed = await site.api.list();
-    if (listed.status !== 200) return false;
-    for (const c of listed.data?.cases ?? []) if ((await site.api.remove(c.code)).status !== 200) return false;
-    return true;
-  } catch {
-    return false;
-  }
+// Deletes the copies of every site storage turned off here; each token waits in WIPE_KEY (or, when the storage is full,
+// in memory) until the site holds none of its copies. A request during a run runs once more afterwards.
+function wipeNow() {
+  if (wiping) { wipeAgain = true; return wiping; }
+  wiping = (async () => {
+    let left = 0;
+    for (const token of [...new Set([...readWipe(), ...wipeHeld])]) {
+      let done = false;
+      try { done = await wipeSite(plainApi(token)); } catch { done = false; }
+      if (done) { writeList(WIPE_KEY, readWipe().filter((t) => t !== token)); wipeHeld.delete(token); } else left += 1;
+    }
+    state.siteMsg = left ? 'wipe-pending' : null;
+  })().finally(() => {
+    wiping = null;
+    if (wipeAgain) { wipeAgain = false; retryWipe(); }
+  });
+  return wiping;
+}
+// Turning site storage off: sending stops at once, this device forgets its token and site codes, and its copies on the
+// site are deleted now, or as soon as the site can be reached (the site then refuses that token for good).
+async function turnSiteOff() {
+  const tokens = [...new Set([site?.token, storedToken()].filter(isToken))];
+  const running = currentPush;
+  stopSite();
+  try { deviceStore?.removeItem(PENDING_KEY); } catch { /* storage unavailable */ }
+  if (deviceStore) clearSiteMarks(deviceStore);
+  if (!writeList(WIPE_KEY, [...readWipe(), ...tokens])) for (const t of tokens) wipeHeld.add(t);
+  try { deviceStore?.removeItem(TOKEN_KEY); } catch { /* storage unavailable */ }
+  await running; // cut off, it settles at once
+  await wipeNow();
 }
 async function siteToggle(box) {
   state.siteMsg = null;
   if (box.checked) {
-    let token = null;
-    try { token = newToken(); deviceStore.setItem(TOKEN_KEY, token); } catch { box.checked = false; return; }
-    siteGen += 1;
+    // A token stored here already (the page may still be connecting) is used again, so its copies stay reachable.
+    let token = storedToken();
+    if (!isToken(token)) {
+      try { token = newToken(); deviceStore.setItem(TOKEN_KEY, token); } catch { box.checked = false; return; }
+    }
+    stopSite();
     site = connectSite(token);
     renderCases();
     await pushNow();
     return;
   }
   if (!window.confirm(L(['Sitede saklama kapatılsın mı? Bu cihazın sitedeki anonim kopyaları silinir.', 'Stop keeping cases on the site? The anonymised copies of this device on the site are deleted.']))) { box.checked = true; return; }
-  await currentPush;
-  if (!(await deleteSiteCopies())) { state.siteMsg = 'off-failed'; renderCases(); return; }
-  forgetSite();
+  const off = turnSiteOff();
+  renderCases();
+  await off;
   renderCases();
 }
 async function clearDevice() {
   const n = listCases(deviceStore).length;
-  const question = site ? [`Bu cihazdaki ${n} vaka ve sitedeki anonim kopyaları silinsin mi? Geri alınamaz.`, `Delete the ${n} cases on this device and their anonymised copies on the site? This cannot be undone.`]
+  const question = siteOn() ? [`Bu cihazdaki ${n} vaka ve sitedeki anonim kopyaları silinsin mi? Geri alınamaz.`, `Delete the ${n} cases on this device and their anonymised copies on the site? This cannot be undone.`]
     : [`Bu cihazdaki ${n} vakanın hepsi silinsin mi? Geri alınamaz.`, `Delete all ${n} cases from this device? This cannot be undone.`];
   if (!window.confirm(L(question))) return;
-  if (site) writePending([...readPending(), ...listCases(deviceStore).map((c) => c.siteCode).filter(Boolean)]);
+  if (siteOn()) writePending([...readPending(), ...listCases(deviceStore).map((c) => c.siteCode).filter(Boolean)]);
   clearCases(deviceStore);
   resetCase({ setting: state.values.setting ?? 'icu' });
   render();
@@ -1891,41 +1946,63 @@ async function clearDevice() {
 }
 async function deviceOff(box) {
   const n = listCases(deviceStore).length;
-  const question = site ? [`Cihazda saklama kapatılsın mı? Bu cihazdaki ${n} vaka ve sitedeki anonim kopyaları silinir.`, `Turn device storage off? The ${n} cases on this device and their anonymised copies on the site will be deleted.`]
+  const onSite = siteOn();
+  const question = onSite ? [`Cihazda saklama kapatılsın mı? Bu cihazdaki ${n} vaka ve sitedeki anonim kopyaları silinir.`, `Turn device storage off? The ${n} cases on this device and their anonymised copies on the site will be deleted.`]
     : [`Cihazda saklama kapatılsın mı? Bu cihazdaki ${n} vaka silinir.`, `Turn device storage off? The ${n} cases on this device will be deleted.`];
-  if ((n || site) && !window.confirm(L(question))) { box.checked = true; return; }
-  if (site) {
-    await currentPush;
-    if (!(await deleteSiteCopies())) { state.siteMsg = 'off-failed'; render(); return; }
-    forgetSite();
-  }
+  if ((n || onSite) && !window.confirm(L(question))) { box.checked = true; return; }
+  const off = onSite ? turnSiteOff() : null;
   clearCases(deviceStore);
   setDeviceStorage(deviceStore, false);
   state.caseId = null;
   lastSaved = '';
   render();
+  if (off) { await off; render(); }
 }
 function siteHtml() {
-  if (!deviceOn()) return '';
-  const on = Boolean(site);
-  const status = !on ? '' : pushing ? L(['Gönderiliyor…', 'Sending…'])
+  const on = siteOn();
+  const status = wiping ? L(['Sitedeki kopyalar siliniyor…', 'Deleting the copies on the site…']) : !on ? '' : pushing ? L(['Gönderiliyor…', 'Sending…'])
     : lastPush ? L([`Sitede ${lastPush.remote} vaka · son gönderim ${when(lastPush.at)}`, `${lastPush.remote} cases on the site · last sent ${when(lastPush.at)}`]) : '';
-  const problem = state.siteMsg ?? (on ? siteError : null);
-  const error = problem ? `<p class="field-error">${esc(L(SITE_TEXT[problem]))}${on && siteError ? ` <button type="button" class="linkish" data-act="site-push">${esc(L(['Yeniden dene', 'Try again']))}</button>` : ''}</p>` : '';
+  const problem = wiping ? null : state.siteMsg ?? (on ? siteError : null);
+  const retry = problem === 'wipe-pending' ? 'site-wipe' : site && siteError ? 'site-push' : null;
+  const error = problem ? `<p class="field-error">${esc(L(SITE_TEXT[problem]))}${retry ? ` <button type="button" class="linkish" data-act="${retry}">${esc(L(['Yeniden dene', 'Try again']))}</button>` : ''}</p>` : '';
+  const note = `${status ? `<p class="muted">${esc(status)}</p>` : ''}${error}`;
+  if (!deviceOn()) return note ? `<section class="card">${note}</section>` : '';
   return `<section class="card"><label class="check"><input type="checkbox" data-site="toggle"${on ? ' checked' : ''}><span>${esc(L(['Vakaları sitede de sakla', 'Also keep cases on the site']))}</span></label>
-    <p class="hint">${esc(L(['İşaretlerseniz vakalar anonimleştirilerek sitedeki veritabanında saklanır.', 'If ticked, cases are anonymised and kept in the site’s database.']))}</p>${status ? `<p class="muted">${esc(status)}</p>` : ''}${error}</section>`;
+    <p class="hint">${esc(L(['İşaretlerseniz vakalar anonimleştirilerek sitedeki veritabanında saklanır.', 'If ticked, cases are anonymised and kept in the site’s database.']))}</p>${note}</section>`;
 }
-// After a reload: this device's token, if site storage was turned on here.
+function retryWipe() {
+  if (!readWipe().length && !wipeHeld.size) { // nothing left (another tab may have finished it)
+    if (state.siteMsg === 'wipe-pending') { state.siteMsg = null; if (state.view === 'cases') renderCases(); }
+    return;
+  }
+  const w = wipeNow();
+  if (state.view === 'cases') renderCases();
+  w.then(() => { if (state.view === 'cases') renderCases(); });
+}
+// After a reload: the copies of a site storage turned off here that are still to be deleted, and this device's token
+// when site storage is on here.
 async function loadSite() {
+  retryWipe();
   if (!deviceOn() || site) return;
-  let token = null;
-  try { token = deviceStore.getItem(TOKEN_KEY); } catch { token = null; }
+  const token = storedToken();
   if (!isToken(token)) return;
-  siteGen += 1;
+  stopSite();
   site = connectSite(token);
   renderCasesButton();
+  if (state.view === 'cases') renderCases();
   await pushNow();
 }
+// Site or device storage turned on or off in another tab of this browser: this tab follows (the other one deletes).
+window.addEventListener('storage', (e) => {
+  if (e.key !== null && e.key !== TOKEN_KEY && e.key !== DEVICE_KEY) return;
+  const token = storedToken();
+  if (site && (site.token !== token || !deviceOn())) stopSite();
+  if (!site && isToken(token) && deviceOn()) { site = connectSite(token); schedulePush(); }
+  renderCasesButton();
+  if (state.view === 'cases') renderCases();
+});
+// Back online: deletions still to be made, then sending.
+window.addEventListener('online', () => { retryWipe(); schedulePush(); });
 
 // Every change of the open case is saved on this device shortly after it happens, and at once when the page is left.
 for (const type of ['input', 'change', 'click']) document.addEventListener(type, scheduleSave);
@@ -1935,5 +2012,6 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 render();
 {
   const c = deviceOn() ? caseToReopen(deviceStore) : null;
-  (c ? openDeviceCase(c, { reopened: true }) : Promise.resolve()).then(loadSite).catch(() => { /* site storage stays off */ });
+  if (c) openDeviceCase(c, { reopened: true }).catch(() => { /* the case stays in the list */ });
+  loadSite().catch(() => { /* site storage stays off until the next load */ });
 }

@@ -1,22 +1,30 @@
 // NutriClinic administrator page: the anonymised site copies of every device, behind the site's password (nginx).
-// Read-only. The engine runs here to show each case's targets; nothing is sent anywhere.
+// Read-only. A copy holds the answers to the form's questions only (the age as a five-year band) and the day it was
+// saved; nothing tells which device sent it. The engine runs here to show each case's targets; nothing is sent anywhere.
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (C) 2026 Gökay Duman
 import { recommend } from '../engine.mjs';
+import { bandAge } from '../vault.mjs';
 
+const PAGE = 200;
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const when = (iso) => { const d = new Date(iso); return Number.isNaN(d.getTime()) ? '' : d.toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }); };
+const day = (iso) => (/^\d{4}-\d{2}-\d{2}$/.test(String(iso)) ? iso.split('-').reverse().join('.') : '');
 const num = (x, d = 0) => (Number.isFinite(x) ? x.toLocaleString('tr-TR', { maximumFractionDigits: d }) : '');
 const $ = (id) => document.getElementById(id);
 let cases = [];
+let total = 0;
+let offset = 0;
 
-// Targets with the engine of this site (the copy keeps the version it was sent with).
+// Targets with the engine of this site (the copy keeps the version it was sent with); the age is the band's middle.
 function targets(data) {
   try {
-    const r = recommend({ ...(data.values ?? {}) });
+    const v = data.values ?? {};
+    const p = data.product ?? {};
+    const age = bandAge(v.age);
+    const r = recommend({ ...v, age: age === null ? '' : String(age), product: { module: p.module, form: p.form, powder: p.powder } });
     if (r.blocked) return { kcal: null, protein: null, route: '', cls: '' };
-    const day = r.plan?.today ?? r.plan?.oral ?? {};
-    return { kcal: day.kcalTarget ?? null, protein: day.proteinTarget ?? null, route: r.route?.kind ?? '', cls: r.product?.cls ?? '' };
+    const today = r.plan?.today ?? r.plan?.oral ?? {};
+    return { kcal: today.kcalTarget ?? null, protein: today.proteinTarget ?? null, route: r.route?.kind ?? '', cls: r.product?.cls ?? '' };
   } catch {
     return { kcal: null, protein: null, route: '', cls: '' };
   }
@@ -34,25 +42,45 @@ function download(name, text, type) {
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-const COLUMNS = [['Site kodu', (c) => c.code], ['Kaynak', (c) => c.source], ['Kaydedilme', (c) => when(c.savedAt)], ['Ortam', (c) => SETTING[c.data.values?.setting] ?? ''],
-  ['Yaş', (c) => c.data.values?.age ?? ''], ['Cinsiyet', (c) => SEX[c.data.values?.sex] ?? ''], ['Boy (cm)', (c) => c.data.values?.heightCm ?? ''],
+const COLUMNS = [['Site kodu', (c) => c.code], ['Kayıt günü', (c) => day(c.savedOn)], ['Ortam', (c) => SETTING[c.data.values?.setting] ?? ''],
+  ['Yaş aralığı', (c) => c.data.values?.age ?? ''], ['Cinsiyet', (c) => SEX[c.data.values?.sex] ?? ''], ['Boy (cm)', (c) => c.data.values?.heightCm ?? ''],
   ['Kilo (kg)', (c) => c.data.values?.weightKg ?? ''], ['YB günü', (c) => (c.data.values?.setting === 'ward' ? '' : c.data.values?.icuDay ?? '')],
   ['Enerji hedefi (kcal)', (c) => num(c.t.kcal)], ['Protein hedefi (g)', (c) => num(c.t.protein)]];
 
-function renderList(total) {
+async function fetchPage(from) {
+  const res = await fetch(`api/cases?offset=${from}&limit=${PAGE}`, { credentials: 'same-origin', cache: 'no-store' });
+  if (!res.ok) throw new Error(String(res.status));
+  const body = await res.json();
+  return { total: Number.isInteger(body.total) ? body.total : 0, cases: (Array.isArray(body.cases) ? body.cases : []).map((c) => ({ ...c, data: c.data ?? {}, t: targets(c.data ?? {}) })) };
+}
+async function showPage(from) {
+  $('list').innerHTML = '<p class="muted">Yükleniyor…</p>';
+  $('detail').hidden = true;
+  try {
+    const page = await fetchPage(from);
+    ({ total, cases } = page);
+    offset = from;
+    renderList();
+  } catch (err) {
+    $('list').innerHTML = `<p class="field-error">Vakalar okunamadı (${esc(err.message)}).</p>`;
+  }
+}
+function renderList() {
   const head = COLUMNS.map(([name]) => `<th class="l">${esc(name)}</th>`).join('');
   const rows = cases.map((c, i) => `<tr>${COLUMNS.map(([, f]) => `<td class="l">${esc(f(c))}</td>`).join('')}<td><button type="button" class="btn" data-i="${i}">Ayrıntı</button></td></tr>`).join('');
-  $('list').innerHTML = `<p><strong>${esc(num(total))}</strong> anonim vaka${total > cases.length ? ` (ilk ${esc(num(cases.length))} gösteriliyor)` : ''}.</p>
+  const range = cases.length ? `${num(offset + 1)}–${num(offset + cases.length)}` : '';
+  const pager = total > PAGE ? `<div class="actions">${offset > 0 ? '<button type="button" class="btn" data-act="prev">Önceki sayfa</button>' : ''}${offset + PAGE < total ? '<button type="button" class="btn" data-act="next">Sonraki sayfa</button>' : ''}</div>` : '';
+  $('list').innerHTML = `<p><strong>${esc(num(total))}</strong> anonim vaka${total > cases.length && range ? ` (${esc(range)} gösteriliyor)` : ''}.</p>
     ${cases.length ? `<div class="table-wrap"><table><thead><tr>${head}<th></th></tr></thead><tbody>${rows}</tbody></table></div>` : '<p class="muted">Sitede henüz vaka yok.</p>'}
-    <div class="actions"><button type="button" class="btn" data-act="json">Tümünü indir (JSON)</button><button type="button" class="btn" data-act="csv">Tablo (CSV)</button></div>`;
+    ${pager}<div class="actions"><button type="button" class="btn" data-act="json">Tümünü indir (JSON)</button><button type="button" class="btn" data-act="csv">Tablo (CSV)</button></div><p class="muted" id="download-note"></p>`;
 }
 function renderDetail(c) {
   const box = $('detail');
   const pairs = (o) => Object.entries(o ?? {}).map(([k, v]) => `<tr><td class="l">${esc(k)}</td><td class="l">${esc(typeof v === 'object' ? JSON.stringify(v) : v)}</td></tr>`).join('');
   const follow = (c.data.followup ?? []).map((r) => `<tr><td class="l">${esc(r.day)}</td><td class="l">${esc(r.kcal)}</td><td class="l">${esc(r.protein)}</td></tr>`).join('');
   box.innerHTML = `<h2>${esc(c.code)}</h2>
-    <p class="muted">Kaynak ${esc(c.source)} · son değişiklik ${esc(when(c.updatedAt))} · siteye kayıt ${esc(when(c.savedAt))}${c.data.engine ? ` · gönderen sürüm ${esc(c.data.engine)}` : ''}</p>
-    <p>Bu sitenin motoruyla: yol <strong>${esc(c.t.route || '—')}</strong>, ürün sınıfı <strong>${esc(c.t.cls || '—')}</strong>, enerji <strong>${esc(num(c.t.kcal) || '—')}</strong> kcal, protein <strong>${esc(num(c.t.protein) || '—')}</strong> g.</p>
+    <p class="muted">Siteye kayıt ${esc(day(c.savedOn))}${c.data.engine ? ` · gönderen sürüm ${esc(c.data.engine)}` : ''}</p>
+    <p>Bu sitenin motoruyla (yaş, aralığın ortası alınarak): yol <strong>${esc(c.t.route || '—')}</strong>, ürün sınıfı <strong>${esc(c.t.cls || '—')}</strong>, enerji <strong>${esc(num(c.t.kcal) || '—')}</strong> kcal, protein <strong>${esc(num(c.t.protein) || '—')}</strong> g.</p>
     <h3>Girilen değerler</h3><div class="table-wrap"><table><tbody>${pairs(c.data.values)}</tbody></table></div>
     ${Object.keys(c.data.product ?? {}).length ? `<h3>Ürün etiketi</h3><div class="table-wrap"><table><tbody>${pairs(c.data.product)}</tbody></table></div>` : ''}
     ${follow ? `<h3>İzlem</h3><div class="table-wrap"><table><thead><tr><th class="l">Gün</th><th class="l">Enerji (kcal)</th><th class="l">Protein (g)</th></tr></thead><tbody>${follow}</tbody></table></div>` : ''}
@@ -61,27 +89,37 @@ function renderDetail(c) {
   box.hidden = false;
   box.scrollIntoView({ block: 'start' });
 }
+// Every page, for the downloads.
+async function allCases() {
+  const out = [];
+  for (let from = 0; ; from += PAGE) {
+    const page = await fetchPage(from);
+    out.push(...page.cases);
+    if (!page.cases.length || from + PAGE >= page.total) return out;
+  }
+}
+// A cell a spreadsheet would read as a formula (= + - @, tab, carriage return) is written as text.
+const cell = (x) => { let s = String(x ?? ''); if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`; return `"${s.replace(/"/g, '""')}"`; };
 
-document.addEventListener('click', (e) => {
+document.addEventListener('click', async (e) => {
   const b = e.target.closest('button');
   if (!b) return;
   if (b.dataset.i !== undefined) { renderDetail(cases[Number(b.dataset.i)]); return; }
   if (b.dataset.act === 'close') { $('detail').hidden = true; return; }
+  if (b.dataset.act === 'prev') { showPage(Math.max(0, offset - PAGE)); return; }
+  if (b.dataset.act === 'next') { showPage(offset + PAGE); return; }
+  if (b.dataset.act !== 'json' && b.dataset.act !== 'csv') return;
+  const note = $('download-note');
+  note.textContent = 'Hazırlanıyor…';
+  let list;
+  try { list = await allCases(); } catch (err) { note.textContent = `İndirilemedi (${err.message}).`; return; }
+  note.textContent = '';
   const stamp = new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
-  if (b.dataset.act === 'json') download(`nutriclinic-anonim-vakalar-${stamp}.json`, `${JSON.stringify(cases.map(({ t, ...c }) => c), null, 2)}\n`, 'application/json');
-  if (b.dataset.act === 'csv') {
-    const cell = (x) => `"${String(x ?? '').replace(/"/g, '""')}"`;
-    const lines = [COLUMNS.map(([name]) => cell(name)).join(';'), ...cases.map((c) => COLUMNS.map(([, f]) => cell(f(c))).join(';'))];
+  if (b.dataset.act === 'json') download(`nutriclinic-anonim-vakalar-${stamp}.json`, `${JSON.stringify(list.map(({ t, ...c }) => c), null, 2)}\n`, 'application/json');
+  else {
+    const lines = [COLUMNS.map(([name]) => cell(name)).join(';'), ...list.map((c) => COLUMNS.map(([, f]) => cell(f(c))).join(';'))];
     download(`nutriclinic-anonim-vakalar-${stamp}.csv`, `﻿${lines.join('\r\n')}\r\n`, 'text/csv');
   }
 });
 
-try {
-  const res = await fetch('api/cases?limit=2000', { credentials: 'same-origin', cache: 'no-store' });
-  if (!res.ok) throw new Error(String(res.status));
-  const body = await res.json();
-  cases = (body.cases ?? []).map((c) => ({ ...c, data: c.data ?? {}, t: targets(c.data ?? {}) }));
-  renderList(body.total ?? cases.length);
-} catch (err) {
-  $('list').innerHTML = `<p class="field-error">Vakalar okunamadı (${esc(err.message)}).</p>`;
-}
+showPage(0);
