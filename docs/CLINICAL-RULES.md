@@ -1,6 +1,6 @@
 # NutriClinic staged recommender — clinical rules
 
-Version 1.8.1 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
+Version 1.9.0 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
 
 NutriClinic supports clinical decisions and does not replace them. Every recommendation is reviewed at the bedside
 together with its inputs and sources.
@@ -372,20 +372,18 @@ data nothing can be kept, and the page says so.
 
 ## Cases on the site (optional)
 
-"Also keep on the site" under My cases is off until the clinician turns it on. Turning it on creates a personal code (32
-characters, 160 random bits) or takes an existing one. Each case is encrypted on the device with a key derived from the
-code (AES-GCM 256; the case id is bound to the encrypted text) and sent to the site, which keeps only the encrypted text
-under an account identifier and an access token also derived from the code; neither the server nor its administrator
-can read a case. The same code opens the cases on another device; changes are synchronised (the later change of a case
-wins; a case deleted on one device is deleted on the others unless it was changed after the deletion; an edit made
-during a download is never overwritten; a deletion that could not be sent is sent later, and before site storage is
-turned off on a device the page sends it or asks). The code is shown once, when it is created, with buttons to copy it
-or save it to a file, and is kept nowhere: the browser keeps only the derived identifiers and the encryption key (in
-IndexedDB, as a key that cannot be read back out), so the next user of a shared browser cannot take the code away.
-A lost code cannot be recovered. Joining with a code on a device that already holds cases asks before those cases are
-added to it. Turning site storage off on a device removes the keys there; the cases on the site stay. At most 200 cases
-(2 MB) per code and 5000 codes; deletion marks count for 90 days, and a code without any case stops counting after a
-day; requests and new codes are rate-limited per client; writing stops while the server has less than 5 GB free.
+"Also keep cases on the site" under My cases is off until the clinician ticks it; its one-line note says that cases
+are then anonymised and kept in the site's database. Unticked, cases stay on the device only. When ticked, each case is
+sent without its label (the only free text in a case) under a random case code such as NC-7K3P-Q2M9; the device keeps
+the label and the whole case and shows the code next to the case and in the report, so the clinician sees the real
+patient while the site holds only the clinical values. The site accepts only numbers, true/false and short choice
+identifiers without spaces, so no name or other free text can be stored. A device identifies its copies with a random
+token kept in the browser (the site stores only its SHA-256): only that device and the administrator can see a copy.
+The administrator sees every copy, anonymised, on a separate page behind the site's password; a short source tag tells
+the copies of one device apart and is not an identity. Each change is sent shortly afterwards; deleting a case on the
+device deletes its copy; unticking deletes all copies of the device (when the site cannot be reached, the box stays
+ticked and the page says so). At most 200 cases (2 MB) per device and 5000 devices; requests are rate-limited per
+client; writing stops while the server has less than 5 GB free.
 
 ## Notes shown when relevant
 

@@ -1,54 +1,51 @@
-"""NutriClinic case vault: end-to-end encrypted storage for the staged recommender's cases.
+"""NutriClinic site copies: anonymised cases of the staged recommender, kept in a SQLite database.
 
-The browser encrypts every case with a key derived from the clinician's personal code (WebCrypto, AES-GCM 256); this
-service keeps the encrypted text only. It never receives the code, the key or any clinical value. An account is a
-directory named by an identifier derived from the code; every request carries an access token derived from the same
-code, of which only the SHA-256 is stored. Python standard library only.
+A clinician who ticks "Also keep cases on the site" sends each case without its label (the only free text in a case)
+under a random case code such as NC-7K3P-Q2M9; the device keeps the label and the whole case, and matches the code to
+show the real case. Each device holds a random owner token, of which the database keeps only the SHA-256: a device
+reads, writes and deletes only its own copies. The administrator reads every copy, anonymised, through a separate path
+that nginx protects with the site's password. The database accepts only clinical values (numbers, true/false, short
+choice identifiers without spaces), so no name or other free text can be stored. Python standard library only.
 
-Routes under NUTRICLINIC_VAULT_PREFIX (default /nutriclinic/api/vault):
-  POST <prefix>/<account>/        create the account                          201; 409 when it exists
-  GET  <prefix>/<account>/        {cases: [{id, revision, updatedAt, deleted}]} 404 when there is no account
-  GET  <prefix>/<account>/<case>  {id, revision, updatedAt, payload} or {id, revision, updatedAt, deleted: true}
-  PUT  <prefix>/<account>/<case>  {baseRevision, updatedAt, payload} or {baseRevision, updatedAt, deleted: true}
-                                  -> {revision}; 409 {revision} when baseRevision is not the stored revision
-  GET  /healthz
-Every account route needs the header X-Vault-Auth (43 base64url characters). A deleted case keeps a small marker
-(no payload) so that the clinician's other devices remove their copy too.
+Public routes (prefix NUTRICLINIC_VAULT_PREFIX, default /nutriclinic/api/vault), header X-Site-Token (43 base64url):
+  GET    <prefix>/                 {cases: [{code, updatedAt}]} of this device
+  PUT    <prefix>/<code>           {updatedAt, data} -> {}; 409 when the code belongs to another device
+  DELETE <prefix>/<code>           -> {}
+Administrator routes (prefix NUTRICLINIC_ADMIN_PREFIX, default /nutriclinic/yonetim/api; only with X-Remote-User,
+which nginx sets after the password and clears everywhere else):
+  GET    <admin>/cases[?offset=&limit=]   {total, cases: [{code, source, updatedAt, savedAt, data}]}
+  GET    /healthz
 """
 # SPDX-License-Identifier: AGPL-3.0-only
 # Copyright (C) 2026 Gökay Duman
-import base64
-import binascii
 import hashlib
-import hmac
 import json
+import math
 import os
 import re
-import tempfile
+import sqlite3
 from datetime import datetime, timezone
 
-try:
-    import fcntl
-except ImportError:  # not on Linux: only for running the tests elsewhere; the service runs on Linux
-    fcntl = None
+CODE = re.compile(r'NC-[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}')
+TOKEN = re.compile(r'[A-Za-z0-9_-]{43}')
+ISO = re.compile(r'[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{3})?Z')
+KEY = re.compile(r'[A-Za-z][A-Za-z0-9]{0,40}')
+WORD = re.compile(r'[^\s\x00-\x1f\x7f]{1,40}')  # a value without spaces or control characters (no free text)
+DECISION_ID = re.compile(r'[a-z][a-z0-9-]{0,40}')
+CHOICE_ID = re.compile(r'[a-z0-9][a-z0-9-]{0,60}')
+VERSION = re.compile(r'[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
+MAX_BODY = 64 * 1024
+MAX_DATA = 32 * 1024
+SCHEMA = """CREATE TABLE IF NOT EXISTS cases (code TEXT PRIMARY KEY, owner TEXT NOT NULL, updated_at TEXT NOT NULL,
+  saved_at TEXT NOT NULL, data TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS cases_owner ON cases(owner);"""
 
-ACCOUNT = re.compile(r'^[0-9a-f]{32}$')
-CASE = re.compile(r'^c-[0-9a-f]{16}$')
-AUTH = re.compile(r'^[A-Za-z0-9_-]{43}$')
-ISO = re.compile(r'^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{3})?Z$')
-# Every pattern is used with fullmatch: in Python `$` also matches before a final newline, and `\d` any Unicode digit.
-MARK_DAYS = 90  # deletion marks count against an account's entries for this long
-EMPTY_SECONDS = 86400  # an account without any case stops counting against the account limit after a day
-B64 = re.compile(r'^[A-Za-z0-9+/]+={0,2}$')
-MAX_BODY = 160 * 1024
 
-
-class VaultError(Exception):
-    def __init__(self, status, code, extra=None):
+class SiteError(Exception):
+    def __init__(self, status, code):
         super().__init__(code)
         self.status = status
         self.code = code
-        self.extra = extra or {}
 
 
 def _now():
@@ -60,227 +57,159 @@ def _reject_constant(name):
     raise ValueError(name)
 
 
-def _b64_bytes(text, limit):
-    if not isinstance(text, str) or not text or len(text) > limit or not B64.fullmatch(text):
-        return None
-    try:
-        return base64.b64decode(text, validate=True)
-    except (binascii.Error, ValueError):
-        return None
+def _plain(value, limit=40):
+    """A clinical value: true/false, a finite number or a short word without spaces."""
+    if isinstance(value, bool):
+        return True
+    if isinstance(value, (int, float)):
+        return math.isfinite(value)
+    return isinstance(value, str) and (value == '' or (len(value) <= limit and WORD.fullmatch(value) is not None))
 
 
-def _write_json(path, value):
-    directory = os.path.dirname(path)
-    fd, tmp = tempfile.mkstemp(dir=directory, prefix='.tmp-', suffix='.json')
-    try:
-        with os.fdopen(fd, 'w', encoding='utf-8') as handle:
-            json.dump(value, handle, separators=(',', ':'), ensure_ascii=False)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.chmod(tmp, 0o600)
-        os.replace(tmp, path)
-    except BaseException:
-        if os.path.exists(tmp):
-            os.unlink(tmp)
-        raise
+def clean_data(data):
+    """The case as stored (canonical JSON); SiteError(400) unless `data` holds only the clinical parts of a case."""
+    if not isinstance(data, dict) or not set(data) <= {'values', 'product', 'followup', 'decisions', 'engine'}:
+        raise SiteError(400, 'data')
+    values = data.get('values', {})
+    if not isinstance(values, dict) or len(values) > 400 or not all(isinstance(k, str) and KEY.fullmatch(k) and _plain(v) for k, v in values.items()):
+        raise SiteError(400, 'values')
+    product = data.get('product', {})
+    if not isinstance(product, dict):
+        raise SiteError(400, 'product')
+    for group, items in product.items():
+        if group == 'form' and items == 'powder':
+            continue
+        if group not in ('en', 'ons', 'module', 'powder') or not isinstance(items, dict) or len(items) > 20 \
+                or not all(isinstance(k, str) and KEY.fullmatch(k) and _plain(v, 20) for k, v in items.items()):
+            raise SiteError(400, 'product')
+    followup = data.get('followup', [])
+    if not isinstance(followup, list) or len(followup) > 31 or not all(
+            isinstance(r, dict) and set(r) <= {'day', 'kcal', 'protein'} and all(_plain(v, 12) for v in r.values()) for r in followup):
+        raise SiteError(400, 'followup')
+    decisions = data.get('decisions', {})
+    if not isinstance(decisions, dict) or len(decisions) > 20 or not all(
+            isinstance(k, str) and DECISION_ID.fullmatch(k) and isinstance(v, str) and CHOICE_ID.fullmatch(v) for k, v in decisions.items()):
+        raise SiteError(400, 'decisions')
+    if 'engine' in data and not (isinstance(data['engine'], str) and VERSION.fullmatch(data['engine'])):
+        raise SiteError(400, 'engine')
+    text = json.dumps(data, separators=(',', ':'), ensure_ascii=False, sort_keys=True)
+    if len(text.encode('utf-8')) > MAX_DATA:
+        raise SiteError(413, 'too-large')
+    return text
 
 
-def _read_json(path):
-    with open(path, 'r', encoding='utf-8') as handle:
-        return json.load(handle)
-
-
-class Vault:
-    def __init__(self, root, max_accounts=5000, max_cases=200, max_payload=64 * 1024, max_account_bytes=2 * 1024 * 1024, min_free_bytes=5 * 1024 ** 3, now=_now, free_bytes=None):
-        self.root = os.path.join(root, 'vault')
-        os.makedirs(self.root, mode=0o700, exist_ok=True)
-        self.max_accounts = max_accounts
+class Store:
+    def __init__(self, root, max_owners=5000, max_cases=200, max_owner_bytes=2 * 1024 * 1024, max_total_bytes=1024 ** 3,
+                 min_free_bytes=5 * 1024 ** 3, now=_now, free_bytes=None):
+        directory = os.path.join(root, 'site')
+        os.makedirs(directory, mode=0o700, exist_ok=True)
+        self.path = os.path.join(directory, 'cases.sqlite')
+        self.db = sqlite3.connect(self.path, isolation_level=None, check_same_thread=False)
+        self.db.execute('PRAGMA journal_mode=WAL')
+        self.db.execute('PRAGMA busy_timeout=5000')
+        self.db.executescript(SCHEMA)
+        self.max_owners = max_owners
         self.max_cases = max_cases
-        self.max_payload = max_payload
-        self.max_account_bytes = max_account_bytes
+        self.max_owner_bytes = max_owner_bytes
+        self.max_total_bytes = max_total_bytes
         self.min_free_bytes = min_free_bytes
         self.now = now
         self.free_bytes = free_bytes or self._free_bytes
 
+    def close(self):
+        self.db.close()
+
     def _free_bytes(self):
         if not hasattr(os, 'statvfs'):  # not on Linux (tests elsewhere)
             return None
-        st = os.statvfs(self.root)
+        st = os.statvfs(os.path.dirname(self.path))
         return st.f_bavail * st.f_frsize
 
-    def _room(self):
-        # The server's disk is shared with the rest of the site: writing stops well before it fills.
+    @staticmethod
+    def owner(token):
+        if not isinstance(token, str) or not TOKEN.fullmatch(token):
+            raise SiteError(401, 'token')
+        return hashlib.sha256(token.encode('ascii')).hexdigest()
+
+    def list(self, token):
+        owner = self.owner(token)
+        rows = self.db.execute('SELECT code, updated_at FROM cases WHERE owner=? ORDER BY code', (owner,)).fetchall()
+        return {'cases': [{'code': c, 'updatedAt': u} for c, u in rows]}
+
+    def put(self, token, code, body):
+        owner = self.owner(token)
+        if not isinstance(code, str) or not CODE.fullmatch(code):
+            raise SiteError(404, 'not-found')
+        if not isinstance(body, dict) or set(body) != {'updatedAt', 'data'}:
+            raise SiteError(400, 'body')
+        if not isinstance(body['updatedAt'], str) or not ISO.fullmatch(body['updatedAt']):
+            raise SiteError(400, 'updated-at')
+        text = clean_data(body['data'])
         free = self.free_bytes()
-        if free is not None and free < self.min_free_bytes:
-            raise VaultError(507, 'disk')
-
-    def _dir(self, account):
-        if not ACCOUNT.fullmatch(account or ''):
-            raise VaultError(404, 'not-found')
-        return os.path.join(self.root, account)
-
-    def _lock(self, account):
-        handle = open(os.path.join(self._dir(account), '.lock'), 'a+')
-        if fcntl:
-            fcntl.flock(handle, fcntl.LOCK_EX)
-        return handle
-
-    def _check(self, account, auth):
-        directory = self._dir(account)
-        meta = os.path.join(directory, 'meta.json')
-        if not os.path.isfile(meta):
-            raise VaultError(404, 'no-account')
-        if not AUTH.fullmatch(auth or ''):
-            raise VaultError(401, 'auth')
-        stored = _read_json(meta).get('authHash', '')
-        if not hmac.compare_digest(stored, hashlib.sha256(auth.encode('ascii')).hexdigest()):
-            raise VaultError(401, 'auth')
-        return directory
-
-    def create(self, account, auth):
-        directory = self._dir(account)
-        if not AUTH.fullmatch(auth or ''):
-            raise VaultError(401, 'auth')
-        if os.path.exists(directory):
-            raise VaultError(409, 'exists')
-        accounts = sum(1 for name in os.listdir(self.root) if ACCOUNT.fullmatch(name) and self._counts(name))
-        if accounts >= self.max_accounts:
-            raise VaultError(507, 'capacity')
-        self._room()
-        os.mkdir(directory, 0o700)
-        os.mkdir(os.path.join(directory, 'cases'), 0o700)
-        _write_json(os.path.join(directory, 'meta.json'), {'authHash': hashlib.sha256(auth.encode('ascii')).hexdigest(), 'createdAt': self.now()})
+        if free is not None and free < self.min_free_bytes:  # the disk is shared with the rest of the site
+            raise SiteError(507, 'disk')
+        self.db.execute('BEGIN IMMEDIATE')
+        try:
+            row = self.db.execute('SELECT owner, length(data) FROM cases WHERE code=?', (code,)).fetchone()
+            if row and row[0] != owner:
+                raise SiteError(409, 'taken')
+            count, size = self.db.execute('SELECT count(*), coalesce(sum(length(data)), 0) FROM cases WHERE owner=?', (owner,)).fetchone()
+            if not row and count >= self.max_cases:
+                raise SiteError(507, 'case-limit')
+            if not row and count == 0 and self.db.execute('SELECT count(DISTINCT owner) FROM cases').fetchone()[0] >= self.max_owners:
+                raise SiteError(507, 'capacity')
+            old = row[1] if row else 0
+            if size - old + len(text) > self.max_owner_bytes:
+                raise SiteError(507, 'owner-full')
+            if self.db.execute('SELECT coalesce(sum(length(data)), 0) FROM cases').fetchone()[0] - old + len(text) > self.max_total_bytes:
+                raise SiteError(507, 'full')
+            self.db.execute('INSERT INTO cases (code, owner, updated_at, saved_at, data) VALUES (?, ?, ?, ?, ?) '
+                            'ON CONFLICT(code) DO UPDATE SET updated_at=excluded.updated_at, saved_at=excluded.saved_at, data=excluded.data',
+                            (code, owner, body['updatedAt'], self.now(), text))
+            self.db.execute('COMMIT')
+        except BaseException:
+            self.db.execute('ROLLBACK')
+            raise
         return {}
 
-    def _age_seconds(self, stamp):
-        try:
-            then = datetime.strptime(str(stamp), '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=timezone.utc)
-            now = datetime.strptime(self.now(), '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=timezone.utc)
-        except ValueError:
-            return 0
-        return (now - then).total_seconds()
+    def delete(self, token, code):
+        owner = self.owner(token)
+        if not isinstance(code, str) or not CODE.fullmatch(code):
+            raise SiteError(404, 'not-found')
+        self.db.execute('DELETE FROM cases WHERE code=? AND owner=?', (code, owner))  # another device's code: nothing happens
+        return {}
 
-    def _counts(self, name):
-        # An account counts against the limit when it holds a case, or was created within the last day.
-        directory = os.path.join(self.root, name)
-        try:
-            if any(n.endswith('.json') for n in os.listdir(os.path.join(directory, 'cases'))):
-                return True
-            return self._age_seconds(_read_json(os.path.join(directory, 'meta.json')).get('createdAt')) < EMPTY_SECONDS
-        except (OSError, ValueError):
-            return True
-
-    def _cases(self, directory):
-        folder = os.path.join(directory, 'cases')
-        out = []
-        for name in sorted(os.listdir(folder)):
-            if name.endswith('.json') and CASE.fullmatch(name[:-5]):
-                out.append((os.path.join(folder, name), _read_json(os.path.join(folder, name))))
-        return out
-
-    def list(self, account, auth):
-        directory = self._check(account, auth)
-        return {'cases': [{'id': rec['id'], 'revision': rec['revision'], 'updatedAt': rec['updatedAt'], 'deleted': bool(rec.get('deleted'))}
-                          for _, rec in self._cases(directory)]}
-
-    def get(self, account, auth, case):
-        directory = self._check(account, auth)
-        path = os.path.join(directory, 'cases', case + '.json')
-        if not CASE.fullmatch(case) or not os.path.isfile(path):
-            raise VaultError(404, 'not-found')
-        rec = _read_json(path)
-        out = {'id': rec['id'], 'revision': rec['revision'], 'updatedAt': rec['updatedAt']}
-        if rec.get('deleted'):
-            out['deleted'] = True
-        else:
-            out['payload'] = rec['payload']
-        return out
-
-    def _valid_body(self, body):
-        if not isinstance(body, dict):
-            raise VaultError(400, 'body')
-        keys = set(body)
-        if keys not in ({'baseRevision', 'updatedAt', 'payload'}, {'baseRevision', 'updatedAt', 'deleted'}):
-            raise VaultError(400, 'body')
-        base = body['baseRevision']
-        if base is not None and (isinstance(base, bool) or not isinstance(base, int) or base < 1):
-            raise VaultError(400, 'revision')
-        if not isinstance(body['updatedAt'], str) or not ISO.fullmatch(body['updatedAt']):
-            raise VaultError(400, 'updated-at')
-        if 'deleted' in body:
-            if body['deleted'] is not True:
-                raise VaultError(400, 'body')
-            return None
-        payload = body['payload']
-        if not isinstance(payload, dict) or set(payload) != {'v', 'iv', 'ct'} or payload['v'] != 1 or isinstance(payload['v'], bool):
-            raise VaultError(400, 'payload')
-        if isinstance(payload['ct'], str) and len(payload['ct']) > self.max_payload:
-            raise VaultError(413, 'too-large')
-        iv = _b64_bytes(payload['iv'], 32)
-        ct = _b64_bytes(payload['ct'], self.max_payload)
-        if iv is None or len(iv) != 12 or ct is None or len(ct) < 17:  # 12-byte nonce; at least one byte and the 16-byte tag
-            raise VaultError(400, 'payload')
-        return payload
-
-    def put(self, account, auth, case, body):
-        directory = self._check(account, auth)
-        if not CASE.fullmatch(case or ''):
-            raise VaultError(404, 'not-found')
-        payload = self._valid_body(body)
-        self._room()
-        lock = self._lock(account)
-        try:
-            path = os.path.join(directory, 'cases', case + '.json')
-            current = _read_json(path) if os.path.isfile(path) else None
-            base = body['baseRevision']
-            if (current is None and base is not None) or (current is not None and base != current['revision']):
-                raise VaultError(409, 'conflict', {'revision': current['revision'] if current else None})
-            cases = self._cases(directory)
-            if payload is not None and (current is None or current.get('deleted')):
-                live = sum(1 for _, rec in cases if not rec.get('deleted'))
-                if live >= self.max_cases:
-                    raise VaultError(507, 'case-limit')
-            # Deletion marks tell the clinician's other devices to remove their copy; after 90 days they no longer
-            # count, so an account can keep creating cases for good.
-            marks = sum(1 for _, rec in cases if rec.get('deleted') and self._age_seconds(rec.get('savedAt')) < MARK_DAYS * 86400)
-            live = sum(1 for _, rec in cases if not rec.get('deleted'))
-            if current is None and live + marks >= self.max_cases * 2:
-                raise VaultError(507, 'case-limit')
-            size = sum(os.path.getsize(p) for p, _ in cases if p != path)
-            record = {'id': case, 'revision': (current['revision'] + 1) if current else 1, 'updatedAt': body['updatedAt'], 'savedAt': self.now()}
-            if payload is None:
-                record['deleted'] = True
-            else:
-                record['payload'] = payload
-            if size + len(json.dumps(record)) > self.max_account_bytes:
-                raise VaultError(507, 'account-full')
-            _write_json(path, record)
-            return {'revision': record['revision']}
-        finally:
-            if fcntl:
-                fcntl.flock(lock, fcntl.LOCK_UN)
-            lock.close()
+    def admin_list(self, offset=0, limit=500):
+        total = self.db.execute('SELECT count(*) FROM cases').fetchone()[0]
+        rows = self.db.execute('SELECT code, owner, updated_at, saved_at, data FROM cases ORDER BY saved_at DESC, code LIMIT ? OFFSET ?',
+                               (limit, offset)).fetchall()
+        # "source": a short tag of the sending device, so that the copies of one device can be told apart; not an identity.
+        return {'total': total, 'cases': [{'code': c, 'source': 'K-' + o[:6], 'updatedAt': u, 'savedAt': s, 'data': json.loads(d)}
+                                          for c, o, u, s, d in rows]}
 
 
 class App:
     """WSGI application: routing, host and origin checks, JSON in and out."""
 
-    def __init__(self, vault, prefix='/nutriclinic/api/vault', allowed_hosts=('sahnoroloji.org',), allowed_origins=('https://sahnoroloji.org',)):
-        self.vault = vault
+    def __init__(self, store, prefix='/nutriclinic/api/vault', admin_prefix='/nutriclinic/yonetim/api',
+                 allowed_hosts=('sahnoroloji.org',), allowed_origins=('https://sahnoroloji.org',)):
+        self.store = store
         self.prefix = prefix.rstrip('/')
+        self.admin_prefix = admin_prefix.rstrip('/')
         self.allowed_hosts = {h.strip().lower() for h in allowed_hosts if h.strip()}
         self.allowed_origins = {o.strip() for o in allowed_origins if o.strip()}
 
     def __call__(self, environ, start_response):
         try:
             status, body = self.handle(environ)
-        except VaultError as error:
-            status, body = error.status, {'error': error.code, **error.extra}
+        except SiteError as error:
+            status, body = error.status, {'error': error.code}
         except Exception:  # never show internals
             status, body = 500, {'error': 'server'}
-        data = json.dumps(body, separators=(',', ':')).encode('utf-8')
-        reasons = {200: 'OK', 201: 'Created', 400: 'Bad Request', 401: 'Unauthorized', 403: 'Forbidden', 404: 'Not Found', 405: 'Method Not Allowed',
-                   409: 'Conflict', 413: 'Payload Too Large', 415: 'Unsupported Media Type', 421: 'Misdirected Request', 500: 'Internal Server Error', 507: 'Insufficient Storage'}
+        data = json.dumps(body, separators=(',', ':'), ensure_ascii=False).encode('utf-8')
+        reasons = {200: 'OK', 400: 'Bad Request', 401: 'Unauthorized', 403: 'Forbidden', 404: 'Not Found', 405: 'Method Not Allowed',
+                   409: 'Conflict', 413: 'Payload Too Large', 415: 'Unsupported Media Type', 421: 'Misdirected Request',
+                   500: 'Internal Server Error', 507: 'Insufficient Storage'}
         start_response('%d %s' % (status, reasons.get(status, 'Error')), [
             ('Content-Type', 'application/json; charset=utf-8'), ('Content-Length', str(len(data))), ('Cache-Control', 'no-store'),
             ('X-Content-Type-Options', 'nosniff'), ('Referrer-Policy', 'no-referrer')])
@@ -288,20 +217,20 @@ class App:
 
     def _body(self, environ):
         if (environ.get('CONTENT_TYPE') or '').split(';')[0].strip().lower() != 'application/json':
-            raise VaultError(415, 'content-type')
+            raise SiteError(415, 'content-type')
         try:
             length = int(environ.get('CONTENT_LENGTH') or 0)
         except ValueError:
-            raise VaultError(400, 'length')
+            raise SiteError(400, 'length')
         if length <= 0:
-            raise VaultError(400, 'body')
+            raise SiteError(400, 'body')
         if length > MAX_BODY:
-            raise VaultError(413, 'too-large')
+            raise SiteError(413, 'too-large')
         raw = environ['wsgi.input'].read(length)
         try:
             return json.loads(raw.decode('utf-8'), parse_constant=_reject_constant)
-        except (UnicodeDecodeError, ValueError):
-            raise VaultError(400, 'json')
+        except (UnicodeDecodeError, ValueError, RecursionError):
+            raise SiteError(400, 'json')
 
     def handle(self, environ):
         method = environ.get('REQUEST_METHOD', 'GET')
@@ -310,36 +239,47 @@ class App:
             return 200, {'ok': True}
         host = (environ.get('HTTP_HOST') or '').split(':')[0].lower()
         if host not in self.allowed_hosts:
-            raise VaultError(421, 'host')
+            raise SiteError(421, 'host')
         origin = environ.get('HTTP_ORIGIN')
         if origin is not None and origin not in self.allowed_origins:
-            raise VaultError(403, 'origin')
+            raise SiteError(403, 'origin')
+        if path.startswith(self.admin_prefix + '/'):
+            if not (environ.get('HTTP_X_REMOTE_USER') or '').strip():
+                raise SiteError(401, 'admin')
+            if method != 'GET' or path[len(self.admin_prefix):] != '/cases':
+                raise SiteError(404, 'not-found')
+            query = dict(part.split('=', 1) for part in (environ.get('QUERY_STRING') or '').split('&') if '=' in part)
+            try:
+                offset = max(0, int(query.get('offset', '0')))
+                limit = min(2000, max(1, int(query.get('limit', '500'))))
+            except ValueError:
+                raise SiteError(400, 'query')
+            return 200, self.store.admin_list(offset, limit)
         if not path.startswith(self.prefix + '/'):
-            raise VaultError(404, 'not-found')
-        parts = path[len(self.prefix) + 1:].split('/')
-        if len(parts) != 2:
-            raise VaultError(404, 'not-found')
-        account, case = parts
-        auth = environ.get('HTTP_X_VAULT_AUTH', '')
-        if case == '':
-            if method == 'POST':
-                return 201, self.vault.create(account, auth)
+            raise SiteError(404, 'not-found')
+        rest = path[len(self.prefix) + 1:]
+        token = environ.get('HTTP_X_SITE_TOKEN', '')
+        if rest == '':
             if method == 'GET':
-                return 200, self.vault.list(account, auth)
-            raise VaultError(405, 'method')
-        if method == 'GET':
-            return 200, self.vault.get(account, auth, case)
+                return 200, self.store.list(token)
+            raise SiteError(405, 'method')
+        if '/' in rest:
+            raise SiteError(404, 'not-found')
         if method == 'PUT':
-            return 200, self.vault.put(account, auth, case, self._body(environ))
-        raise VaultError(405, 'method')
+            return 200, self.store.put(token, rest, self._body(environ))
+        if method == 'DELETE':
+            return 200, self.store.delete(token, rest)
+        raise SiteError(405, 'method')
 
 
 def create_app(env=os.environ):
     numbers = lambda name, default: int(env.get(name, default))
-    vault = Vault(env.get('NUTRICLINIC_VAULT_DATA', '/data'), max_accounts=numbers('NUTRICLINIC_VAULT_ACCOUNTS', 5000),
-                  max_cases=numbers('NUTRICLINIC_VAULT_CASES', 200), max_account_bytes=numbers('NUTRICLINIC_VAULT_ACCOUNT_MB', 2) * 1024 * 1024,
+    store = Store(env.get('NUTRICLINIC_VAULT_DATA', '/data'), max_owners=numbers('NUTRICLINIC_VAULT_ACCOUNTS', 5000),
+                  max_cases=numbers('NUTRICLINIC_VAULT_CASES', 200), max_owner_bytes=numbers('NUTRICLINIC_VAULT_ACCOUNT_MB', 2) * 1024 * 1024,
+                  max_total_bytes=numbers('NUTRICLINIC_VAULT_TOTAL_MB', 1024) * 1024 * 1024,
                   min_free_bytes=numbers('NUTRICLINIC_VAULT_MIN_FREE_GB', 5) * 1024 ** 3)
-    return App(vault, prefix=env.get('NUTRICLINIC_VAULT_PREFIX', '/nutriclinic/api/vault'),
+    return App(store, prefix=env.get('NUTRICLINIC_VAULT_PREFIX', '/nutriclinic/api/vault'),
+               admin_prefix=env.get('NUTRICLINIC_ADMIN_PREFIX', '/nutriclinic/yonetim/api'),
                allowed_hosts=env.get('NUTRICLINIC_ALLOWED_HOSTS', 'sahnoroloji.org').split(','),
                allowed_origins=env.get('NUTRICLINIC_VAULT_ORIGINS', 'https://sahnoroloji.org').split(','))
 

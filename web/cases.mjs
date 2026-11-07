@@ -16,6 +16,9 @@ export const REOPEN_MS = 12 * 60 * 60 * 1000;
 
 const ID = /^c-[0-9a-f]{16}$/;
 const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/;
+// The case code of a case's anonymised copy on the site, and the change time of the version sent there.
+const SITE_CODE = /^NC-[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}$/;
+const siteFields = (c) => ({ siteCode: SITE_CODE.test(String(c?.siteCode)) ? c.siteCode : null, siteAt: SITE_CODE.test(String(c?.siteCode)) && ISO.test(String(c?.siteAt)) ? c.siteAt : null });
 
 export function newCaseId(fill = (bytes) => globalThis.crypto.getRandomValues(bytes)) {
   const bytes = new Uint8Array(8);
@@ -41,7 +44,7 @@ function readAll(storage) {
   return raw.filter((c) => c && typeof c === 'object' && isCaseId(c.id) && c.data && typeof c.data === 'object' && !Array.isArray(c.data)
     && ISO.test(String(c.updatedAt)))
     .map((c) => ({ id: c.id, label: cleanLabel(c.label), createdAt: ISO.test(String(c.createdAt)) ? c.createdAt : c.updatedAt, updatedAt: c.updatedAt,
-      view: c.view === 'result' ? 'result' : 'cards', step: Number.isInteger(c.step) && c.step >= 1 && c.step <= 20 ? c.step : 1, data: c.data }));
+      view: c.view === 'result' ? 'result' : 'cards', step: Number.isInteger(c.step) && c.step >= 1 && c.step <= 20 ? c.step : 1, data: c.data, ...siteFields(c) }));
 }
 function writeAll(storage, list) {
   storage.setItem(CASES_KEY, JSON.stringify(list));
@@ -65,7 +68,7 @@ export function putCase(storage, { id, label = '', data, view = 'cards', step = 
   if (at < 0 && list.length >= MAX_CASES) return { ok: false, error: 'full' };
   const stamp = now.toISOString();
   const record = { id, label: cleanLabel(label), createdAt: at < 0 ? stamp : list[at].createdAt, updatedAt: stamp,
-    view: view === 'result' ? 'result' : 'cards', step: Number.isInteger(step) ? step : 1, data: JSON.parse(text) };
+    view: view === 'result' ? 'result' : 'cards', step: Number.isInteger(step) ? step : 1, data: JSON.parse(text), ...siteFields(list[at]) };
   if (at < 0) list.push(record); else list[at] = record;
   try { writeAll(storage, list); } catch { return { ok: false, error: 'storage' }; }
   return { ok: true };
@@ -79,10 +82,27 @@ export function storeCase(storage, c) {
   const at = list.findIndex((x) => x.id === c.id);
   if (at < 0 && list.length >= MAX_CASES) return false;
   const record = { id: c.id, label: cleanLabel(c.label), createdAt: ISO.test(String(c.createdAt)) ? c.createdAt : c.updatedAt, updatedAt: c.updatedAt,
-    view: c.view === 'result' ? 'result' : 'cards', step: Number.isInteger(c.step) && c.step >= 1 && c.step <= 20 ? c.step : 1, data: c.data };
+    view: c.view === 'result' ? 'result' : 'cards', step: Number.isInteger(c.step) && c.step >= 1 && c.step <= 20 ? c.step : 1, data: c.data, ...siteFields(c) };
   if (at < 0) list.push(record); else list[at] = record;
   try { writeAll(storage, list); } catch { return false; }
   return true;
+}
+// Records that a case was sent to the site under code in its version of t (its change time then). A later change
+// of the case keeps the code; the case is sent again because its change time differs.
+export function markSite(storage, id, code, at) {
+  if (!SITE_CODE.test(String(code)) || !ISO.test(String(at))) return false;
+  const list = readAll(storage);
+  const c = list.find((x) => x.id === id);
+  if (!c) return false;
+  c.siteCode = code;
+  c.siteAt = at;
+  try { writeAll(storage, list); } catch { return false; }
+  return true;
+}
+// Forgets every site code (site storage turned off on this device).
+export function clearSiteMarks(storage) {
+  const list = readAll(storage).map((c) => ({ ...c, siteCode: null, siteAt: null }));
+  try { writeAll(storage, list); } catch { /* storage unavailable */ }
 }
 export function renameCase(storage, id, label) {
   const list = readAll(storage);

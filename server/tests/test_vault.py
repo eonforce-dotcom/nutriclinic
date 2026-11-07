@@ -1,139 +1,119 @@
-# Tests of the NutriClinic case vault (standard library only; synthetic data).
+# Tests of the NutriClinic site copies (standard library only; synthetic data).
 # SPDX-License-Identifier: AGPL-3.0-only
-import base64
 import io
 import json
 import os
 import sys
 import tempfile
 import unittest
-from datetime import datetime, timedelta, timezone
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-from nutriclinic_vault import App, Vault  # noqa: E402
+from nutriclinic_vault import App, Store  # noqa: E402
 
-ACC = '0123456789abcdef0123456789abcdef'
-AUTH = 'A' * 43
-CASE = 'c-0123456789abcdef'
-PAYLOAD = {'v': 1, 'iv': base64.b64encode(b'\x01' * 12).decode(), 'ct': base64.b64encode(b'\x02' * 40).decode()}
+A = 'A' * 43
+B = 'B' * 43
+CODE = 'NC-7K3P-Q2M9'
+DATA = {'values': {'setting': 'icu', 'age': '67', 'sex': 'male', 'weightKg': 78, 'stroke': True, 'potassiumUnit': 'mmol/L'},
+        'product': {'ons': {'kcal': '300', 'unit': 'mL'}}, 'followup': [{'day': '2', 'kcal': '1200', 'protein': '60'}],
+        'decisions': {'icu-protein': 'progressive-local'}, 'engine': '1.9.0'}
+OK = {'updatedAt': '2026-11-07T20:00:00.000Z', 'data': DATA}
 
 
-class VaultTest(unittest.TestCase):
+class SiteTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         # free_bytes: the disk floor is tested on its own (a small /tmp in a test container must not trip it).
-        self.vault = Vault(self.tmp.name, max_accounts=3, max_cases=2, max_payload=200, max_account_bytes=4000, now=lambda: '2026-11-07T20:00:00.000Z', free_bytes=lambda: None)
-        self.app = App(self.vault, prefix='/nutriclinic/api/vault', allowed_hosts=['sahnoroloji.org'], allowed_origins=['https://sahnoroloji.org'])
+        self.store = Store(self.tmp.name, max_owners=2, max_cases=2, max_owner_bytes=4000, max_total_bytes=9000,
+                           now=lambda: '2026-11-07T20:00:01.000Z', free_bytes=lambda: None)
+        self.app = App(self.store, allowed_hosts=['sahnoroloji.org'], allowed_origins=['https://sahnoroloji.org'])
 
     def tearDown(self):
+        self.store.close()
         self.tmp.cleanup()
 
-    def call(self, method, path, body=None, auth=AUTH, host='sahnoroloji.org', origin=None, content_type='application/json'):
+    def call(self, method, path, body=None, token=A, host='sahnoroloji.org', origin=None, user=None, query='', content_type='application/json'):
         data = b'' if body is None else (body if isinstance(body, bytes) else json.dumps(body).encode())
-        environ = {'REQUEST_METHOD': method, 'PATH_INFO': path, 'HTTP_HOST': host, 'wsgi.input': io.BytesIO(data), 'CONTENT_LENGTH': str(len(data)), 'CONTENT_TYPE': content_type}
-        if auth is not None:
-            environ['HTTP_X_VAULT_AUTH'] = auth
+        environ = {'REQUEST_METHOD': method, 'PATH_INFO': path, 'QUERY_STRING': query, 'HTTP_HOST': host, 'wsgi.input': io.BytesIO(data),
+                   'CONTENT_LENGTH': str(len(data)), 'CONTENT_TYPE': content_type}
+        if token is not None:
+            environ['HTTP_X_SITE_TOKEN'] = token
         if origin is not None:
             environ['HTTP_ORIGIN'] = origin
+        if user is not None:
+            environ['HTTP_X_REMOTE_USER'] = user
         seen = {}
         out = self.app(environ, lambda status, headers: seen.update(status=int(status.split()[0]), headers=dict(headers)))
         self.assertEqual(seen['headers']['Cache-Control'], 'no-store')
         return seen['status'], json.loads(b''.join(out))
 
-    def put(self, body, case=CASE, **kw):
-        return self.call('PUT', f'/nutriclinic/api/vault/{ACC}/{case}', body, **kw)
+    def put(self, body=OK, code=CODE, **kw):
+        return self.call('PUT', f'/nutriclinic/api/vault/{code}', body, **kw)
 
-    def test_account_lifecycle_and_cases(self):
-        base = f'/nutriclinic/api/vault/{ACC}/'
-        self.assertEqual(self.call('GET', base)[0], 404)
-        self.assertEqual(self.call('POST', base), (201, {}))
-        self.assertEqual(self.call('POST', base)[0], 409)
-        self.assertEqual(self.call('GET', base), (200, {'cases': []}))
-        self.assertEqual(self.put({'baseRevision': None, 'updatedAt': '2026-11-07T19:00:00.000Z', 'payload': PAYLOAD}), (200, {'revision': 1}))
-        self.assertEqual(self.put({'baseRevision': None, 'updatedAt': '2026-11-07T19:00:00.000Z', 'payload': PAYLOAD}), (409, {'error': 'conflict', 'revision': 1}))
-        self.assertEqual(self.put({'baseRevision': 1, 'updatedAt': '2026-11-07T19:05:00.000Z', 'payload': PAYLOAD}), (200, {'revision': 2}))
-        self.assertEqual(self.call('GET', base + CASE), (200, {'id': CASE, 'revision': 2, 'updatedAt': '2026-11-07T19:05:00.000Z', 'payload': PAYLOAD}))
-        self.assertEqual(self.put({'baseRevision': 2, 'updatedAt': '2026-11-07T19:10:00.000Z', 'deleted': True}), (200, {'revision': 3}))
-        self.assertEqual(self.call('GET', base + CASE), (200, {'id': CASE, 'revision': 3, 'updatedAt': '2026-11-07T19:10:00.000Z', 'deleted': True}))
-        self.assertEqual(self.call('GET', base), (200, {'cases': [{'id': CASE, 'revision': 3, 'updatedAt': '2026-11-07T19:10:00.000Z', 'deleted': True}]}))
-        # Only the hash of the access token is stored, and nothing but the encrypted text.
-        with open(os.path.join(self.tmp.name, 'vault', ACC, 'meta.json'), encoding='utf-8') as handle:
-            meta = json.load(handle)
-        self.assertNotIn(AUTH, json.dumps(meta))
-        self.assertEqual(len(meta['authHash']), 64)
+    def test_each_device_sees_only_its_own_copies(self):
+        self.assertEqual(self.call('GET', '/nutriclinic/api/vault/'), (200, {'cases': []}))
+        self.assertEqual(self.put(), (200, {}))
+        self.assertEqual(self.put({**OK, 'updatedAt': '2026-11-07T20:05:00.000Z'}), (200, {}))
+        self.assertEqual(self.call('GET', '/nutriclinic/api/vault/'), (200, {'cases': [{'code': CODE, 'updatedAt': '2026-11-07T20:05:00.000Z'}]}))
+        # Another device: sees nothing, cannot overwrite (409) or delete (nothing happens).
+        self.assertEqual(self.call('GET', '/nutriclinic/api/vault/', token=B), (200, {'cases': []}))
+        self.assertEqual(self.put(token=B), (409, {'error': 'taken'}))
+        self.assertEqual(self.call('DELETE', f'/nutriclinic/api/vault/{CODE}', token=B), (200, {}))
+        self.assertEqual(len(self.call('GET', '/nutriclinic/api/vault/')[1]['cases']), 1)
+        self.assertEqual(self.call('DELETE', f'/nutriclinic/api/vault/{CODE}'), (200, {}))
+        self.assertEqual(self.call('GET', '/nutriclinic/api/vault/'), (200, {'cases': []}))
+        # The token itself is never stored.
+        self.put()
+        with open(self.store.path, 'rb') as handle:
+            self.assertNotIn(A.encode(), handle.read())
 
-    def test_access_token_host_and_origin(self):
-        base = f'/nutriclinic/api/vault/{ACC}/'
-        self.call('POST', base)
-        self.assertEqual(self.call('GET', base, auth='B' * 43)[0], 401)
-        self.assertEqual(self.call('GET', base, auth=None)[0], 401)
-        self.assertEqual(self.call('GET', base, auth='short')[0], 401)
-        self.assertEqual(self.call('GET', base, host='attacker.example')[0], 421)
-        self.assertEqual(self.call('GET', base, origin='https://attacker.example')[0], 403)
-        self.assertEqual(self.call('GET', base, origin='https://sahnoroloji.org')[0], 200)
-        self.assertEqual(self.call('GET', '/nutriclinic/api/vault/NOT-HEX/')[0], 404)
-        self.assertEqual(self.call('GET', base + 'not-a-case')[0], 404)
-        self.assertEqual(self.call('DELETE', base + CASE)[0], 405)
-        self.assertEqual(self.call('GET', '/healthz', auth=None, host='')[0], 200)
-
-    def test_bodies_and_limits(self):
-        base = f'/nutriclinic/api/vault/{ACC}/'
-        self.call('POST', base)
-        ok = {'baseRevision': None, 'updatedAt': '2026-11-07T19:00:00.000Z', 'payload': PAYLOAD}
-        for bad in ({**ok, 'extra': 1}, {**ok, 'updatedAt': 'yesterday'}, {**ok, 'baseRevision': 0}, {**ok, 'baseRevision': True},
-                    {**ok, 'payload': {**PAYLOAD, 'v': 2}}, {**ok, 'payload': {**PAYLOAD, 'iv': base64.b64encode(b'x' * 8).decode()}},
-                    {**ok, 'payload': {**PAYLOAD, 'ct': 'not base64!'}}, {'baseRevision': None, 'updatedAt': ok['updatedAt'], 'deleted': False}, [1, 2]):
+    def test_only_clinical_values_are_accepted(self):
+        for bad in ({**OK, 'data': {**DATA, 'label': 'Yatak 5'}},
+                    {**OK, 'data': {**DATA, 'values': {**DATA['values'], 'note': 'Ahmet Yilmaz'}}},
+                    {**OK, 'data': {**DATA, 'values': {**DATA['values'], 'x': 'a\nb'}}},
+                    {**OK, 'data': {**DATA, 'values': {**DATA['values'], 'x': 'y' * 41}}},
+                    {**OK, 'data': {**DATA, 'product': {'ons': {'unit': 'iki kutu'}}}},
+                    {**OK, 'data': {**DATA, 'followup': [{'day': '2', 'kcal': '1200', 'note': 'x'}]}},
+                    {**OK, 'data': {**DATA, 'decisions': {'icu-protein': 'Dr Ali'}}},
+                    {**OK, 'data': {**DATA, 'engine': 'latest'}},
+                    {**OK, 'extra': 1}, {**OK, 'updatedAt': 'yesterday'}, [1]):
             self.assertEqual(self.put(bad)[0], 400, bad)
-        self.assertEqual(self.put(b'{not json')[0], 400)
-        self.assertEqual(self.put(b'{"baseRevision": NaN}')[0], 400)
-        self.assertEqual(self.put(ok, content_type='text/plain')[0], 415)
-        self.assertEqual(self.put({**ok, 'payload': {**PAYLOAD, 'ct': 'A' * 400}})[0], 413)
-        # Two live cases at most here; a third is refused, a deleted one frees its place.
-        self.assertEqual(self.put(ok, case='c-0000000000000001')[0], 200)
-        self.assertEqual(self.put(ok, case='c-0000000000000002')[0], 200)
-        self.assertEqual(self.put(ok, case='c-0000000000000003'), (507, {'error': 'case-limit'}))
-        self.assertEqual(self.put({'baseRevision': 1, 'updatedAt': ok['updatedAt'], 'deleted': True}, case='c-0000000000000002')[0], 200)
-        self.assertEqual(self.put(ok, case='c-0000000000000003')[0], 200)
-        # Account limit.
-        for i in range(2):
-            self.assertEqual(self.call('POST', f'/nutriclinic/api/vault/{i:032x}/')[0], 201)
-        self.assertEqual(self.call('POST', f'/nutriclinic/api/vault/{9:032x}/'), (507, {'error': 'capacity'}))
+        self.assertEqual(self.put(b'{"updatedAt": NaN}')[0], 400)
+        self.assertEqual(self.put(content_type='text/plain')[0], 415)
+        self.assertEqual(self.put(b'{"updatedAt": "' + b'x' * 70000 + b'"}')[0], 413)  # body above 64 KB
+        self.assertEqual(self.put(code='NC-7K3P-Q2M9\n')[0], 404)
+        self.assertEqual(self.put(code='NC-IIII-OOOO')[0], 404)
+        self.assertEqual(self.call('GET', '/nutriclinic/api/vault/', token='short')[0], 401)
+        self.assertEqual(self.call('GET', '/nutriclinic/api/vault/', host='attacker.example')[0], 421)
+        self.assertEqual(self.call('GET', '/nutriclinic/api/vault/', origin='https://attacker.example')[0], 403)
+        self.assertEqual(self.call('POST', '/nutriclinic/api/vault/')[0], 405)
+        self.assertEqual(self.call('GET', '/healthz', token=None, host='')[0], 200)
 
-    def test_review_ids_marks_and_empty_accounts(self):
-        # Whole-string checks: a trailing newline or non-ASCII digits are refused.
-        self.assertEqual(self.call('POST', f'/nutriclinic/api/vault/{ACC}\n/')[0], 404)
-        self.assertFalse(os.path.exists(os.path.join(self.tmp.name, 'vault', ACC + '\n')))
-        base = f'/nutriclinic/api/vault/{ACC}/'
-        self.assertEqual(self.call('POST', base)[0], 201)
-        self.assertEqual(self.call('GET', base, auth=AUTH + '\n')[0], 401)
-        self.assertEqual(self.put({'baseRevision': None, 'updatedAt': '２０２６-11-07T19:00:00.000Z', 'payload': PAYLOAD})[0], 400)
-        self.assertEqual(self.call('GET', base + CASE + '\n')[0], 404)
-        # Deletion marks count for 90 days only (max_cases=2 here: 4 entries in all).
-        clock = {'now': datetime(2026, 11, 7, 20, 0, tzinfo=timezone.utc)}
-        self.vault.now = lambda: clock['now'].strftime('%Y-%m-%dT%H:%M:%S.000Z')
-        ok = {'baseRevision': None, 'updatedAt': '2026-11-07T19:00:00.000Z', 'payload': PAYLOAD}
-        for i in range(4):
-            case = 'c-%016x' % i
-            self.assertEqual(self.put(ok, case=case)[0], 200)
-            self.assertEqual(self.put({'baseRevision': 1, 'updatedAt': '2026-11-07T19:01:00.000Z', 'deleted': True}, case=case)[0], 200)
-        self.assertEqual(self.put(ok, case='c-00000000000000ff'), (507, {'error': 'case-limit'}))
-        clock['now'] += timedelta(days=91)
-        self.assertEqual(self.put(ok, case='c-00000000000000ff')[0], 200)
-        # Accounts without any case stop counting after a day (max_accounts=3 here).
-        self.assertEqual(self.call('POST', f'/nutriclinic/api/vault/{1:032x}/')[0], 201)
-        self.assertEqual(self.call('POST', f'/nutriclinic/api/vault/{2:032x}/')[0], 201)
-        self.assertEqual(self.call('POST', f'/nutriclinic/api/vault/{3:032x}/'), (507, {'error': 'capacity'}))
-        clock['now'] += timedelta(days=2)
-        self.assertEqual(self.call('POST', f'/nutriclinic/api/vault/{3:032x}/')[0], 201)
+    def test_limits(self):
+        self.assertEqual(self.put(code='NC-0000-0001')[0], 200)
+        self.assertEqual(self.put(code='NC-0000-0002')[0], 200)
+        self.assertEqual(self.put(code='NC-0000-0003'), (507, {'error': 'case-limit'}))
+        self.assertEqual(self.put(code='NC-0000-0001')[0], 200)  # updating an existing copy is always possible
+        self.assertEqual(self.put(code='NC-0000-0004', token=B)[0], 200)
+        self.assertEqual(self.put(code='NC-0000-0005', token='C' * 43), (507, {'error': 'capacity'}))
+        big = {**OK, 'data': {**DATA, 'values': {f'k{i}': 'x' * 40 for i in range(90)}}}
+        self.assertEqual(self.put(big, code='NC-0000-0006', token=B), (507, {'error': 'owner-full'}))
+        self.store.free_bytes = lambda: 4 * 1024 ** 3  # below the 5 GB floor
+        self.assertEqual(self.put(code='NC-0000-0001'), (507, {'error': 'disk'}))
 
-    def test_disk_floor_stops_writes(self):
-        base = f'/nutriclinic/api/vault/{ACC}/'
-        self.call('POST', base)
-        self.vault.free_bytes = lambda: 4 * 1024 ** 3  # below the 5 GB floor
-        ok = {'baseRevision': None, 'updatedAt': '2026-11-07T19:00:00.000Z', 'payload': PAYLOAD}
-        self.assertEqual(self.put(ok), (507, {'error': 'disk'}))
-        self.assertEqual(self.call('POST', f'/nutriclinic/api/vault/{1:032x}/'), (507, {'error': 'disk'}))
-        self.assertEqual(self.call('GET', base)[0], 200)  # reading still works
+    def test_administrator_sees_every_copy_anonymised_and_only_with_the_password(self):
+        self.put()
+        self.put(code='NC-0000-0009', token=B)
+        self.assertEqual(self.call('GET', '/nutriclinic/yonetim/api/cases', token=None)[0], 401)
+        self.assertEqual(self.call('GET', '/nutriclinic/yonetim/api/cases', token=None, user=' ')[0], 401)
+        status, body = self.call('GET', '/nutriclinic/yonetim/api/cases', token=None, user='nutriclinic')
+        self.assertEqual((status, body['total'], len(body['cases'])), (200, 2, 2))
+        first = next(c for c in body['cases'] if c['code'] == CODE)
+        self.assertEqual(first['data'], DATA)
+        self.assertRegex(first['source'], r'^K-[0-9a-f]{6}$')
+        self.assertNotIn(A, json.dumps(body))
+        self.assertEqual(self.call('GET', '/nutriclinic/yonetim/api/cases', token=None, user='nutriclinic', query='offset=1&limit=1')[1]['total'], 2)
+        self.assertEqual(self.call('PUT', '/nutriclinic/yonetim/api/cases', OK, token=None, user='nutriclinic')[0], 404)
+        self.assertEqual(self.call('GET', '/nutriclinic/yonetim/api/other', token=None, user='nutriclinic')[0], 404)
 
 
 if __name__ == '__main__':

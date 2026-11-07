@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <title>NutriClinic · Yönetim</title>
+  <link rel="stylesheet" href="../app.css">
+  <script type="module" src="yonetim.mjs"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">N</span>
+      <div>
+        <strong>NutriClinic</strong>
+        <span class="tagline">Yönetim · sitedeki anonim vakalar</span>
+      </div>
+    </div>
+  </header>
+  <main id="main">
+    <section class="card">
+      <h2>Sitedeki anonim vakalar</h2>
+      <p class="lead">Bu sayfa yalnız yöneticiye açıktır. Vakalar anonimdir: vaka adı ya da etiketi siteye hiç gönderilmez; siteye yalnız klinik değerler gelir. "Kaynak", aynı cihazdan gelen kopyaları birbirinden ayırır; kimlik değildir.</p>
+      <div id="list"><p class="muted">Yükleniyor…</p></div>
+    </section>
+    <section class="card" id="detail" hidden></section>
+  </main>
+</body>
+</html>
