@@ -81,6 +81,12 @@ const T = {
   powder: ['Toz', 'Powder'],
   blocked: ['Öneri verilemiyor', 'No recommendation'],
   exampleNote: ['Örnek olgu yüklendi (sentetik veri).', 'Example case loaded (synthetic data).'],
+  openCase: ['Vaka aç', 'Open case'],
+  saveCase: ['Vakayı kaydet (JSON)', 'Save case (JSON)'],
+  tableCsv: ['Tablo (CSV)', 'Table (CSV)'],
+  inputs: ['Girilen bilgiler', 'Entered data'],
+  fileNote: ['Kaydedilen dosya yalnız bu cihaza iner ve hasta bilgisi içerir: kurum kurallarına göre saklayın.', 'The saved file is downloaded to this device only and contains patient data: keep it according to local rules.'],
+  caseError: ['Bu dosya bir NutriClinic vaka dosyası değil.', 'This file is not a NutriClinic case file.'],
 };
 const L = (x) => (Array.isArray(x) ? x[lang === 'tr' ? 0 : 1] : x && typeof x === 'object' && 'tr' in x ? x[lang] : x ?? '');
 const t = (key) => L(T[key]);
@@ -970,6 +976,100 @@ function labsHtml(r) {
     <div class="table-wrap"><table><tbody>${rows}</tbody></table></div>${items.join('')}</details></section>`;
 }
 
+// ---------------------------------------------------------------------------------------------
+// Printable report: a print-only header and a summary of every entered value.
+function printHeaderHtml() {
+  const now = new Date().toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-GB', { dateStyle: 'long', timeStyle: 'short' });
+  return `<section class="card print-only"><h2>NutriClinic · ${esc(L(['Beslenme önerisi', 'Nutrition recommendation']))}</h2><p>${esc(now)} · NutriClinic ${esc(ENGINE_VERSION)} · ${esc(L(['Kurallar', 'Rules']))} ${esc(RULES_DATE)}</p><p><strong>${esc(t('intended'))}</strong></p></section>`;
+}
+function shownValue(f) {
+  const v = state.values;
+  if (f.type === 'num') return `${String(v[f.key]).trim()} ${L(f.unit)}`.trim();
+  if (f.type === 'lab') return `${String(v[f.key]).trim()} ${v[unitKey(f.key)] ?? defaultUnit(f.key)}`;
+  if (f.type === 'seg') { const o = f.options.find((x) => x.value === String(v[f.key])); return o ? L(o.label) : String(v[f.key]); }
+  return '';
+}
+function inputsHtml() {
+  const rows = [];
+  STEPS.forEach((s, i) => {
+    const items = [];
+    for (const f of flatFields(s.fields(state.values))) {
+      if (f.type === 'checks') { f.items.filter((x) => state.values[x.key] === true).forEach((x) => items.push([L(['İşaretli', 'Ticked']), L(x.label)])); continue; }
+      if (!['num', 'lab', 'seg'].includes(f.type)) continue;
+      const x = state.values[f.key];
+      if (x === undefined || x === null || String(x).trim() === '' || x === 'unknown') continue;
+      items.push([L(f.label), shownValue(f)]);
+    }
+    if (items.length) rows.push(`<tr><th colspan="2" class="l">${i + 1}. ${esc(L(s.title))}</th></tr>` + items.map(([k, val]) => `<tr><td class="l">${esc(k)}</td><td class="l">${esc(val)}</td></tr>`).join(''));
+  });
+  const LABEL_NAMES = {
+    'en.kcalPerMl': ['Mama enerjisi', 'Formula energy', 'kcal/mL'], 'en.proteinPer100': ['Mama proteini', 'Formula protein', 'g/100 mL'], 'en.waterPer100': ['Serbest su', 'Free water', 'mL/100 mL'],
+    'ons.serving': ['ONS servis miktarı', 'ONS serving', ''], 'ons.kcal': ['ONS enerjisi / servis', 'ONS energy / serving', 'kcal'], 'ons.protein': ['ONS proteini / servis', 'ONS protein / serving', 'g'],
+    'module.proteinPer100g': ['Protein modülü', 'Protein module', 'g/100 g'], 'powder.kcalPer100g': ['Toz enerji', 'Powder energy', 'kcal/100 g'],
+    'powder.proteinPer100g': ['Toz protein', 'Powder protein', 'g/100 g'], 'powder.kcalPerMl': ['Sulandırılmış mama', 'Prepared feed', 'kcal/mL'],
+  };
+  const label = Object.entries(LABEL_NAMES).filter(([path]) => { const [g, k] = path.split('.'); return String(state.product[g]?.[k] ?? '').trim() !== ''; })
+    .map(([path, [tr, en, unit]]) => { const [g, k] = path.split('.'); return [L([tr, en]), `${String(state.product[g][k]).trim()} ${g === 'ons' && k === 'serving' ? state.product.ons?.unit ?? '' : unit}`.trim()]; });
+  if (state.product.form === 'powder') label.unshift([L(['Ürün formu', 'Product form']), t('powder')]);
+  if (label.length) rows.push(`<tr><th colspan="2" class="l">${esc(L(['Ürün etiketi', 'Product label']))}</th></tr>` + label.map(([k, val]) => `<tr><td class="l">${esc(k)}</td><td class="l">${esc(val)}</td></tr>`).join(''));
+  if (!rows.length) return '';
+  const open = state.openDetails.has('inputs') ? ' open' : '';
+  return `<section class="card"><details data-details="inputs"${open}><summary>${esc(t('inputs'))}</summary><div class="table-wrap"><table><tbody>${rows.join('')}</tbody></table></div></details></section>`;
+}
+// While printing every section is open; afterwards the previous state returns.
+let closedForPrint = null;
+window.addEventListener('beforeprint', () => {
+  if (closedForPrint) return; // a print cycle is already active
+  closedForPrint = [...document.querySelectorAll('#result details:not([open])')];
+  closedForPrint.forEach((d) => { d.open = true; });
+});
+window.addEventListener('afterprint', () => { (closedForPrint ?? []).forEach((d) => { d.open = false; }); closedForPrint = null; });
+
+// ---------------------------------------------------------------------------------------------
+// Case file (JSON) and table (CSV): created on this device; nothing is sent.
+const CASE_FORMAT = 'nutriclinic-case';
+function download(name, text, type) {
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  const link = document.createElement('a');
+  link.href = url; link.download = name;
+  document.body.append(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+const stamp = () => new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
+function saveCase(r) {
+  const summary = r && !r.blocked ? { route: r.route?.kind ?? null, productClass: r.product?.cls ?? null, todayKcal: (() => { const k = r.plan?.today?.kcalTarget ?? r.plan?.oral?.kcalTarget; return Number.isFinite(k) ? Math.round(k) : null; })(), supplements: (r.supplements ?? []).map((s) => s.id) } : null;
+  const data = { format: CASE_FORMAT, formatVersion: 1, app: ENGINE_VERSION, rulesDate: RULES_DATE, savedAt: new Date().toISOString(), values: state.values, product: state.product, summary };
+  download(`nutriclinic-vaka-${stamp()}.json`, `${JSON.stringify(data, null, 2)}\n`, 'application/json');
+}
+function saveTableCsv(r) {
+  const rows = r.plan?.rows ?? [];
+  const sep = lang === 'tr' ? ';' : ',';
+  const num = (x, d = 0) => (x === null || x === undefined || !Number.isFinite(x) ? '' : (Math.round(x * 10 ** d) / 10 ** d).toString().replace('.', lang === 'tr' ? ',' : '.'));
+  const icu = r.input.setting === 'icu';
+  const head = [icu ? t('icuDayCol') : t('feedDayCol'), t('energyCol'), t('proteinCol'), t('formulaCol'), t('rateCol'), t('feedsCol'), t('moduleCol'), t('aaCol')];
+  const body = rows.map((x) => [icu ? x.icuDay : x.feedDay, num(x.kcalTarget ?? x.pnKcal ?? x.kcal), num(x.proteinTarget ?? x.aminoAcids ?? x.protein, 1), x.cls ? L(CLASS_SHORT[x.cls] ?? ['', '']) : '', num(x.rate), x.feeds ? `${x.feeds.n} x ${num(x.feeds.ml)}` : '', num(x.moduleProtein, 1), num(x.aminoAcids, 1)]);
+  const csv = [head, ...body].map((line) => line.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(sep)).join('\r\n');
+  download(`nutriclinic-tablo-${stamp()}.csv`, `\uFEFF${csv}\r\n`, 'text/csv');
+}
+// Only plain values with simple keys are taken from a case file.
+const cleanObject = (o) => (o && typeof o === 'object' && !Array.isArray(o) ? Object.fromEntries(Object.entries(o).filter(([k, x]) => /^[A-Za-z][A-Za-z0-9]{0,40}$/.test(k) && ['string', 'number', 'boolean'].includes(typeof x)).map(([k, x]) => [k, typeof x === 'string' ? x.slice(0, 200) : x])) : {});
+async function openCase(file) {
+  try {
+    if (file.size > 1024 * 1024) throw new Error('size');
+    const data = JSON.parse(await file.text());
+    if (data?.format !== CASE_FORMAT || data.formatVersion !== 1 || !data.values || typeof data.values !== 'object' || Array.isArray(data.values)) throw new Error('format');
+    const values = cleanObject(data.values);
+    const product = Object.fromEntries(['en', 'ons', 'module', 'powder'].filter((g) => data.product?.[g]).map((g) => [g, cleanObject(data.product[g])]));
+    if (data.product?.form === 'powder') product.form = 'powder';
+    state.values = { ...values, setting: values.setting === 'ward' ? 'ward' : 'icu' };
+    state.product = product;
+    state.import = null;
+    go('result');
+  } catch {
+    window.alert(t('caseError'));
+  }
+}
+
 // ICU severity scores (context only).
 const ORGANS = { brain: ['Beyin', 'Brain'], respiratory: ['Solunum', 'Respiratory'], cardiovascular: ['Kardiyovasküler', 'Cardiovascular'], liver: ['Karaciğer', 'Liver'], kidney: ['Böbrek', 'Kidney'], hemostasis: ['Hemostaz', 'Haemostasis'] };
 function icuScoresHtml(r) {
@@ -1028,7 +1128,7 @@ function engineInput() {
 function renderResult() {
   const r = recommend(engineInput());
   const box = $('#result');
-  const actions = `<div class="actions"><button type="button" class="btn" data-act="edit">${esc(t('edit'))}</button><div class="right"><button type="button" class="btn" data-act="new">${esc(t('newPatient'))}</button><button type="button" class="btn primary" data-act="print">${esc(t('print'))}</button></div></div>`;
+  const actions = `<div class="actions"><button type="button" class="btn" data-act="edit">${esc(t('edit'))}</button><div class="right"><button type="button" class="btn" data-act="new">${esc(t('newPatient'))}</button><button type="button" class="btn" data-act="save-case">${esc(t('saveCase'))}</button>${(r.plan?.rows?.length ?? 0) > 1 ? `<button type="button" class="btn" data-act="save-csv">${esc(t('tableCsv'))}</button>` : ''}<button type="button" class="btn primary" data-act="print">${esc(t('print'))}</button></div></div><p class="muted no-print file-note">${esc(t('fileNote'))}</p>`;
   if (r.blocked) {
     if (r.invalid?.length) {
       const items = r.invalid.map((k) => {
@@ -1037,17 +1137,17 @@ function renderResult() {
         const why = at ? fieldError(at.field, state.values[k]) ?? L(['Geçersiz değer.', 'Invalid value.']) : L(['Geçersiz değer.', 'Invalid value.']);
         return `<li><span class="txt"><strong>${esc(name)}</strong>: ${esc(why)}</span>${at ? `<button type="button" class="btn" data-fix="${at.step}" data-field="${esc(k)}">${esc(L(['Düzelt', 'Correct']))}</button>` : ''}</li>`;
       }).join('');
-      box.innerHTML = `<section class="card summary missing"><h2>${esc(t('blocked'))}</h2><p class="big">${esc(L(['Hesap yapılmadı: aşağıdaki değerleri düzeltin.', 'No calculation was made: correct the values below.']))}</p><ul>${items}</ul>${actions}</section>`;
+      box.innerHTML = printHeaderHtml() + `<section class="card summary missing"><h2>${esc(t('blocked'))}</h2><p class="big">${esc(L(['Hesap yapılmadı: aşağıdaki değerleri düzeltin.', 'No calculation was made: correct the values below.']))}</p><ul>${items}</ul></section>` + inputsHtml() + actions;
       return;
     }
-    box.innerHTML = `<section class="card summary"><h2>${esc(t('blocked'))}</h2><p class="big">${esc(L(r.blocked))}</p>${actions}</section>`;
+    box.innerHTML = printHeaderHtml() + `<section class="card summary"><h2>${esc(t('blocked'))}</h2><p class="big">${esc(L(r.blocked))}</p></section>` + inputsHtml() + actions;
     return;
   }
   if (!r.plan) {
-    box.innerHTML = `<section class="card summary"><span class="route">${esc(L(ROUTE_TEXT[r.route.kind] ?? ['', '']))}</span><h2>${esc(t('todayPlan'))}</h2><p class="big">${esc(L(['Miktar hesaplamak için kilo ya da boy gerekli.', 'Weight or height is needed to calculate amounts.']))}</p></section>${missingHtml(r)}${scalesHtml(r)}${actions}`;
+    box.innerHTML = printHeaderHtml() + `<section class="card summary"><span class="route">${esc(L(ROUTE_TEXT[r.route.kind] ?? ['', '']))}</span><h2>${esc(t('todayPlan'))}</h2><p class="big">${esc(L(['Miktar hesaplamak için kilo ya da boy gerekli.', 'Weight or height is needed to calculate amounts.']))}</p></section>${missingHtml(r)}${scalesHtml(r)}` + inputsHtml() + actions;
     return;
   }
-  box.innerHTML = summaryHtml(r) + suppHtml(r) + tableHtml(r) + missingHtml(r) + scalesHtml(r) + labsHtml(r) + icuScoresHtml(r) + notesHtml(r) + detailsHtml(r) + sourcesHtml(r) + actions;
+  box.innerHTML = printHeaderHtml() + summaryHtml(r) + suppHtml(r) + tableHtml(r) + missingHtml(r) + scalesHtml(r) + labsHtml(r) + icuScoresHtml(r) + notesHtml(r) + detailsHtml(r) + inputsHtml() + sourcesHtml(r) + actions;
 }
 
 function renderFooter() {
@@ -1096,6 +1196,7 @@ document.addEventListener('click', (e) => {
     render();
     return;
   }
+  if (el.id === 'open-case') { document.getElementById('case-file')?.click(); return; }
   if (el.id === 'example') {
     state.values = { setting: 'icu', age: 67, sex: 'male', heightCm: 172, weightKg: 78, icuDay: 3, swallow: 'unsafe', gi: 'ok', shock: 'none', feeding: 'ongoing', kidney: 'normal', bowel: 'normal', stroke: true, usualWeightKg: 81, lossMonths: '3', lowIntakeDays: 2, nrsDisease: '3', lowElectrolytes: 'no', alcohol: 'no', riskDrugs: 'no', propofolMlH: 8 };
     state.product = {};
@@ -1124,6 +1225,8 @@ document.addEventListener('click', (e) => {
     return;
   }
   const act = el.dataset.act;
+  if (act === 'save-case') { saveCase(recommend(engineInput())); return; }
+  if (act === 'save-csv') { saveTableCsv(recommend(engineInput())); return; }
   if (act === 'import-apply') { applyImport(); redrawCards(); return; }
   if (act === 'import-clear') { state.import = null; redrawCards(); return; }
   if ((act === 'next' || act === 'show') && state.view === 'cards') {
@@ -1139,6 +1242,12 @@ document.addEventListener('click', (e) => {
 });
 
 document.addEventListener('change', (e) => {
+  if (e.target.id === 'case-file') {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (file) openCase(file);
+    return;
+  }
   const fileInput = e.target.closest('input[data-import]');
   if (fileInput) {
     const file = fileInput.files?.[0];

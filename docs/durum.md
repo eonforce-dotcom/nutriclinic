@@ -19,7 +19,7 @@ her parça teste ve bağımsız denetime girer.
 | 1. Ölçekler | NRS 2002, GLIM, ESPEN 2015, AND/ASPEN, EWGSOP2 (sarkopeni), EAT-10, FOIS, IDDSI, yutma güvenliği; alan yanı hata mesajları | 7 Kasım 2026'da yayınlandı (sürüm 1.1.0); 66 test; bağımsız denetimde 8 bulgu, 6'sı düzeltildi, 2'si gerekçeyle reddedildi |
 | 2. Laboratuvar | 2a: değerler, birim seçimi, fosforla refeeding hipofosfatemisi, NLR, PNI, üre/kreatinin oranı. 2b: içe aktarma, referans aralıkları, SOFA-2, SAPS II | 2a 7 Kasım 2026'da yayınlandı (sürüm 1.2.0). 2b 7 Kasım 2026'da yayınlandı (sürüm 1.3.0, 78 test; Codex denetiminde 5 bulgu, hepsi düzeltildi): CSV/JSON/TXT içe aktarma, 11 test için yerel referans aralıkları, CRP oranı, SOFA-2, SAPS II; PDF kullanıcı kararını bekliyor |
 | 3. Kayıtlı hastalar | Mevcut kayıt hizmetiyle kayıt; sunucu yapılandırması ve gizlilik metni değişir | sırada |
-| 4. Kanıt ve izlem | Kanıt kütüphanesi, hekim seçimiyle karşılaştırma, verilen beslenme izlemi, JSON/CSV dışa aktarma, araştırma kaydı, PDF raporu | sırada |
+| 4. Kanıt ve izlem | 4a: yazdırılabilir rapor (tarih, sürüm, girilen bilgiler), vakayı JSON dosyasına kaydetme ve açma, tablo CSV. 4b: verilen beslenme izlemi. 4c: kanıt kütüphanesi ve hekim seçimiyle karşılaştırma | 4a 7 Kasım 2026'da yayınlandı (sürüm 1.4.0; Codex denetiminde 7 bulgu, hepsi düzeltildi); 4b ve 4c sırada |
 
 ## Parça 1: ölçekler öneriyi nasıl değiştirir
 
@@ -53,6 +53,15 @@ taramayı bekler; NRS 2002'de BKİ 20,5 dahil; GLIM, ESPEN 2015 ya da AND/ASPEN 
 serviste ONS kararında sayılır; sindirim kanalı kullanılamayan yoğun bakım hastasında GLIM evre 2 gösterilmedikçe ya
 da dışlanmadıkça veri istenir; inmede yutma taraması girilmemişse eksik veri önemi "yüksek". Reddedilenler: ICFSR
 kaynağı zaten notla kaydediliyor; serviste protein hedefi zaten 1,2 g/kg (1,2–1,5).
+
+## Açık kararlar (kullanıcıya soruldu)
+
+- PDF'ten değer okuma: eski sürümdeki PDF.js kütüphanesi yeni sürüme eklensin mi? Eklenmeden önce onay gerekir
+  (bağımlılık değişikliği).
+- Parça 3, kayıtlı hastalar: yeni sayfa mevcut kayıt hizmetine bağlanırsa "girilen bilgiler bu sayfadan çıkmaz"
+  ifadesi değişir; sunucu yapılandırması ve içerik güvenlik politikası değişir. Onay gerekir.
+- Onay beklenirken parça 4'ün sunucu gerektirmeyen kısımları (kanıt kütüphanesi, izlem, dışa aktarma, yazdırılabilir
+  rapor) yapılabilir.
 
 ## Parça 2 planı: laboratuvar (iki adımda yayın)
 

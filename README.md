@@ -30,12 +30,15 @@ and a recorded SAPS II total are shown for ICU patients.
 - Live service: <https://sahnoroloji.org/nutriclinic/>
 - Previous workspace (saved patients, detailed assessment): <https://sahnoroloji.org/nutriclinic2/>; its source is in
   [`nutriclinic2/`](nutriclinic2/)
-- Version: 1.3.0 (7 November 2026); clinical rules and sources: [`docs/CLINICAL-RULES.md`](docs/CLINICAL-RULES.md)
+- Version: 1.4.0 (7 November 2026); clinical rules and sources: [`docs/CLINICAL-RULES.md`](docs/CLINICAL-RULES.md)
 
 ## Privacy
 
 The application is a static page. It has no server component, stores nothing and sends nothing. Its Content Security
-Policy blocks all network requests from the page.
+Policy blocks all network requests from the page. A case can be saved as a JSON file and opened again, and the
+day-by-day table downloaded as CSV; these files are created on the device only and contain patient data, so they are
+kept according to local rules. The printed report starts with the date, version and intended use and ends with a
+summary of every entered value.
 
 ## Repository layout
 

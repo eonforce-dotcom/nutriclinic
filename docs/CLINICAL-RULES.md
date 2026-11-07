@@ -1,6 +1,6 @@
 # NutriClinic staged recommender — clinical rules
 
-Version 1.3.0 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
+Version 1.4.0 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
 
 NutriClinic supports clinical decisions and does not replace them. Every recommendation is reviewed at the bedside
 together with its inputs and sources.
@@ -26,7 +26,11 @@ The calculation is blocked in three cases: an invalid (out-of-range) value, age 
 value is shown under its own field with the accepted range; "Next" and "Show recommendation" stay on the card and go
 to the first wrong field. The result page lists any remaining invalid field with a button that opens it. An invalid
 product-label value is shown at the label field and is not used. Patient data never leave the page: nothing is
-stored, logged or sent.
+stored, logged or sent. A case can be saved to and opened from a JSON file on the device (only plain values with
+simple keys are read back); the day-by-day table can be downloaded as CSV; the printed report opens every section and
+adds the date, version, intended use and a summary of the entered values, product label included. Only case files
+of format version 1 with a values object are opened; the care setting is always ICU or ward. Part 4a was audited
+by Codex (GPT-6.1 Sol, high): 7 findings, all fixed.
 
 ## Sources
 
