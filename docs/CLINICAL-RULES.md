@@ -1,6 +1,6 @@
 # NutriClinic staged recommender — clinical rules
 
-Version 1.1.0 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
+Version 1.2.0 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
 
 NutriClinic supports clinical decisions and does not replace them. Every recommendation is reviewed at the bedside
 together with its inputs and sources.
@@ -62,6 +62,10 @@ the code and the full texts before it was fixed or declined.
 | EAT-10 | Belafsky PC, et al. Ann Otol Rhinol Laryngol 2008;117:919-924; Turkish form: Demir N, et al. Dysphagia 2016;31:644-649 (PMID 27405421) | 19140539 |
 | FOIS | Crary MA, et al. Arch Phys Med Rehabil 2005;86:1516-1520 | 16084801 |
 | IDDSI | Cichero JAY, et al. The IDDSI framework. Dysphagia 2017;32:293-314 | 27913916 |
+| NLR-2001 | Zahorec R. Ratio of neutrophil to lymphocyte counts. Bratisl Lek Listy 2001;102:5-14 | 11723675 |
+| PNI-1984 | Onodera T, et al. Prognostic nutritional index. Nihon Geka Gakkai Zasshi 1984;85:1001-1005 | 6438478 |
+| UCR-2019 | Haines RW, et al. Elevated urea-to-creatinine ratio after major trauma. Intensive Care Med 2019;45:1718-1731 | 31531715 |
+| UCR-CRRT-2025 | Markl-Le Levé A, et al. The urea-creatinine ratio is affected by CRRT. Diagnostics (Basel) 2025;15:1408 | 40506980 |
 | UEG-ESNM-2025 | Mari A, et al. Esophageal and oropharyngeal dysphagia: UEG/ESNM recommendations. United European Gastroenterol J 2025;13:855-901 | 40543044 |
 
 ## Body weight
@@ -244,6 +248,33 @@ How the scales change the recommendation:
 | EAT-10 ≥3 while swallowing is taken as safe | warning: clinical swallowing assessment, VFSS or FEES | EAT-10, UEG-ESNM-2025 |
 | Ward sarcopenia (probable or confirmed) | note: resistance exercise, reach the protein target; no separate leucine or HMB dose | ICFSR-2018 |
 
+## Laboratory values
+
+Entered on card 7 in the laboratory's own unit and converted from molar masses: phosphorus 30.97 g/mol (1 mg/dL =
+0.3229 mmol/L), magnesium 24.305 g/mol (1 mg/dL = 0.4114 mmol/L), creatinine (1 mg/dL = 88.42 µmol/L), urea
+(1 mmol/L = 6.006 mg/dL; urea = BUN × 2.144), lactate (1 mmol/L = 9.008 mg/dL), albumin g/dL × 10 = g/L, CRP
+mg/dL × 10 = mg/L, cells/µL ÷ 1000 = 10⁹/L, 25(OH)D nmol/L ÷ 2.496 = ng/mL. Errors give the accepted range in the
+entered unit.
+
+| Finding | Effect | Source |
+|---|---|---|
+| Feeding running and phosphate <0.65 mmol/L, or a fall >0.16 mmol/L from the value before feeding | refeeding hypophosphataemia: energy held for 48 hours, then increased | ESPEN-ICU-2023 R57 |
+| Feeding not started; potassium, phosphate or magnesium below the laboratory's own lower limit, or phosphate <0.65 mmol/L | low pre-feeding level: NICE major criterion, refeeding risk high (a "No" answer is overruled with a warning) | NICE-CG32 |
+| Feeding not started; all three above their lower limits and the question unanswered | the "low before feeding" criterion is absent | NICE-CG32 |
+| Feeding not started; a value entered without its lower limit | not judged; listed as missing data (high impact while the question is unanswered) | NICE-CG32 |
+| Feeding running; potassium or magnesium below the lower limit | note: replace per local protocol, monitor closely | NICE-CG32 |
+| CRP (any unit) on the ward >100 mg/L | note on the reduced response to nutritional support | ESPEN-POLY-2024 |
+| 25(OH)D (ng/mL or nmol/L) | vitamin D recommendation as before | ESPEN-MN-2022 |
+
+Shown for context only, never changing a dose: NLR (NLR-2001); PNI = albumin (g/L) + 5 × lymphocytes (10⁹/L), equal
+to Onodera's 10 × albumin (g/dL) + 0.005 × lymphocytes/mm³ (PNI-1984); urea/creatinine ratio in mg/dL:mg/dL
+(UCR-CRRT-2025, high group ≥75) and mmol/L:mmol/L (UCR-2019), with a warning that continuous KRT lowers it and that
+kidney failure distorts it. No population reference interval is prefilled: the lower limits are those of the
+clinician's laboratory, entered in the unit of the value. The laboratory part was audited by an independent model
+(Gemini, through Antigravity): 8 findings, all fixed (lower limits instead of the 0.65 mmol/L threshold before
+feeding, warnings when an answer is overruled, findings recorded even when the box was ticked, sources per finding,
+an exact 0.16 mmol/L fall not counted as more than 0.16, an unknown unit message, the three PNI categories).
+
 ## Notes shown when relevant
 
 - Diabetes.
@@ -269,6 +300,9 @@ lower bounds, GLIM stages and age-specific BMI, ESPEN 2015 options, AND/ASPEN in
 the corrected female ASM index, EAT-10, swallowing from FOIS and IDDSI, ONS choice by IDDSI, ONS by nutritional risk,
 early PN in severe malnutrition, oedema, loss duration, stroke screening, sarcopenia note, sources, and the audit
 fixes).
+
+`tests/labs.test.mjs` checks unit conversions, errors in the entered unit, NLR, PNI, the urea/creatinine ratio,
+phosphate rules, lower limits and their effect on the plan (8 tests).
 
 `tests/engine.test.mjs` checks the rules against 45 hand-calculated cases, covering:
 

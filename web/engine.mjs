@@ -8,11 +8,12 @@
 
 import { B } from './text.mjs';
 import { evaluateScales, swallowStatus, FOIS_TEXT as FOIS_NAMES, IDDSI_FOOD, IDDSI_DRINK } from './scales.mjs';
+import { LAB_KEYS, readLab, labIndices, phosphateDrop } from './labs.mjs';
 
 const IDDSI_NAMES = { food: IDDSI_FOOD, drink: IDDSI_DRINK };
 
 export { B };
-export const ENGINE_VERSION = '1.1.0';
+export const ENGINE_VERSION = '1.2.0';
 export const RULES_DATE = '2026-11-07';
 export const INTENDED_USE = B('NutriClinic klinik kararı destekler, yerine geçmez. Her öneri hasta başında, girdileri ve kaynaklarıyla birlikte değerlendirilir.', 'NutriClinic supports clinical decisions and does not replace them. Every recommendation is reviewed at the bedside with its inputs and sources.');
 
@@ -92,8 +93,6 @@ export const FIELD_LIMITS = Object.freeze({
   uunProtein: { min: 0, max: 400 },
   propofolMlH: { min: 0, max: 100 },
   dextroseG: { min: 0, max: 1500 },
-  vitD: { min: 0, max: 200 },
-  crp: { min: 0, max: 600 },
   lossMonths: { min: 0.5, max: 120 },
   ffmKg: { min: 10, max: 150 },
   gripKg: { min: 0, max: 100 },
@@ -164,8 +163,7 @@ export function normalize(raw = {}) {
     alcohol: flag('alcohol'), riskDrugs: flag('riskDrugs'), wernicke: flag('wernicke'),
     hypoPhosphate: flag('hypoPhosphate'),
     measuredEE: num('measuredEE'), uun: num('uun'), uunProtein: num('uunProtein'),
-    propofolMlH: num('propofolMlH'), dextroseG: num('dextroseG'), vitD: num('vitD'),
-    crp: num('crp'),
+    propofolMlH: num('propofolMlH'), dextroseG: num('dextroseG'),
     // Screening and assessment scales (scales.mjs).
     lossMonths: num('lossMonths'), oedema: flag('oedema'),
     nrsDisease: int('nrsDisease'), nrsNutrition: int('nrsNutrition'), nrsImpaired: flag('nrsImpaired'),
@@ -186,6 +184,10 @@ export function normalize(raw = {}) {
     p.weightLossPct = Math.max(0, ((p.usualWeightKg - p.weightKg) / p.usualWeightKg) * 100);
     p.weightLossFromUsual = true;
   }
+  // Laboratory values in canonical units (labs.mjs); 25(OH)D and CRP are read here too.
+  p.labs = Object.fromEntries(LAB_KEYS.map((key) => [key, readLab(raw, key, invalid)]));
+  p.vitD = p.labs.vitD;
+  p.crp = p.labs.crp;
   p.product = normalizeProduct(raw.product, invalid);
   return { p, invalid };
 }
@@ -637,6 +639,8 @@ function missingData(p, m, rf, nb, route, scales) {
     const card4 = p.weightLossPct === null || p.lowIntakeDays === null || m.bmi === null;
     add('refeeding', card4 ? 4 : 5, 'high', B('Refeeding riski belirlenemedi (kilo kaybı, düşük alım süresi, beslenme öncesi K/P/Mg, alkol ve ilaçlar): temkin için yavaş başlangıç ve tiamin uygulandı.', 'Refeeding risk undetermined (weight loss, days of low intake, pre-feeding K/P/Mg, alcohol and drugs): a slow start and thiamine are used as a precaution.'), card4 ? 'weightLossPct' : 'lowElectrolytes');
   }
+  const unjudged = p.feeding !== 'ongoing' && p.lowElectrolytes !== true ? ['potassium', 'phosphate', 'magnesium'].filter((k) => p.labs[k] !== null && p.labs[`${k}Low`] === null) : [];
+  if (unjudged.length) add('lab-limits', 7, p.lowElectrolytes === null ? 'high' : 'medium', B(`${unjudged.map((k) => LAB_WORD[k].tr).join(', ')} girildi ama laboratuvarınızın alt sınırı yok: beslenme öncesi düşük olup olmadığını belirleyemem. Alt sınırı girin ya da 5. adımdaki "K, P ya da Mg düşük mü?" sorusunu yanıtlayın.`, `${unjudged.map((k) => LAB_WORD[k].en).join(', ')} entered without your laboratory's lower limit: I cannot tell whether the pre-feeding level is low. Enter the lower limit or answer "Low K, P or Mg?" in step 5.`), `${unjudged[0]}Low`);
   if (p.weightLossPct !== null && p.weightLossPct > 5 && p.lossMonths === null) add('lossMonths', 4, 'medium', B('Kilo kaybının süresi girilmedi: NRS 2002 ve GLIM kaybı süresine göre puanlar; NICE refeeding ölçütü için son 3–6 ay kabul edildi.', 'Duration of the weight loss missing: NRS 2002 and GLIM grade the loss by its duration; the NICE refeeding criteria assume the last 3–6 months.'));
   if (!icu && scales.nrs.status === 'incomplete') {
     if (p.nrsDisease === null) add('nrsDisease', 4, 'medium', B('NRS 2002 tamamlanmadı: hastalık şiddetini seçerseniz beslenme riskini hesaplarım. Risk yoksa ONS önerilmez; risk varsa ONS ve hedefler kesinleşir.', 'NRS 2002 incomplete: choose the disease severity and I calculate the nutritional risk. Without risk no ONS is given; with risk ONS and targets are confirmed.'));
@@ -651,9 +655,9 @@ function missingData(p, m, rf, nb, route, scales) {
   if (nb.status === 'unknown') add('uun', 6, 'medium', nb.reason === 'kidney' ? B('Böbrek yetmezliğinde idrar üre azotu azot kaybını yansıtmaz: katabolik durum ölçülemedi; rutin protein hedefi kullanıldı.', 'In kidney failure urinary urea nitrogen does not reflect nitrogen loss: catabolic state not measured; routine protein target used.') : B('24 saatlik idrar üre azotu ve o günkü protein alımı yok: anabolik/katabolik durum belirlenemedi; rutin protein hedefi kullanıldı.', '24-h urine urea nitrogen and that day’s protein intake missing: anabolic/catabolic state undetermined; routine protein target used.'));
   if (icu && p.propofolMlH === null) add('propofolMlH', 6, 'medium', B('Propofol hızı girilmedi: beslenme dışı kalori sıfır kabul edildi (propofol 1,1 kcal/mL); propofol alıyorsa fazla beslenme olur.', 'Propofol rate not entered: non-nutritional calories assumed zero (propofol 1.1 kcal/mL); if propofol runs, this overfeeds.'));
   if (icu && p.dextroseG === null) add('dextroseG', 6, 'medium', B('IV dekstroz girilmedi: sıfır kabul edildi.', 'IV dextrose not entered: assumed zero.'));
-  if (p.vitD === null && ((icu && (p.icuDay ?? 1) >= 7) || rf.malnourished === true || scales.malnutrition || (p.age ?? 0) >= 65)) add('vitD', 6, 'low', B('25(OH)D ölçülmedi: risk taşıyan hastada D vitamini durumu belirlenebilir.', '25(OH)D not measured: vitamin D status can be checked in patients at risk.'));
+  if (p.vitD === null && ((icu && (p.icuDay ?? 1) >= 7) || rf.malnourished === true || scales.malnutrition || (p.age ?? 0) >= 65)) add('vitD', 7, 'low', B('25(OH)D ölçülmedi: risk taşıyan hastada D vitamini durumu belirlenebilir.', '25(OH)D not measured: vitamin D status can be checked in patients at risk.'));
   if (p.bowel === null) add('bowel', 3, 'low', B('Dışkılama (ishal/kabızlık) girilmedi: ishal ya da kabızlığa göre lif seçimi yapılmadı.', 'Bowel pattern (diarrhoea/constipation) not entered: no fibre choice for diarrhoea or constipation.'));
-  if (!icu && p.crp === null) add('crp', 6, 'low', B('CRP girilmedi: CRP >100 mg/L olan servis hastasında beslenme desteğine yanıt azalır.', 'CRP not entered: ward patients with CRP >100 mg/L respond less to nutritional support.'));
+  if (!icu && p.crp === null) add('crp', 7, 'low', B('CRP girilmedi: CRP >100 mg/L olan servis hastasında beslenme desteğine yanıt azalır.', 'CRP not entered: ward patients with CRP >100 mg/L respond less to nutritional support.'));
   const order = { critical: 0, high: 1, medium: 2, low: 3 };
   return out.sort((a, b) => order[a.impact] - order[b.impact]);
 }
@@ -703,6 +707,10 @@ function clinicalNotes(p, m, route, plan, scales) {
   if (plan?.lipidLow) notes.push({ text: B('Propofol lipidi günlük lipit sınırına yaklaşıyor: lipitsiz ya da düşük lipitli parenteral karışım seçin.', 'Propofol lipid approaches the daily lipid limit: choose a lipid-free or low-lipid parenteral mixture.'), src: ['espen-icu-2023'] });
   if (p.hypoPhosphate) notes.push({ text: B('Beslenme sırasında refeeding hipofosfatemisi: enerji 48 saat başlangıç düzeyinde tutuldu, sonra yavaşça artırılıyor (tablo). Fosfatı kurum protokolüyle yerine koyun; K/Mg/P günde 2–3 kez.', 'Refeeding hypophosphataemia during feeding: energy held at the starting level for 48 h, then increased slowly (table). Replace phosphate per local protocol; K/Mg/P 2–3 times a day.'), src: ['espen-icu-2023'] });
   notes.push(...scaleNotes(p, route, scales));
+  if (p.labFindings?.includes('hypoPhosphate')) notes.push({ text: B((f) => `Fosfor ${f(p.labs.phosphate, 2)} mmol/L${p.labs.phosphateBefore !== null ? ` (beslenme öncesi ${f(p.labs.phosphateBefore, 2)})` : ''}: refeeding hipofosfatemisi laboratuvardan belirlendi (<0,65 mmol/L ya da >0,16 mmol/L düşüş).`, (f) => `Phosphate ${f(p.labs.phosphate, 2)} mmol/L${p.labs.phosphateBefore !== null ? ` (before feeding ${f(p.labs.phosphateBefore, 2)})` : ''}: refeeding hypophosphataemia found from the laboratory values (<0.65 mmol/L or a fall >0.16 mmol/L).`), src: ['espen-icu-2023'] });
+  if (p.labFindings?.includes('lowBeforeFeeding')) notes.push({ text: B(`Beslenme öncesi düşük: ${p.lowLabKeys.map((k) => LAB_WORD[k].tr).join(', ')}. Düşük düzey refeeding riskini yüksek yapar (NICE Kutu 1).`, `Low before feeding: ${p.lowLabKeys.map((k) => LAB_WORD[k].en).join(', ')}. A low level makes the refeeding risk high (NICE Box 1).`), src: ['nice-cg32'] });
+  if (p.labFindings?.includes('lowDuringFeeding')) notes.push({ text: B(`Beslenme sırasında ${p.lowLabKeys.map((k) => LAB_WORD[k].tr).join(' ve ')} laboratuvarınızın alt sınırının altında: kurum protokolüyle yerine koyun, düzeyleri sık izleyin.`, `During feeding ${p.lowLabKeys.map((k) => LAB_WORD[k].en).join(' and ')} is below your laboratory's lower limit: replace per local protocol and monitor levels closely.`), src: ['nice-cg32'] });
+  if (p.labFindings?.includes('normalBeforeFeeding')) notes.push({ text: B('Potasyum, fosfor ve magnezyum laboratuvarınızın alt sınırının üstünde: "beslenme öncesi düşük" ölçütü yok.', 'Potassium, phosphate and magnesium are above your laboratory\'s lower limits: the "low before feeding" criterion is absent.'), src: ['nice-cg32'] });
   return notes;
 }
 
@@ -798,6 +806,36 @@ export function recommend(raw = {}) {
   const scales = evaluateScales(p, m, sw);
   result.scales = scales;
   result.warnings.push(...scales.nrs.warnings);
+  // Laboratory electrolytes. During feeding: phosphate <0.65 mmol/L or a fall >0.16 mmol/L is refeeding
+  // hypophosphataemia (espen-icu-2023 R57); potassium or magnesium below the laboratory's lower limit is shown.
+  // Before feeding: a value below the laboratory's lower limit is a low pre-feeding level (nice-cg32 Box 1);
+  // phosphate <0.65 mmol/L is low in any laboratory. No population reference interval is assumed.
+  const labs = p.labs;
+  const below = (k) => (labs[k] !== null && labs[`${k}Low`] !== null ? labs[k] < labs[`${k}Low`] : null);
+  const ELECTROLYTES = ['potassium', 'phosphate', 'magnesium'];
+  p.labFindings = [];
+  p.lowLabKeys = [];
+  if (p.feeding === 'ongoing') {
+    if (phosphateDrop(labs) === true) {
+      p.labFindings.push('hypoPhosphate');
+      if (p.hypoPhosphate === false) result.warnings.push(B('Fosfor refeeding hipofosfatemisi gösteriyor (<0,65 mmol/L ya da >0,16 mmol/L düşüş), ancak kutu işaretlenmemişti: işaretli kabul edildi.', 'Phosphate shows refeeding hypophosphataemia (<0.65 mmol/L or a fall >0.16 mmol/L), but the box was not ticked: it is taken as ticked.'));
+      p.hypoPhosphate = true;
+    }
+    p.lowLabKeys = ['potassium', 'magnesium'].filter((k) => below(k) === true);
+    if (p.lowLabKeys.length) p.labFindings.push('lowDuringFeeding');
+  } else {
+    p.lowLabKeys = ELECTROLYTES.filter((k) => below(k) === true || (k === 'phosphate' && labs.phosphate !== null && labs.phosphate < 0.65));
+    if (p.lowLabKeys.length) {
+      p.labFindings.push('lowBeforeFeeding');
+      if (p.lowElectrolytes === false) result.warnings.push(B((f) => `Beslenme öncesi ${p.lowLabKeys.map((k) => LAB_WORD[k].tr).join(', ')} düşük, ancak "K, P ya da Mg düşük mü?" sorusu "Hayır" yanıtlandı. Düşük kabul edildi.`, (f) => `Pre-feeding ${p.lowLabKeys.map((k) => LAB_WORD[k].en).join(', ')} is low, but "Low K, P or Mg?" was answered "No". It is taken as low.`));
+      p.lowElectrolytes = true;
+    } else if (ELECTROLYTES.every((k) => below(k) === false) && p.lowElectrolytes === null) {
+      p.lowElectrolytes = false;
+      p.labFindings.push('normalBeforeFeeding');
+    }
+  }
+  result.labs = { values: labs, indices: labIndices(labs), findings: p.labFindings, lowKeys: p.lowLabKeys };
+  labSources(result.labs).forEach((id) => src(id));
   const rf = refeedingRisk(p, m);
   const nb = nitrogenBalance(p);
   const route = decideRoute(p, rf, rf.severe === true || scales.glim.severe);
@@ -956,12 +994,23 @@ export function recommend(raw = {}) {
 
 // ---------------------------------------------------------------------------------------------
 // Scale helpers.
+const LAB_WORD = { potassium: B('potasyum', 'potassium'), phosphate: B('fosfor', 'phosphate'), magnesium: B('magnezyum', 'magnesium') };
 const SWALLOW_WORD = { safe: B('güvenle yiyebilir', 'can eat safely'), modified: B('kıvam ayarlı diyet', 'texture-modified diet'), unsafe: B('ağızdan beslenmez', 'no oral feeding') };
 const SWALLOW_FROM = { entered: B('yutma sorusu', 'swallowing question'), fois: B('FOIS', 'FOIS'), iddsi: B('IDDSI', 'IDDSI'), alertness: B('uyanıklık bozukluğu', 'impaired alertness'), signs: B('güvensizlik bulgusu', 'unsafe signs') };
 function swallowConflict(sw) {
   const list = (k) => sw.found.map((x) => `${SWALLOW_FROM[x.from][k]}: ${SWALLOW_WORD[x.value][k]}`).join('; ');
   return B(`Yutma bilgileri birbirini tutmuyor (${list('tr')}). En temkinli olan kullanıldı: ${SWALLOW_WORD[sw.value].tr}. Klinik kaydı uzlaştırın.`,
     `The swallowing findings disagree (${list('en')}). The most cautious one is used: ${SWALLOW_WORD[sw.value].en}. Reconcile the clinical record.`);
+}
+
+function labSources(labs) {
+  const ids = [];
+  if (labs.indices.nlr !== undefined) ids.push('nlr-2001');
+  if (labs.indices.pni !== undefined) ids.push('pni-1984');
+  if (labs.indices.ucrMass !== undefined) ids.push('ucr-trauma-2019', 'ucr-crrt-2025');
+  if (labs.findings.includes('hypoPhosphate')) ids.push('espen-icu-2023');
+  if (labs.findings.some((f) => f !== 'hypoPhosphate')) ids.push('nice-cg32');
+  return ids;
 }
 
 function scaleSources(s) {

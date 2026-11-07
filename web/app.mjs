@@ -3,6 +3,7 @@
 // Copyright (C) 2026 Gökay Duman
 import { recommend, normalize, checkNumber, checkProduct, ENGINE_VERSION, RULES_DATE, PRODUCT_DEFAULTS } from './engine.mjs';
 import { swallowStatus, FOIS_TEXT, IDDSI_FOOD, IDDSI_DRINK } from './scales.mjs';
+import { LABS, LAB_KEYS, checkLab, defaultUnit, unitKey } from './labs.mjs';
 import { SOURCES } from './sources.mjs';
 import { getInitialLocale, LANGUAGE_STORAGE_KEY } from './initial-locale.mjs';
 
@@ -240,8 +241,6 @@ const STEPS = [
       { key: 'uunProtein', type: 'num', label: ['Aynı 24 saatte alınan protein', 'Protein received in the same 24 h'], unit: ['g', 'g'], hint: ['Azot dengesi = protein/6,25 − (UUN + 4)', 'Nitrogen balance = protein/6.25 − (UUN + 4)'] },
       ...(v.setting !== 'ward' ? [{ key: 'propofolMlH', type: 'num', label: ['Propofol %1 infüzyonu', 'Propofol 1% infusion'], unit: ['mL/sa', 'mL/h'], unlock: ['Propofol hızını girerseniz kalorisini mamadan düşer, lipit sınırını kontrol ederim.', 'Enter the propofol rate to subtract its calories and check the lipid limit.'] }] : []),
       { key: 'dextroseG', type: 'num', label: ['IV dekstroz (glukoz)', 'IV dextrose (glucose)'], unit: ['g/gün', 'g/day'], hint: ['%5 dekstroz 1000 mL = 50 g', '5% dextrose 1000 mL = 50 g'], unlock: ['IV dekstrozu girerseniz kalorisini mamadan düşer, glukoz sınırını kontrol ederim.', 'Enter IV dextrose to subtract its calories and check the glucose limit.'] },
-      { key: 'vitD', type: 'num', label: ['25(OH) D vitamini', '25(OH) vitamin D'], unit: ['ng/mL', 'ng/mL'], unlock: ['25(OH)D girerseniz D vitamini eksikliğine göre öneride bulunurum.', 'Enter 25(OH)D for a vitamin D recommendation.'] },
-      ...(v.setting === 'ward' ? [{ key: 'crp', type: 'num', label: ['CRP (akut faz yanıtı)', 'CRP (acute-phase response)'], unit: ['mg/L', 'mg/L'], unlock: ['CRP girerseniz yüksek inflamasyonda (>100 mg/L) beslenme desteğine beklenen yanıtı belirtirim.', 'Enter CRP to flag the expected response to nutrition support with high inflammation (>100 mg/L).'] }] : []),
       { key: 'more-muscle', type: 'more', label: ['Kas gücü ve kütlesi (EWGSOP2 sarkopeni)', 'Muscle strength and mass (EWGSOP2 sarcopenia)'],
         lead: v.setting === 'ward' ? ['Standart ölçüm yöntemiyle; popülasyona uygun eşikler kullanılır.', 'With standard measurement methods; population-appropriate cut-offs are used.'] : ['Yoğun bakımda kas gücü testleri akut hastalık ve sedasyondan etkilenir: sonuç yalnız kayıt içindir.', 'In the ICU strength tests are affected by acute illness and sedation: the result is for the record only.'],
         unlock: ['Kavrama gücü ya da sandalye testini girerseniz sarkopeniyi değerlendirir, kas kütlesini GLIM’e aktarırım.', 'Enter grip strength or the chair test and I assess sarcopenia and pass muscle mass to GLIM.'],
@@ -255,6 +254,31 @@ const STEPS = [
             { key: 'sarcopeniaConfounded', label: ['Akut hastalık, nörolojik güçsüzlük, ağrı ya da sedasyon ölçümü etkiliyor', 'Acute illness, neurological weakness, pain or sedation affects the tests'] },
           ] },
         ] },
+    ],
+  },
+  {
+    title: ['Laboratuvar', 'Laboratory'],
+    lead: ['İsteğe bağlı. Değeri kendi laboratuvarınızın biriminde girin; dönüşümü ben yaparım.', 'Optional. Enter each value in your laboratory’s unit; I convert it.'],
+    fields: (v) => [
+      { key: 'phosphate', type: 'lab', label: v.feeding === 'ongoing' ? ['Fosfor (şimdiki)', 'Phosphate (now)'] : ['Fosfor (fosfat)', 'Phosphate'], unlock: ['Fosforu girerseniz beslenme öncesi düşüklüğü ve beslenme sırasında refeeding hipofosfatemisini (<0,65 mmol/L ya da >0,16 mmol/L düşüş) ben belirlerim.', 'Enter phosphate and I detect a low pre-feeding level and refeeding hypophosphataemia during feeding (<0.65 mmol/L or a fall >0.16 mmol/L).'] },
+      ...(v.feeding === 'ongoing' ? [{ key: 'phosphateBefore', type: 'lab', label: ['Beslenme başlamadan önceki fosfor', 'Phosphate before feeding started'], hint: ['Düşüşü hesaplamak için', 'To calculate the fall'] }] : []),
+      { key: 'potassium', type: 'lab', label: ['Potasyum', 'Potassium'] },
+      { key: 'magnesium', type: 'lab', label: ['Magnezyum', 'Magnesium'] },
+      { key: 'more-limits', type: 'more', label: ['Laboratuvarınızın alt sınırları: K, P, Mg', 'Your laboratory’s lower limits: K, P, Mg'], lead: ['Raporunuzdaki referans aralığının alt değeri, değerle aynı birimde. Hazır bir değer konmaz.', 'The lower value of the reference interval on your report, in the same unit as the value. No default is assumed.'],
+        unlock: ['Alt sınırları girerseniz beslenme öncesi düşüklüğü (NICE) ben belirlerim; girilmezse 5. adımdaki soru geçerlidir.', 'Enter the lower limits and I decide whether the pre-feeding level is low (NICE); otherwise the question in step 5 applies.'],
+        fields: [
+          { key: 'potassiumLow', type: 'lab', label: ['Potasyum alt sınırı', 'Potassium lower limit'] },
+          { key: 'phosphateLow', type: 'lab', label: ['Fosfor alt sınırı', 'Phosphate lower limit'] },
+          { key: 'magnesiumLow', type: 'lab', label: ['Magnezyum alt sınırı', 'Magnesium lower limit'] },
+        ] },
+      { key: 'crp', type: 'lab', label: ['CRP', 'CRP'], unlock: v.setting === 'ward' ? ['CRP’yi girerseniz yüksek inflamasyonda (>100 mg/L) beslenme desteğine beklenen yanıtı belirtirim.', 'Enter CRP to flag the expected response to nutrition support with high inflammation (>100 mg/L).'] : ['CRP’yi girerseniz inflamasyon bağlamını sonuçta gösteririm.', 'Enter CRP to show the inflammatory context in the result.'] },
+      { key: 'albumin', type: 'lab', label: ['Albümin', 'Albumin'], hint: ['Malnütrisyon ölçütü değildir; PNI için', 'Not a malnutrition criterion; used for PNI'] },
+      { key: 'lymphocytes', type: 'lab', label: ['Lenfosit (mutlak sayı)', 'Lymphocytes (absolute count)'], unlock: ['Albümin ve lenfositle PNI’yi, nötrofille NLR’yi hesaplarım (yalnız bilgi; doz değişmez).', 'With albumin and lymphocytes I calculate PNI, with neutrophils NLR (context only; no dose change).'] },
+      { key: 'neutrophils', type: 'lab', label: ['Nötrofil (mutlak sayı)', 'Neutrophils (absolute count)'] },
+      { key: 'urea', type: 'lab', label: ['Üre', 'Urea'], unlock: ['Üre ve kreatininle üre/kreatinin oranını katabolizma göstergesi olarak gösteririm (araştırma belirteci; doz değişmez).', 'With urea and creatinine I show the urea/creatinine ratio as a catabolism marker (research marker; no dose change).'] },
+      { key: 'creatinine', type: 'lab', label: ['Kreatinin', 'Creatinine'] },
+      ...(v.setting !== 'ward' ? [{ key: 'lactate', type: 'lab', label: ['Laktat', 'Lactate'] }] : []),
+      { key: 'vitD', type: 'lab', label: ['25(OH) D vitamini', '25(OH) vitamin D'], unlock: ['25(OH)D girerseniz D vitamini eksikliğine göre öneride bulunurum.', 'Enter 25(OH)D for a vitamin D recommendation.'] },
     ],
   },
 ];
@@ -272,6 +296,9 @@ function renderProgress() {
   });
   items.push(`<button type="button" data-goto="result" ${state.view === 'result' ? 'aria-current="step"' : ''}><span class="num">✓</span>${esc(t('result'))}</button>`);
   nav.innerHTML = items.join('');
+  // Keep the current step visible in the horizontally scrolling bar (phones), without scrolling the page.
+  const current = nav.querySelector('[aria-current="step"]');
+  if (current && nav.scrollWidth > nav.clientWidth) nav.scrollLeft = Math.max(0, current.offsetLeft - nav.offsetLeft - (nav.clientWidth - current.offsetWidth) / 2);
 }
 
 // Small coloured sentence: what entering this field adds (shown while it is empty).
@@ -285,6 +312,19 @@ function fieldHtml(f) {
     const err = fieldError(f, val);
     return `<div class="field${wide}"><label for="f-${f.key}">${esc(L(f.label))}${f.req ? `<span class="req" title="${esc(t('required'))}">*</span>` : ''}</label>
       <div class="input-wrap${err ? ' invalid' : ''}"><input id="f-${f.key}" data-key="${f.key}" inputmode="decimal" autocomplete="off" enterkeyhint="next" value="${esc(val)}" aria-describedby="err-${f.key}"${err ? ' aria-invalid="true"' : ''}><span class="unit">${esc(L(f.unit))}</span></div>
+      <p class="field-error" id="err-${f.key}" aria-live="polite"${err ? '' : ' hidden'}>${esc(err ?? '')}</p>
+      ${f.hint ? `<p class="hint">${esc(L(f.hint))}</p>` : ''}${unlockHtml(f, String(val).trim() === '')}</div>`;
+  }
+  if (f.type === 'lab') {
+    const val = v[f.key] ?? '';
+    const unit = v[unitKey(f.key)] ?? defaultUnit(f.key);
+    const err = fieldError(f, val);
+    const units = LABS[f.key].units;
+    const unitHtml = units.length > 1 && !LABS[f.key].unitOf
+      ? `<select class="unit-select" data-unit="${f.key}" aria-label="${esc(L(f.label))}: ${esc(L(['birim', 'unit']))}">${units.map(([u]) => `<option value="${esc(u)}"${u === unit ? ' selected' : ''}>${esc(u)}</option>`).join('')}</select>`
+      : `<span class="unit">${esc(unit)}</span>`;
+    return `<div class="field${wide}"><label for="f-${f.key}">${esc(L(f.label))}</label>
+      <div class="input-wrap${err ? ' invalid' : ''}"><input id="f-${f.key}" data-key="${f.key}" inputmode="decimal" autocomplete="off" enterkeyhint="next" value="${esc(val)}" aria-describedby="err-${f.key}"${err ? ' aria-invalid="true"' : ''}>${unitHtml}</div>
       <p class="field-error" id="err-${f.key}" aria-live="polite"${err ? '' : ' hidden'}>${esc(err ?? '')}</p>
       ${f.hint ? `<p class="hint">${esc(L(f.hint))}</p>` : ''}${unlockHtml(f, String(val).trim() === '')}</div>`;
   }
@@ -329,6 +369,7 @@ function rangeText(min, max, unit) {
 }
 function errorText(err, unit, raw) {
   const shown = String(raw ?? '').trim() || nfa(err.value);
+  if (err.code === 'unit') return L(['Bu birim tanınmıyor: listeden birim seçin.', 'Unknown unit: choose a unit from the list.']);
   if (err.code === 'nan') return L(['Sayı girin (örnek: 72,5).', 'Enter a number (for example 72.5).']);
   if (err.code === 'integer') return L([`Tam sayı girin (${nfa(err.min)}–${nfa(err.max)}).`, `Enter a whole number (${nfa(err.min)}–${nfa(err.max)}).`]);
   const u = unit && !/^\d+–\d+$/.test(unit) ? ` ${unit}` : '';
@@ -336,6 +377,11 @@ function errorText(err, unit, raw) {
   return L([`${rangeText(err.min, err.max, unit)} arasında olmalı; girilen ${shown}.`, `Must be ${rangeText(err.min, err.max, unit)}; entered ${shown}.`]);
 }
 function fieldError(f, value) {
+  if (f?.type === 'lab') {
+    const unit = state.values[unitKey(f.key)] ?? defaultUnit(f.key);
+    const err = checkLab(f.key, value, unit);
+    return err ? errorText(err, unit, value) : null;
+  }
   if (!f || f.type !== 'num') return null;
   const err = checkNumber(f.key, value);
   if (err) return errorText(err, L(f.unit), value);
@@ -767,6 +813,48 @@ function scalesHtml(r) {
   return `<section class="card"><details data-details="scales"${open}><summary>${esc(L(['Tarama ve değerlendirme ölçekleri', 'Screening and assessment scales']))}</summary>${rows.join('')}</details></section>`;
 }
 
+// ---------------------------------------------------------------------------------------------
+// Laboratory values and derived indices (context only).
+const LAB_NAMES = {
+  potassium: ['Potasyum', 'Potassium'], phosphate: ['Fosfor', 'Phosphate'], phosphateBefore: ['Beslenme öncesi fosfor', 'Phosphate before feeding'],
+  magnesium: ['Magnezyum', 'Magnesium'], creatinine: ['Kreatinin', 'Creatinine'], urea: ['Üre', 'Urea'], albumin: ['Albümin', 'Albumin'],
+  crp: ['CRP', 'CRP'], neutrophils: ['Nötrofil', 'Neutrophils'], lymphocytes: ['Lenfosit', 'Lymphocytes'], lactate: ['Laktat', 'Lactate'], vitD: ['25(OH)D', '25(OH)D'],
+  potassiumLow: ['Potasyum alt sınırı', 'Potassium lower limit'], phosphateLow: ['Fosfor alt sınırı', 'Phosphate lower limit'], magnesiumLow: ['Magnezyum alt sınırı', 'Magnesium lower limit'],
+};
+function labsHtml(r) {
+  const l = r.labs;
+  if (!l) return '';
+  const entered = LAB_KEYS.filter((k) => l.values[k] !== null);
+  if (!entered.length) return '';
+  const digits = (x) => (Math.abs(x) >= 100 ? 0 : Math.abs(x) >= 10 ? 1 : 2);
+  const rows = entered.map((k) => {
+    const unit = state.values[unitKey(k)] ?? defaultUnit(k);
+    const canonical = LABS[k].canonical;
+    const shown = `${esc(String(state.values[k]).trim())} ${esc(unit)}`;
+    const conv = unit !== canonical && LABS[k].units.find(([u]) => u === unit)?.[1] !== 1 ? ` = ${nf(l.values[k], digits(l.values[k]))} ${esc(canonical === '10^9/L' ? '10⁹/L' : canonical)}` : '';
+    return `<tr><td class="l">${esc(L(LAB_NAMES[k]))}</td><td class="l">${shown}${conv}</td></tr>`;
+  }).join('');
+  const ix = l.indices;
+  const items = [];
+  if (ix.nlr !== undefined) items.push(scaleRow('NLR', 'info', [L([`Nötrofil/lenfosit oranı ${nf(ix.nlr, 1)}. Sistemik inflamasyon ve stres göstergesidir; tek başına karar vermez.`, `Neutrophil-to-lymphocyte ratio ${nf(ix.nlr, 1)}. A marker of systemic inflammation and stress; it decides nothing on its own.`])], ['nlr-2001']));
+  if (ix.pni !== undefined) items.push(scaleRow('PNI', 'info', [L([`PNI ${nf(ix.pni, 1)} (Onodera). Özgün cerrahi çalışmada >45 güvenli, 40–45 riskli, <40 sakıncalı. Albümin inflamasyonda düşer; malnütrisyon ölçütü değildir.`, `PNI ${nf(ix.pni, 1)} (Onodera). In the original surgical study >45 was safe, 40–45 risky and <40 possibly contraindicated. Albumin falls with inflammation; it is not a malnutrition criterion.`])], ['pni-1984']));
+  if (ix.ucrMass !== undefined) items.push(scaleRow(L(['Üre/kreatinin oranı', 'Urea/creatinine ratio']), 'info', [
+    L([`${nf(ix.ucrMass, 0)} (mg/dL:mg/dL) · ${nf(ix.ucrMolar, 0)} (mmol/L:mmol/L). Katabolizma için araştırma belirtecidir; doz değiştirmez. Bir çalışmada yüksek grup ≥75 (mg/dL:mg/dL) idi.`, `${nf(ix.ucrMass, 0)} (mg/dL:mg/dL) · ${nf(ix.ucrMolar, 0)} (mmol/L:mmol/L). A research marker of catabolism; it does not change the dose. One study’s high group was ≥75 (mg/dL:mg/dL).`]),
+    r.input.kidney === 'crrt' ? L(['Sürekli böbrek replasman tedavisi oranı düşürür: yorumlamayın.', 'Continuous kidney replacement therapy lowers the ratio: do not interpret it.']) : r.input.kidney === 'aki' || r.input.kidney === 'ihd' ? L(['Böbrek yetmezliğinde üre ve kreatinin birikir: oran dikkatle yorumlanır.', 'Urea and creatinine accumulate in kidney failure: interpret the ratio with care.']) : null,
+  ], ['ucr-trauma-2019', 'ucr-crrt-2025']));
+  const FINDING = {
+    hypoPhosphate: ['Fosfordan refeeding hipofosfatemisi belirlendi: enerji 48 saat kısıtlanır.', 'Refeeding hypophosphataemia found from phosphate: energy is restricted for 48 h.'],
+    lowBeforeFeeding: ['Beslenme öncesi elektrolit düşük: refeeding riski yüksek sayıldı.', 'Low pre-feeding electrolyte: refeeding risk taken as high.'],
+    lowDuringFeeding: ['Beslenme sırasında potasyum ya da magnezyum alt sınırın altında: yerine koyun.', 'Potassium or magnesium below the lower limit during feeding: replace it.'],
+    normalBeforeFeeding: ['K, P ve Mg alt sınırın üstünde: beslenme öncesi düşüklük yok.', 'K, P and Mg above the lower limits: no low pre-feeding level.'],
+  };
+  const findings = l.findings.map((f) => L(FINDING[f]));
+  const open = state.openDetails.has('labs') ? ' open' : '';
+  return `<section class="card"><details data-details="labs"${open}><summary>${esc(L(['Laboratuvar', 'Laboratory']))}</summary>
+    ${findings.length ? `<ul class="lines">${findings.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+    <div class="table-wrap"><table><tbody>${rows}</tbody></table></div>${items.join('')}</details></section>`;
+}
+
 function sourcesHtml(r) {
   const open = state.openDetails.has('src') ? ' open' : '';
   const items = r.sources.filter((id) => SOURCES[id]).map((id) => {
@@ -824,7 +912,7 @@ function renderResult() {
     box.innerHTML = `<section class="card summary"><span class="route">${esc(L(ROUTE_TEXT[r.route.kind] ?? ['', '']))}</span><h2>${esc(t('todayPlan'))}</h2><p class="big">${esc(L(['Miktar hesaplamak için kilo ya da boy gerekli.', 'Weight or height is needed to calculate amounts.']))}</p></section>${missingHtml(r)}${scalesHtml(r)}${actions}`;
     return;
   }
-  box.innerHTML = summaryHtml(r) + suppHtml(r) + tableHtml(r) + missingHtml(r) + scalesHtml(r) + notesHtml(r) + detailsHtml(r) + sourcesHtml(r) + actions;
+  box.innerHTML = summaryHtml(r) + suppHtml(r) + tableHtml(r) + missingHtml(r) + scalesHtml(r) + labsHtml(r) + notesHtml(r) + detailsHtml(r) + sourcesHtml(r) + actions;
 }
 
 function renderFooter() {
@@ -902,7 +990,7 @@ document.addEventListener('click', (e) => {
   }
   const act = el.dataset.act;
   if ((act === 'next' || act === 'show') && state.view === 'cards') {
-    const bad = flatFields(STEPS[state.step - 1].fields(state.values)).find((f) => f.type === 'num' && fieldError(f, state.values[f.key]));
+    const bad = flatFields(STEPS[state.step - 1].fields(state.values)).find((f) => (f.type === 'num' || f.type === 'lab') && fieldError(f, state.values[f.key]));
     if (bad) { showFieldErrors(); focusField(bad.key); return; }
   }
   if (act === 'next') go(state.step + 1);
@@ -914,6 +1002,17 @@ document.addEventListener('click', (e) => {
 });
 
 document.addEventListener('change', (e) => {
+  const unitSelect = e.target.closest('select[data-unit]');
+  if (unitSelect) {
+    const key = unitSelect.dataset.unit;
+    state.values[unitKey(key)] = unitSelect.value;
+    // Lower limits show the unit of their value: redraw the card, keeping the place.
+    const scroll = window.scrollY;
+    renderCards();
+    window.scrollTo({ top: scroll });
+    document.querySelector(`select[data-unit="${key}"]`)?.focus();
+    return;
+  }
   const field = e.target.closest('#cards input[data-key]');
   if (field) setFieldError(field, fieldError(currentField(field.dataset.key), field.value));
   const box = e.target.closest('input[type="checkbox"][data-check]');

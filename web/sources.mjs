@@ -154,6 +154,31 @@ export const SOURCES = {
     pmid: '27913916', doi: '10.1007/s00455-016-9758-y', url: 'https://www.iddsi.org/resources/framework-documents',
     used: { tr: 'Yiyecek (3–7) ve içecek (0–4) kıvam düzeyleri; ONS ve sıvıların kıvamı.', en: 'Food (3–7) and drink (0–4) texture levels; thickness of ONS and drinks.' },
   },
+  // Laboratory indices (labs.mjs): context only, no dose change.
+  'nlr-2001': {
+    short: 'NLR',
+    cite: 'Zahorec R. Ratio of neutrophil to lymphocyte counts — rapid and simple parameter of systemic inflammation and stress in critically ill. Bratisl Lek Listy. 2001;102(1):5-14.',
+    pmid: '11723675',
+    used: { tr: 'Nötrofil/lenfosit oranı: sistemik inflamasyon ve stres göstergesi (bilgi amaçlı).', en: 'Neutrophil-to-lymphocyte ratio: a marker of systemic inflammation and stress (context only).' },
+  },
+  'pni-1984': {
+    short: 'PNI (Onodera 1984)',
+    cite: 'Onodera T, Goseki N, Kosaki G. Prognostic nutritional index in gastrointestinal surgery of malnourished cancer patients. Nihon Geka Gakkai Zasshi. 1984;85(9):1001-1005.',
+    pmid: '6438478',
+    used: { tr: 'PNI = 10 × albümin (g/dL) + 0,005 × lenfosit (/mm³); özgün çalışmada cerrahi risk göstergesi. Albümin malnütrisyon ölçütü değildir.', en: 'PNI = 10 × albumin (g/dL) + 0.005 × lymphocytes (/mm³); a surgical risk index in the original study. Albumin is not a malnutrition criterion.' },
+  },
+  'ucr-trauma-2019': {
+    short: { tr: 'Üre/kreatinin · Haines 2019', en: 'Urea/creatinine · Haines 2019' },
+    cite: 'Haines RW, Zolfaghari P, Wan Y, Pearse RM, Puthucheary Z, Prowle JR. Elevated urea-to-creatinine ratio provides a biochemical signature of muscle catabolism and persistent critical illness after major trauma. Intensive Care Med. 2019;45(12):1718-1731.',
+    pmid: '31531715', doi: '10.1007/s00134-019-05760-5',
+    used: { tr: 'Molar üre/kreatinin oranının artışı travma sonrası uzamış kritik hastalıkta kas yıkımıyla ilişkili bulundu (araştırma belirteci).', en: 'A rising molar urea/creatinine ratio accompanied muscle wasting in persistent critical illness after trauma (research marker).' },
+  },
+  'ucr-crrt-2025': {
+    short: { tr: 'Üre/kreatinin · CRRT 2025', en: 'Urea/creatinine · CRRT 2025' },
+    cite: 'Markl-Le Levé A, Hillinger P, Woyke S, et al. The Urea-Creatinine Ratio as Marker of Catabolism Is Affected by Continuous Renal Replacement Therapy. Diagnostics (Basel). 2025;15(11):1408.',
+    pmid: '40506980', doi: '10.3390/diagnostics15111408',
+    used: { tr: 'Sürekli böbrek replasman tedavisi üre/kreatinin oranını düşürür; çalışmada yüksek grup ≥75 (mg/dL:mg/dL).', en: 'Continuous kidney replacement therapy lowers the urea/creatinine ratio; the study\'s high group was ≥75 (mg/dL:mg/dL).' },
+  },
   'ueg-esnm-2025': {
     short: { tr: 'UEG/ESNM 2025 · Disfaji', en: 'UEG/ESNM 2025 · Dysphagia' },
     cite: 'Mari A, Calabrese F, Pasta A, et al. Esophageal and Oropharyngeal Dysphagia: Clinical Recommendations From the United European Gastroenterology and European Society for Neurogastroenterology and Motility. United European Gastroenterol J. 2025;13(6):855-901.',

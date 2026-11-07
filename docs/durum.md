@@ -17,7 +17,7 @@ her parça teste ve bağımsız denetime girer.
 | Parça | İçerik | Durum |
 |---|---|---|
 | 1. Ölçekler | NRS 2002, GLIM, ESPEN 2015, AND/ASPEN, EWGSOP2 (sarkopeni), EAT-10, FOIS, IDDSI, yutma güvenliği; alan yanı hata mesajları | 7 Kasım 2026'da yayınlandı (sürüm 1.1.0); 66 test; bağımsız denetimde 8 bulgu, 6'sı düzeltildi, 2'si gerekçeyle reddedildi |
-| 2. Laboratuvar | Değerler, CSV/PDF içe aktarma, referans aralıkları, NLR, PNI, üre/kreatinin, CRP oranı, SOFA-2, SAPS II; K/P/Mg değerleri refeeding hesabına girer | sırada |
+| 2. Laboratuvar | 2a: değerler, birim seçimi, fosforla refeeding hipofosfatemisi, NLR, PNI, üre/kreatinin oranı. 2b: içe aktarma, referans aralıkları, SOFA-2, SAPS II | 2a 7 Kasım 2026'da yayınlandı (sürüm 1.2.0, 74 test; denetimde 8 bulgu, hepsi düzeltildi); 2b sırada |
 | 3. Kayıtlı hastalar | Mevcut kayıt hizmetiyle kayıt; sunucu yapılandırması ve gizlilik metni değişir | sırada |
 | 4. Kanıt ve izlem | Kanıt kütüphanesi, hekim seçimiyle karşılaştırma, verilen beslenme izlemi, JSON/CSV dışa aktarma, araştırma kaydı, PDF raporu | sırada |
 
@@ -54,6 +54,29 @@ serviste ONS kararında sayılır; sindirim kanalı kullanılamayan yoğun bakı
 da dışlanmadıkça veri istenir; inmede yutma taraması girilmemişse eksik veri önemi "yüksek". Reddedilenler: ICFSR
 kaynağı zaten notla kaydediliyor; serviste protein hedefi zaten 1,2 g/kg (1,2–1,5).
 
-## Sonraki adım
+## Parça 2 planı: laboratuvar (iki adımda yayın)
 
-Parça 2: laboratuvar değerleri, içe aktarma, referans aralıkları ve türetilen göstergeler; K/P/Mg refeeding hesabına.
+Eski sürümde 10 test vardı: laktat, kreatinin, albümin, nötrofil, lenfosit, CRP, potasyum, fosfat, magnezyum, UUN.
+Ayrıca CSV/JSON/PDF/TXT içe aktarma, yerel referans aralıkları, NLR, PNI, üre/kreatinin oranı (UCR), CRP/üst sınır
+oranı, SOFA-2 ve SAPS II.
+
+**2a — değerler ve öneriye etkisi**
+- Yeni 7. kart "Laboratuvar"; D vitamini ve CRP buraya taşınır.
+- Birim seçimi: Türkiye'de fosfor, magnezyum, kreatinin, üre mg/dL; albümin g/dL; CRP mg/L ya da mg/dL. Motor
+  mmol/L, g/L, mg/dL (kreatinin, üre) ve mg/L ile hesaplar; dönüşüm molar kütleden (P 30,97; Mg 24,305;
+  kreatinin 88,4; üre 6,006; BUN × 2,14).
+- Fosfat, beslenme öncesi ve şimdiki değer girilirse refeeding hipofosfatemisi kendiliğinden belirlenir
+  (<0,65 mmol/L ya da >0,16 mmol/L düşüş; ESPEN 2023 R57).
+- K/P/Mg ve laboratuvarın alt sınırı girilirse "beslenme öncesi düşük mü" sorusu kendiliğinden yanıtlanır.
+  Popülasyon varsayılanı konmaz (eski sürümdeki karar). Beslenme öncesi fosfor <0,65 mmol/L her laboratuvarda
+  düşük sayılır; alt sınırı girilmemiş değer eksik veri olarak istenir (denetim bulgusu: 0,65 eşiği beslenme
+  sırasındaki düşüş içindir).
+- Sonuçta "Laboratuvar göstergeleri": NLR, PNI (Onodera 1984, PMID 6438478), UCR (araştırma belirteci; CRRT
+  düşürür, PMID 40506980), CRP/üst sınır. Doz değiştirmez.
+
+**2b — içe aktarma ve skorlar**
+- CSV/JSON (test, value, unit, date) ve TXT içe aktarma: önizleme, seçerek aktarma, cihazda okunur.
+- PDF metni okuma eski sürümde PDF.js ile yapılıyordu. Yeni sürüme eklemek bağımlılık değişikliği: önce
+  kullanıcıya sorulur.
+- Yerel referans aralıkları (oturum boyunca).
+- SOFA-2 (Ranzani 2025, PMID 41159833) bileşenleri ve SAPS II kaydedilmiş toplamı (Le Gall 1993, PMID 8254858).

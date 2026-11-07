@@ -162,6 +162,8 @@ main { max-width: 880px; margin: 0 auto; padding: 16px; }
 .missing .txt { flex: 1; }
 .missing .btn { min-height: 38px; padding: 6px 12px; flex: 0 0 auto; }
 .field-error { color: var(--danger); font-size: .84rem; font-weight: 600; line-height: 1.35; margin: 0; }
+.unit-select { border: 0; border-left: 1px solid var(--line); background: var(--surface-2); color: var(--text); padding: 0 8px; font-size: .9rem; min-height: 46px; max-width: 45%; cursor: pointer; }
+.unit-select:focus { outline: 2px solid var(--focus); outline-offset: -2px; }
 .field-error[hidden] { display: none; }
 details.more { border: 1px dashed var(--line); border-radius: 12px; padding: 10px 12px; margin: 0; }
 details.more[open] { border-style: solid; background: color-mix(in srgb, var(--surface-2) 50%, transparent); }
