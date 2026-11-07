@@ -1,6 +1,6 @@
 # NutriClinic staged recommender — clinical rules
 
-Version 1.6.1 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
+Version 1.7.0 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
 
 NutriClinic supports clinical decisions and does not replace them. Every recommendation is reviewed at the bedside
 together with its inputs and sources.
@@ -350,6 +350,17 @@ the clinician chooses, and only one value per test can be imported. A comparator
 A thousands separator is not read, because it would be taken as a decimal point and give a value a thousand times too
 small. In fields that accept values of 1000 or more, "1.800" or "2,000" is refused with a request to write 1800; counts
 per µL are whole numbers and take no separator at all ("250.000 /µL" → 250000).
+
+## Cases on this device
+
+With device storage on (the default), the open case is saved in this browser shortly after each change and when the
+page is left; nothing is sent. At most 50 cases are kept. "My cases" lists each case's code (the page asks for a case
+code, never a name or ID number), a short summary and the last change, and opens, renames or deletes it. The last case
+reopens by itself only within 12 hours of its last change, with a notice and a button to start a new case, so the next
+user of a shared computer does not open it unknowingly; older cases stay in the list. The example case is never kept. A
+case file (JSON) opened on the page becomes a case on this device, and a saved case file carries the case code. Turning
+device storage off deletes the cases from this device after confirmation. In a private window or with blocked site
+data nothing can be kept, and the page says so.
 
 ## Notes shown when relevant
 

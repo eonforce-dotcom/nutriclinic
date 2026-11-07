@@ -215,6 +215,10 @@ details.ev, details.topic { border-top: 1px solid var(--line); padding: 8px 0; m
 details.ev > summary, details.topic > summary { font-weight: 600; }
 details.ev p, details.topic p { margin: 6px 0; font-size: .92rem; }
 .file-note { font-size: .8rem; margin: 6px 0 0; text-align: right; }
+tr.current td { background: var(--brand-soft); }
+#cases td input[data-case-label] { width: 100%; min-width: 12ch; min-height: 38px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; font: inherit; font-size: 16px; background: var(--surface); color: inherit; }
+.device-note p { margin: 4px 0; }
+@media (max-width: 560px) { #cases td { white-space: normal; } }
 @media print {
   .print-only { display: block; }
   .no-print { display: none !important; }

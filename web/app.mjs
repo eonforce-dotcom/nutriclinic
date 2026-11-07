@@ -1,4 +1,4 @@
-// NutriClinic staged interface. Patient data stay in this page: nothing is stored or sent.
+// NutriClinic staged interface. Patient data are never sent; with device storage on, cases are kept in this browser.
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (C) 2026 Gökay Duman
 import { recommend, normalize, checkNumber, checkProduct, ENGINE_VERSION, RULES_DATE, PRODUCT_DEFAULTS } from './engine.mjs';
@@ -7,9 +7,10 @@ import { LABS, LAB_KEYS, LIMIT_KEYS, checkLab, defaultUnit, unitKey, importText,
 import { followupSummary, checkFollowupValue, FOLLOWUP_FIELDS, MAX_FOLLOWUP_ROWS } from './followup.mjs';
 import { SOURCES } from './sources.mjs';
 import { getInitialLocale, LANGUAGE_STORAGE_KEY } from './initial-locale.mjs';
+import { newCaseId, deviceStorageOn, setDeviceStorage, listCases, getCase, putCase, renameCase, deleteCase, clearCases, setCurrentCaseId, caseToReopen, cleanLabel as cleanCaseLabel, MAX_CASES } from './cases.mjs';
 
 let lang = getInitialLocale();
-const state = { step: 1, values: { setting: 'icu' }, product: {}, followup: [], decisions: {}, view: 'cards', prevView: 'cards', evidenceQuery: '', evidenceKind: '', openDetails: new Set(), openMore: new Set() };
+const state = { step: 1, values: { setting: 'icu' }, product: {}, followup: [], decisions: {}, view: 'cards', prevView: 'cards', evidenceQuery: '', evidenceKind: '', openDetails: new Set(), openMore: new Set(), caseId: null, caseLabel: '', example: false, reopened: null };
 
 // ---------------------------------------------------------------------------------------------
 // Text
@@ -58,7 +59,8 @@ const T = {
   aaCol: ['Amino asit (g)', 'Amino acids (g)'],
   today: ['bugün', 'today'],
   intended: ['Klinik kararı destekler, yerine geçmez. Her öneriyi hasta başında, girdileri ve kaynaklarıyla birlikte değerlendirin.', 'Supports clinical decisions; does not replace them. Review every recommendation at the bedside together with its inputs and sources.'],
-  privacy: ['Girilen bilgiler bu sayfadan çıkmaz: kaydedilmez, sunucuya gönderilmez.', 'Entered data never leave this page: nothing is saved or sent to a server.'],
+  privacy: ['Girilen bilgiler sunucuya gönderilmez. Cihazda saklama açıkken vakalar yalnız bu tarayıcıda tutulur; Vakalarım’dan silinebilir.', 'Entered data are not sent to a server. With device storage on, cases are kept only in this browser and can be deleted under My cases.'],
+  myCases: ['Vakalarım', 'My cases'],
   oldVersion: ['Önceki sürüm (kayıtlı hastalar ve ayrıntılı çalışma alanı)', 'Previous version (saved patients and detailed workspace)'],
   license: ['Lisans: AGPL-3.0 · Kaynak kodu', 'License: AGPL-3.0 · Source code'],
   weightUsed: ['Hesap kilosu', 'Weight used'],
@@ -462,6 +464,12 @@ let caseSeq = 0;
 // Starts a new, empty case with the given values (new case, example, opened case file).
 function resetCase(values) {
   caseSeq += 1;
+  state.caseId = null;
+  state.caseLabel = '';
+  state.example = false;
+  state.reopened = null;
+  lastSaved = '';
+  if (deviceOn()) { try { setCurrentCaseId(deviceStore, null); } catch { /* storage unavailable */ } }
   state.values = values;
   state.product = {};
   state.followup = [];
@@ -1152,7 +1160,7 @@ const stamp = () => new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').r
 const savedDecisions = () => Object.fromEntries(Object.entries(state.decisions).filter(([id, ch]) => !evidenceModule || decisionStatus(id, ch) === 'ok'));
 function saveCase(r) {
   const summary = r && !r.blocked ? { route: r.route?.kind ?? null, productClass: r.product?.cls ?? null, todayKcal: (() => { const k = r.plan?.today?.kcalTarget ?? r.plan?.oral?.kcalTarget; return Number.isFinite(k) ? Math.round(k) : null; })(), supplements: (r.supplements ?? []).map((s) => s.id) } : null;
-  const data = { format: CASE_FORMAT, formatVersion: 1, app: ENGINE_VERSION, rulesDate: RULES_DATE, savedAt: new Date().toISOString(), values: state.values, product: state.product, followup: state.followup, decisions: savedDecisions(), summary };
+  const data = { format: CASE_FORMAT, formatVersion: 1, app: ENGINE_VERSION, rulesDate: RULES_DATE, savedAt: new Date().toISOString(), label: state.caseLabel, values: state.values, product: state.product, followup: state.followup, decisions: savedDecisions(), summary };
   download(`nutriclinic-vaka-${stamp()}.json`, `${JSON.stringify(data, null, 2)}\n`, 'application/json');
 }
 function saveTableCsv(r) {
@@ -1167,6 +1175,28 @@ function saveTableCsv(r) {
 }
 // Only plain values with simple keys are taken from a case file.
 const cleanObject = (o) => (o && typeof o === 'object' && !Array.isArray(o) ? Object.fromEntries(Object.entries(o).filter(([k, x]) => /^[A-Za-z][A-Za-z0-9]{0,40}$/.test(k) && ['string', 'number', 'boolean'].includes(typeof x)).map(([k, x]) => [k, typeof x === 'string' ? x.slice(0, 200) : x])) : {});
+// Reads a case (from a file or from this device) into the page: plain values only, decisions this version knows.
+// Returns the number of decisions left out, or null when another case was started or opened meanwhile.
+async function applyCaseData(data, seq) {
+  const values = cleanObject(data.values);
+  const product = Object.fromEntries(['en', 'ons', 'module', 'powder'].filter((g) => data.product?.[g]).map((g) => [g, cleanObject(data.product[g])]));
+  if (data.product?.form === 'powder') product.form = 'powder';
+  // Decisions keep the topic and choice ids of evidence-data.mjs; pairs this version does not know are not taken.
+  const raw = data.decisions && typeof data.decisions === 'object' && !Array.isArray(data.decisions) ? Object.entries(data.decisions) : [];
+  let decisions = {};
+  let dropped = 0;
+  if (raw.length) {
+    try { await loadEvidence(); } catch { /* library unavailable: the choices cannot be checked and are not taken */ }
+    decisions = Object.fromEntries(raw.filter(([id, ch]) => typeof ch === 'string' && evidenceModule && decisionStatus(id, ch) !== 'unknown'));
+    dropped = raw.length - Object.keys(decisions).length;
+  }
+  if (seq !== caseSeq) return null; // another case was started or opened meanwhile
+  resetCase({ ...values, setting: values.setting === 'ward' ? 'ward' : 'icu' });
+  state.product = product;
+  state.followup = (Array.isArray(data.followup) ? data.followup.slice(0, MAX_FOLLOWUP_ROWS) : []).map((row) => { const c = cleanObject(row); return { day: String(c.day ?? ''), kcal: String(c.kcal ?? ''), protein: String(c.protein ?? '') }; });
+  state.decisions = decisions;
+  return dropped;
+}
 async function openCase(file) {
   const seq = ++caseSeq;
   let dropped = 0;
@@ -1174,28 +1204,102 @@ async function openCase(file) {
     if (file.size > 1024 * 1024) throw new Error('size');
     const data = JSON.parse(await file.text());
     if (data?.format !== CASE_FORMAT || data.formatVersion !== 1 || !data.values || typeof data.values !== 'object' || Array.isArray(data.values)) throw new Error('format');
-    const values = cleanObject(data.values);
-    const product = Object.fromEntries(['en', 'ons', 'module', 'powder'].filter((g) => data.product?.[g]).map((g) => [g, cleanObject(data.product[g])]));
-    if (data.product?.form === 'powder') product.form = 'powder';
-    // Decisions keep the topic and choice ids of evidence-data.mjs; pairs this version does not know are not taken.
-    const raw = data.decisions && typeof data.decisions === 'object' && !Array.isArray(data.decisions) ? Object.entries(data.decisions) : [];
-    let decisions = {};
-    if (raw.length) {
-      try { await loadEvidence(); } catch { /* library unavailable: the choices cannot be checked and are not taken */ }
-      decisions = Object.fromEntries(raw.filter(([id, ch]) => typeof ch === 'string' && evidenceModule && decisionStatus(id, ch) !== 'unknown'));
-      dropped = raw.length - Object.keys(decisions).length;
-    }
-    if (seq !== caseSeq) return; // another case was started or opened meanwhile
-    resetCase({ ...values, setting: values.setting === 'ward' ? 'ward' : 'icu' });
-    state.product = product;
-    state.followup = (Array.isArray(data.followup) ? data.followup.slice(0, MAX_FOLLOWUP_ROWS) : []).map((row) => { const c = cleanObject(row); return { day: String(c.day ?? ''), kcal: String(c.kcal ?? ''), protein: String(c.protein ?? '') }; });
-    state.decisions = decisions;
+    if (seq !== caseSeq) return;
+    dropped = await applyCaseData(data, seq);
+    if (dropped === null) return;
+    state.caseLabel = cleanCaseLabel(data.label);
+    saveToDevice(); // an opened file becomes a case on this device (when device storage is on)
     go('result');
   } catch {
     if (seq === caseSeq) window.alert(t('caseError'));
     return;
   }
   if (dropped) window.alert(t('decisionsDropped'));
+}
+
+// ---------------------------------------------------------------------------------------------
+// Cases on this device (cases.mjs). The open case is saved as it changes, unless device storage is off or the case
+// is the example. Nothing is sent anywhere; the browser keeps the cases until they are deleted here.
+let deviceStore = null;
+try { deviceStore = window.localStorage; } catch { deviceStore = null; }
+const deviceOn = () => Boolean(deviceStore) && deviceStorageOn(deviceStore);
+let lastSaved = '';
+let deviceError = null;
+let saveTimer = null;
+const DEVICE_ERRORS = {
+  full: [`Bu cihazda en çok ${MAX_CASES} vaka saklanır: bu vaka kaydedilmedi. Vakalarım’dan eski vakaları silin.`, `At most ${MAX_CASES} cases are kept on this device: this case was not saved. Delete old cases under My cases.`],
+  size: ['Vaka çok büyük olduğu için bu cihaza kaydedilmedi.', 'The case is too large and was not saved on this device.'],
+  storage: ['Tarayıcı vakayı kaydetmedi (depolama dolu ya da engelli). Vakayı dosyaya kaydedin.', 'The browser did not save the case (storage full or blocked). Save the case to a file.'],
+};
+const caseIsEmpty = () => Object.keys(state.values).every((k) => k === 'setting') && !Object.keys(state.product).length && !state.followup.length && !Object.keys(state.decisions).length;
+const caseData = () => ({ values: state.values, product: state.product, followup: state.followup, decisions: savedDecisions() });
+function saveToDevice() {
+  clearTimeout(saveTimer);
+  if (!deviceOn() || state.example || caseIsEmpty()) return;
+  const data = caseData();
+  const text = JSON.stringify([state.caseLabel, data]);
+  if (text === lastSaved) return;
+  if (!state.caseId) state.caseId = newCaseId();
+  const res = putCase(deviceStore, { id: state.caseId, label: state.caseLabel, data, view: state.view === 'result' ? 'result' : 'cards', step: state.step });
+  const before = deviceError;
+  deviceError = res.ok ? null : res.error;
+  if (res.ok) {
+    lastSaved = text;
+    try { setCurrentCaseId(deviceStore, state.caseId); } catch { /* storage unavailable */ }
+  }
+  renderCasesButton();
+  if (before !== deviceError) renderDeviceNote();
+}
+const scheduleSave = () => { clearTimeout(saveTimer); saveTimer = setTimeout(saveToDevice, 300); };
+async function openDeviceCase(c, { reopened = false } = {}) {
+  const seq = ++caseSeq;
+  const dropped = await applyCaseData(c.data, seq);
+  if (dropped === null) return;
+  state.caseId = c.id;
+  state.caseLabel = c.label;
+  lastSaved = JSON.stringify([state.caseLabel, caseData()]);
+  try { setCurrentCaseId(deviceStore, c.id); } catch { /* storage unavailable */ }
+  state.reopened = reopened ? c.updatedAt : null;
+  if (c.view === 'result') go('result'); else go(c.step);
+  if (dropped) window.alert(t('decisionsDropped'));
+}
+function renderCasesButton() {
+  const b = document.getElementById('my-cases');
+  if (!b) return;
+  const n = deviceOn() ? listCases(deviceStore).length : 0;
+  b.textContent = `${t('myCases')}${n ? ` (${n})` : ''}`;
+}
+const when = (iso) => new Date(iso).toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-GB', { dateStyle: 'short', timeStyle: 'short' });
+// A notice under the header: a case reopened by itself after a reload, or a case that could not be saved.
+function renderDeviceNote() {
+  const box = document.getElementById('device-note');
+  if (!box) return;
+  const parts = [];
+  if (state.reopened) {
+    parts.push(`<p>${esc(L([`Bu cihazdaki son vaka açıldı (son değişiklik ${when(state.reopened)}).`, `The last case on this device was opened (last change ${when(state.reopened)}).`]))}${state.caseLabel ? ` <strong>${esc(state.caseLabel)}</strong>` : ''}</p>
+      <div class="actions"><button type="button" class="btn" data-act="reopened-new">${esc(L(['Yeni vaka başlat', 'Start a new case']))}</button><button type="button" class="btn" data-act="reopened-close">${esc(L(['Tamam', 'OK']))}</button></div>`);
+  }
+  if (deviceError) parts.push(`<p class="field-error">${esc(L(DEVICE_ERRORS[deviceError]))}</p>`);
+  box.innerHTML = parts.join('');
+  box.hidden = !parts.length;
+}
+function caseSummary(d) {
+  const v = d?.values ?? {};
+  return [v.setting === 'ward' ? L(['Servis', 'Ward']) : L(['Yoğun bakım', 'ICU']), v.age !== undefined && v.age !== '' ? `${v.age} ${L(['yaş', 'y'])}` : '',
+    v.weightKg !== undefined && v.weightKg !== '' ? `${v.weightKg} kg` : '', v.setting !== 'ward' && v.icuDay !== undefined && v.icuDay !== '' ? `${L(['YB günü', 'ICU day'])} ${v.icuDay}` : ''].filter(Boolean).join(' · ');
+}
+function renderCases() {
+  const box = $('#cases');
+  const on = deviceOn();
+  const list = on ? listCases(deviceStore) : [];
+  const rows = list.map((c) => `<tr${c.id === state.caseId ? ' class="current"' : ''}><td class="l"><input data-case-label="${esc(c.id)}" value="${esc(c.label)}" maxlength="40" autocomplete="off" placeholder="${esc(L(['Vaka kodu (ad yazmayın)', 'Case code (no names)']))}" aria-label="${esc(L(['Vaka kodu', 'Case code']))}"></td><td class="l">${esc(caseSummary(c.data))}${c.id === state.caseId ? ` <span class="chip ok">${esc(L(['açık', 'open']))}</span>` : ''}</td><td class="l">${esc(when(c.updatedAt))}</td><td class="l"><button type="button" class="btn" data-act="case-open" data-id="${esc(c.id)}">${esc(L(['Aç', 'Open']))}</button> <button type="button" class="btn" data-act="case-delete" data-id="${esc(c.id)}">${esc(L(['Sil', 'Delete']))}</button></td></tr>`).join('');
+  box.innerHTML = `<section class="card"><h2>${esc(L(['Bu cihazdaki vakalar', 'Cases on this device']))}</h2>
+      <p class="lead">${esc(L(['Vakalar yalnız bu tarayıcıda saklanır, hiçbir yere gönderilmez. Bu tarayıcıyı kullanan herkes görebilir: ortak bilgisayarda işiniz bitince vakayı silin ya da saklamayı kapatın. Hasta adı ya da kimlik numarası yazmayın; vaka kodu kullanın. Son vaka, son değişikliğinden sonraki 12 saat içinde sayfa yeniden açılırsa kendiliğinden gelir.', 'Cases are kept only in this browser and sent nowhere. Anyone using this browser can see them: on a shared computer delete the case when you finish, or turn storage off. Do not write patient names or ID numbers; use a case code. The last case reopens by itself when the page is opened again within 12 hours of its last change.']))}</p>
+      <label class="check"><input type="checkbox" data-device="toggle"${on ? ' checked' : ''}${deviceStore ? '' : ' disabled'}><span>${esc(L(['Vakaları bu cihazda sakla', 'Keep cases on this device']))}</span></label>
+      ${deviceStore ? '' : `<p class="field-error">${esc(L(['Bu tarayıcı yerel saklamaya izin vermiyor (gizli pencere ya da engellenmiş site verisi): vakayı dosyaya kaydedin.', 'This browser does not allow local storage (private window or blocked site data): save the case to a file.']))}</p>`}
+      ${deviceError ? `<p class="field-error">${esc(L(DEVICE_ERRORS[deviceError]))}</p>` : ''}
+      ${on ? (list.length ? `<div class="table-wrap"><table><thead><tr><th class="l">${esc(L(['Vaka kodu', 'Case code']))}</th><th class="l">${esc(L(['Özet', 'Summary']))}</th><th class="l">${esc(L(['Son değişiklik', 'Last change']))}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div><p class="muted">${list.length}/${MAX_CASES}</p>` : `<p class="muted">${esc(L(['Bu cihazda saklanan vaka yok.', 'No case is kept on this device.']))}</p>`) : ''}
+      <div class="actions"><button type="button" class="btn" data-act="cases-back">${esc(t('back'))}</button><button type="button" class="btn" data-act="case-new">${esc(L(['Yeni vaka', 'New case']))}</button>${on && list.length ? `<button type="button" class="btn" data-act="cases-clear">${esc(L(['Hepsini bu cihazdan sil', 'Delete all from this device']))}</button>` : ''}</div></section>`;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1406,13 +1510,18 @@ function render() {
   const cards = $('#cards');
   const result = $('#result');
   const evidence = $('#evidence');
+  const cases = $('#cases');
   cards.hidden = state.view !== 'cards';
   result.hidden = state.view !== 'result';
   evidence.hidden = state.view !== 'evidence';
+  cases.hidden = state.view !== 'cases';
   if (state.view === 'result') renderResult();
   else if (state.view === 'evidence') renderEvidence();
+  else if (state.view === 'cases') renderCases();
   else renderCards();
   renderFooter();
+  renderCasesButton();
+  renderDeviceNote();
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1443,8 +1552,10 @@ document.addEventListener('click', (e) => {
     return;
   }
   if (el.id === 'open-case') { document.getElementById('case-file')?.click(); return; }
+  if (el.id === 'my-cases') { if (state.view !== 'cases') state.prevView = state.view; state.view = 'cases'; render(); window.scrollTo({ top: 0 }); return; }
   if (el.id === 'example') {
     resetCase({ setting: 'icu', age: 67, sex: 'male', heightCm: 172, weightKg: 78, icuDay: 3, swallow: 'unsafe', gi: 'ok', shock: 'none', feeding: 'ongoing', kidney: 'normal', bowel: 'normal', stroke: true, usualWeightKg: 81, lossMonths: '3', lowIntakeDays: 2, nrsDisease: '3', lowElectrolytes: 'no', alcohol: 'no', riskDrugs: 'no', propofolMlH: 8 });
+    state.example = true; // the example is never kept on the device
     go('result');
     return;
   }
@@ -1480,6 +1591,25 @@ document.addEventListener('click', (e) => {
     return;
   }
   if (act === 'evidence') { state.prevView = state.view === 'evidence' ? state.prevView : state.view; state.view = 'evidence'; render(); window.scrollTo({ top: 0 }); return; }
+  if (act === 'cases-back') { state.view = ['cards', 'result'].includes(state.prevView) ? state.prevView : 'cards'; render(); window.scrollTo({ top: 0 }); return; }
+  if (act === 'case-new' || act === 'reopened-new') { resetCase({ setting: state.values.setting ?? 'icu' }); go(1); return; }
+  if (act === 'reopened-close') { state.reopened = null; renderDeviceNote(); return; }
+  if (act === 'case-open') { const c = deviceStore ? getCase(deviceStore, el.dataset.id) : null; if (c) openDeviceCase(c); return; }
+  if (act === 'case-delete') {
+    if (!window.confirm(L(['Bu vaka bu cihazdan silinsin mi? Geri alınamaz.', 'Delete this case from this device? This cannot be undone.']))) return;
+    deleteCase(deviceStore, el.dataset.id);
+    if (el.dataset.id === state.caseId) resetCase({ setting: state.values.setting ?? 'icu' }); // the open case leaves the screen too
+    render();
+    return;
+  }
+  if (act === 'cases-clear') {
+    const n = listCases(deviceStore).length;
+    if (!window.confirm(L([`Bu cihazdaki ${n} vakanın hepsi silinsin mi? Geri alınamaz.`, `Delete all ${n} cases from this device? This cannot be undone.`]))) return;
+    clearCases(deviceStore);
+    resetCase({ setting: state.values.setting ?? 'icu' });
+    render();
+    return;
+  }
   if (act === 'decision-clear') { delete state.decisions[el.dataset.topic]; const y = window.scrollY; renderEvidence(); window.scrollTo({ top: y }); return; }
   if (act === 'evidence-back') { state.view = state.prevView === 'evidence' ? 'cards' : state.prevView; render(); window.scrollTo({ top: 0 }); return; }
   if (act === 'save-case') { saveCase(recommend(engineInput())); return; }
@@ -1527,6 +1657,28 @@ document.addEventListener('change', (e) => {
       if (row.selected) state.import.rows.forEach((x) => { if (x !== row && x.key === row.key) x.selected = false; });
     }
     redrawCards();
+    return;
+  }
+  if (e.target.dataset?.device === 'toggle') {
+    if (!e.target.checked) {
+      const n = listCases(deviceStore).length;
+      if (n && !window.confirm(L([`Cihazda saklama kapatılsın mı? Bu cihazdaki ${n} vaka silinir.`, `Turn device storage off? The ${n} cases on this device will be deleted.`]))) { e.target.checked = true; return; }
+      clearCases(deviceStore);
+      setDeviceStorage(deviceStore, false);
+      state.caseId = null;
+      lastSaved = '';
+    } else {
+      setDeviceStorage(deviceStore, true);
+      saveToDevice();
+    }
+    render();
+    return;
+  }
+  if (e.target.dataset?.caseLabel) {
+    const id = e.target.dataset.caseLabel;
+    renameCase(deviceStore, id, e.target.value);
+    if (id === state.caseId) { state.caseLabel = cleanCaseLabel(e.target.value); lastSaved = JSON.stringify([state.caseLabel, caseData()]); }
+    renderCases();
     return;
   }
   if (e.target.dataset?.ev === 'kind') { state.evidenceKind = e.target.value; renderEvidence(); return; }
@@ -1618,4 +1770,13 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+// Every change of the open case is saved on this device shortly after it happens, and at once when the page is left.
+for (const type of ['input', 'change', 'click']) document.addEventListener(type, scheduleSave);
+window.addEventListener('pagehide', saveToDevice);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveToDevice(); });
+
 render();
+{
+  const c = deviceOn() ? caseToReopen(deviceStore) : null;
+  if (c) openDeviceCase(c, { reopened: true });
+}

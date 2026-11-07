@@ -23,6 +23,7 @@
       </div>
     </div>
     <div class="top-actions">
+      <button type="button" class="ghost" id="my-cases">Vakalarım</button>
       <button type="button" class="ghost" id="open-case" data-i18n="openCase">Vaka aç</button>
       <input type="file" id="case-file" accept=".json,application/json" hidden>
       <button type="button" class="ghost" id="example" data-i18n="example">Örnek olgu</button>
@@ -33,10 +34,12 @@
     </div>
   </header>
   <main id="main">
+    <div id="device-note" class="note device-note no-print" hidden></div>
     <nav class="progress" aria-label="Adımlar" id="progress"></nav>
     <div id="cards"></div>
     <section id="result" class="result" hidden aria-live="polite"></section>
     <section id="evidence" class="result" hidden></section>
+    <section id="cases" class="result no-print" hidden></section>
     <noscript><p class="card">Bu uygulama JavaScript gerektirir. / This application requires JavaScript.</p></noscript>
   </main>
   <footer class="foot" id="foot"></footer>
