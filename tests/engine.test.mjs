@@ -189,10 +189,32 @@ test('H. gut unusable: PN from day 3 unless severely malnourished; daily IV micr
   assert.equal(recommend({ ...icuBase, gi: 'contraindicated', icuDay: 1, weightLossPct: 16 }).route.kind, 'pn', 'early progressive PN in severe malnutrition (R7)');
 });
 
-test('H2. uncontrolled shock outranks an unusable gut: no PN either', () => {
-  const r = recommend({ ...icuBase, gi: 'contraindicated', shock: 'uncontrolled' });
+test('H2. uncontrolled shock outranks an unusable gut: no feeding now, and the restart plan is parenteral', () => {
+  const r = recommend({ ...icuBase, gi: 'contraindicated', ischemia: true, shock: 'uncontrolled' });
   assert.equal(r.route.kind, 'delay');
   assert.equal(r.route.reason, 'shock');
+  assert.equal(r.route.access, 'iv');
+  assert.equal(r.plan.pnAfterShock, true);
+  assert.equal(r.plan.today, null);
+  assert.equal(r.plan.restart, undefined, 'no enteral restart into an unusable gut');
+  assert.equal(r.plan.rows[0].icuDay, 3);
+  assert.ok('pnKcal' in r.plan.rows[0]);
+  assert.equal(r.product.cls, 'pn');
+});
+
+test('H4. delayed feeding has no feed today; the table is the progression after the restart', () => {
+  const r = recommend({ ...icuBase, shock: 'uncontrolled' });
+  assert.equal(r.plan.today, null);
+  assert.ok(r.plan.restart.rate > 0);
+  assert.equal(supp(r, 'mvte'), undefined);
+});
+
+test('H5. ward: uncontrolled shock delays feeding; a burn >20% gets zinc but no glutamine', () => {
+  const shock = recommend({ ...wardBase, swallow: 'unsafe', shock: 'uncontrolled' });
+  assert.equal(shock.route.kind, 'delay');
+  const burn = recommend({ ...wardBase, swallow: 'safe', oralIntakePct: 60, burnsTbsa: 25 });
+  assert.ok(supp(burn, 'zinc'));
+  assert.equal(supp(burn, 'glutamine'), undefined);
 });
 
 test('H3. ward PN starts at 50% for 2 days', () => {
@@ -249,6 +271,8 @@ test('K3. weight above 100 kg without height: capped at 100 kg and flagged criti
   assert.equal(r.metrics.energyWeightKind, 'capped-no-height');
   near(r.fullEnergy.kcal, 2500, 0.01);
   assert.equal(missing(r, 'heightCm').impact, 'critical');
+  const kidney = recommend({ ...icuBase, heightCm: null, weightKg: 150, usualWeightKg: 140, kidney: 'crrt' });
+  assert.equal(kidney.metrics.proteinWeight, 100, 'usual weight is capped too without height');
 });
 
 test('L. catabolic (negative nitrogen balance) after day 4: protein replaces losses, capped at 1.5 g/kg', () => {
@@ -266,6 +290,11 @@ test('L. catabolic (negative nitrogen balance) after day 4: protein replaces los
   near(balanced.plan.today.proteinTarget, 91, 0.01);
   const kidneyUnknown = recommend({ ...icuLow, kidney: null, icuDay: 6, feeding: 'ongoing', uun: 18, uunProtein: 80 });
   near(kidneyUnknown.plan.today.proteinTarget, 70, 0.01, 'no escalation and 1.0 g/kg while kidney status is unknown');
+});
+
+test('L1. major trauma with a large measured loss: protein up to 2.0 g/kg', () => {
+  const r = recommend({ ...icuLow, trauma: true, icuDay: 6, feeding: 'ongoing', uun: 25, uunProtein: 80 });
+  near(r.plan.today.proteinTarget, 140, 0.01);
 });
 
 test('L2. nitrogen balance is not interpreted in kidney failure', () => {
@@ -377,6 +406,9 @@ test('Y. refeeding hypophosphataemia during feeding: energy held at the start le
   const kcal = r.plan.rows.map((x) => Math.round(x.kcalTarget));
   // Days 6–7 at 10 kcal/kg; day 8 (cap now 100%) one step up: 0.40 + 0.60 × 1/4 = 0.55 × 1750.
   assert.deepEqual(kcal.slice(0, 3), [700, 700, 963]);
+  const ward = recommend({ ...wardBase, swallow: 'unsafe', hypoPhosphate: true });
+  assert.equal(ward.plan.rows.length, 6);
+  near(ward.plan.rows[5].kcalTarget, 1485, 0.01, 'the ward table reaches the full target');
 });
 
 test('Z. a long tube course plans a PEG but keeps nasogastric access now', () => {

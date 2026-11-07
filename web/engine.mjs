@@ -125,7 +125,7 @@ export function normalize(raw = {}) {
     propofolMlH: num('propofolMlH', 0, 100), dextroseG: num('dextroseG', 0, 1500), vitD: num('vitD', 0, 200),
     crp: num('crp', 0, 600),
   };
-  if (p.setting === 'ward') { p.icuDay = null; p.shock = null; p.measuredEE = null; p.propofolMlH = null; p.burnsTbsa = null; p.trauma = null; }
+  if (p.setting === 'ward') { p.icuDay = null; p.measuredEE = null; p.propofolMlH = null; p.trauma = null; }
   if (p.setting === 'icu') p.pressureUlcer = null;
   if (p.sex !== 'female') p.pregnant = null;
   if (p.weightLossPct === null && p.usualWeightKg !== null && p.weightKg !== null) {
@@ -203,7 +203,9 @@ export function bodyMetrics(p) {
   if (kidneyFailureOf(p) && p.usualWeightKg) {
     const usualBmi = h ? p.usualWeightKg / (h / 100) ** 2 : null;
     const adj = adjust(p.usualWeightKg, usualBmi);
-    m.proteinWeight = adj ?? p.usualWeightKg; m.proteinWeightKind = adj ? 'usual-adjusted' : 'usual';
+    const capped = !h && p.usualWeightKg > 100; // obesity cannot be assessed without height
+    m.proteinWeight = capped ? 100 : adj ?? p.usualWeightKg;
+    m.proteinWeightKind = capped ? 'capped-no-height' : adj ? 'usual-adjusted' : 'usual';
     m.energyWeight = m.proteinWeight; m.energyWeightKind = m.proteinWeightKind;
   } else if (kidneyFailureOf(p) && m.ibw && w) {
     m.proteinWeight = Math.min(m.ibw, w); m.proteinWeightKind = m.ibw <= w ? 'ideal' : 'actual';
@@ -264,7 +266,8 @@ function proteinPerKg(p, m, nb, day) {
   // Catabolic escalation only with a measured negative balance and known normal kidneys.
   if (nb.status === 'catabolic' && p.kidney === 'normal' && (!icu || day >= 5) && m.proteinWeight) {
     const need = nb.replacementProtein / m.proteinWeight;
-    const cap = icu ? (m.obese && m.ibw ? (2.0 * m.ibw) / m.proteinWeight : 1.5) : 1.5;
+    // Ceiling: 1.5 g/kg; 2.0 in major trauma (espen-icu-2023 trauma commentary 1.5–2); obese 2.0 g/kg ideal weight (R52 commentary).
+    const cap = icu ? (m.obese && m.ibw ? (2.0 * m.ibw) / m.proteinWeight : p.trauma === true ? 2.0 : 1.5) : 1.5;
     const raised = Math.min(Math.max(need, perKg), Math.max(cap, perKg));
     if (raised > perKg + 0.001) { perKg = raised; why.push(icu && m.obese ? 'catabolic-obese' : 'catabolic'); }
   }
@@ -276,10 +279,16 @@ function proteinPerKg(p, m, nb, day) {
 function decideRoute(p, rf) {
   const icu = p.setting === 'icu';
   const r = { kind: null, access: null, mode: null, reason: null };
-  // Uncontrolled shock: no EN and no PN until resuscitated (espen-icu-2023 R38, R8).
-  if (icu && p.shock === 'uncontrolled') { r.kind = 'delay'; r.reason = 'shock'; r.access = 'ng'; r.mode = 'continuous'; return r; }
-  // Gut unusable (espen-icu-2023 R38 delay list; R6 PN within 3–7 days; R7 early progressive PN if severely malnourished).
   const gutBlocked = p.gi === 'contraindicated' || p.ischemia === true || p.fistula === true || p.acs === true;
+  // Uncontrolled shock: no EN and no PN until resuscitated (espen-icu-2023 R38, R8). The restart plan is
+  // parenteral when the gut is also unusable (never enteral into an ischaemic or obstructed gut).
+  if (p.shock === 'uncontrolled') {
+    r.kind = 'delay'; r.reason = 'shock'; r.gutBlocked = gutBlocked;
+    r.access = gutBlocked ? 'iv' : p.aspirationRisk ? 'postpyloric' : 'ng';
+    r.mode = 'continuous';
+    return r;
+  }
+  // Gut unusable (espen-icu-2023 R38 delay list; R6 PN within 3–7 days; R7 early progressive PN if severely malnourished).
   if (gutBlocked) {
     r.reason = p.ischemia ? 'ischemia' : p.acs ? 'acs' : p.fistula ? 'fistula' : 'gut';
     r.kind = !icu || rf.severe === true || (p.icuDay ?? 1) >= 3 ? 'pn' : 'pn-later';
@@ -329,20 +338,22 @@ function dayTargets(p, m, rf, nb, full, route) {
   const ic = p.measuredEE !== null;
   const phaseCap = (abs) => (icu ? (ic ? (abs <= 3 ? ICU_CAP_IC : 1) : (abs <= 7 ? ICU_CAP_PREDICTED : 1)) : 1);
   const proteinBase = icu ? (ic ? ICU_CAP_IC : ICU_CAP_PREDICTED) : 1;
-  const isPn = route.kind === 'pn' || route.kind === 'pn-later';
+  const pnAfterShock = route.kind === 'delay' && route.gutBlocked === true;
+  const isPn = route.kind === 'pn' || route.kind === 'pn-later' || pnAfterShock;
+  const laterStart = route.kind === 'pn-later' || (pnAfterShock && icu); // PN from ICU day 3 (espen-icu-2023 R6)
   const eatingHalf = route.kind === 'oral' && p.oralIntakePct !== null && p.oralIntakePct >= 50;
   // nice-cg32 1.4.8 ramp for a high risk, and as the cautious assumption while the risk is undetermined.
   const rfRamp = rf.level === 'high' || rf.level === 'extreme' || (rf.level === 'unknown' && !eatingHalf);
   const hypoP = p.hypoPhosphate === true; // espen-icu-2023 R57: restrict 48 h, then increase gradually
   const precaution = !icu && !rfRamp && (rf.reducedStart === true || isPn); // nice-cg32 1.4.5; espen-icu-2023 R8
   const startPerKg = rf.level === 'extreme' ? 5 : 10;
-  const firstAbs = route.kind === 'pn-later' ? Math.max(3, p.icuDay ?? 1) : (p.icuDay ?? 1);
-  const days = icu ? 7 : rfRamp || hypoP ? 5 : precaution ? 3 : 1;
+  const firstAbs = laterStart ? Math.max(3, p.icuDay ?? 1) : (p.icuDay ?? 1);
+  const days = icu ? 7 : hypoP ? 6 : rfRamp ? 5 : precaution ? 3 : 1;
   const rows = [];
   for (let k = 0; k < days; k += 1) {
     const abs = icu ? firstAbs + k : null;
     // Unknown feeding status = not started (cautious). PN that has not started begins at its own day 1.
-    const ongoing = p.feeding === 'ongoing' && route.kind !== 'pn-later';
+    const ongoing = p.feeding === 'ongoing' && !laterStart && !pnAfterShock;
     const idx = ongoing ? (icu ? abs : 5 + k) : k + 1;
     const cap = phaseCap(abs);
     let eFrac = icu ? Math.min(rampAt(RAMP_ENERGY, idx), cap) : 1;
@@ -358,7 +369,7 @@ function dayTargets(p, m, rf, nb, full, route) {
       cautious.rf = true;
     }
     // Controlled shock, or shock status not entered: low-dose EN today (espen-icu-2023 R38).
-    if (icu && k === 0 && route.kind !== 'pn-later' && (p.shock === 'controlled' || p.shock === null)) {
+    if (icu && k === 0 && !laterStart && !pnAfterShock && (p.shock === 'controlled' || p.shock === null)) {
       if (eFrac > LOW_DOSE_FRACTION) { eFrac = LOW_DOSE_FRACTION; cautious.lowDose = true; }
     }
     const pFrac = Math.min(1, eFrac / proteinBase);
@@ -478,7 +489,7 @@ function supplements(p, m, rf, route, plan) {
   }
   // Multivitamins and trace elements — espen-icu-2023 R34; espen-mn-2022 R1 and introduction; nice-cg32 1.4.8.
   const formulaKcalToday = plan.today?.formulaKcal ?? null;
-  if (route.kind === 'pn' || route.kind === 'pn-later') {
+  if (route.kind === 'pn' || route.kind === 'pn-later' || (route.kind === 'delay' && route.gutBlocked)) {
     list.push({ id: 'mvte', name: B('Multivitamin ve eser element', 'Multivitamins and trace elements'), dose: B('Parenteral beslenmeye her gün IV multivitamin ve eser element ekleyin', 'Add IV multivitamins and trace elements to parenteral nutrition every day'), why: [B('Parenteral beslenme', 'Parenteral nutrition')], src: ['espen-icu-2023', 'espen-mn-2022'] });
   } else if (rf.level === 'high' || rf.level === 'extreme') {
     list.push({ id: 'mvte', name: B('Multivitamin ve eser element', 'Multivitamins and trace elements'), dose: noOral ? B('Dengeli multivitamin-eser element 1 × 1/gün (enteral ya da IV), ilk 10 gün', 'Balanced multivitamin and trace elements once daily (enteral or IV) for the first 10 days') : B('Dengeli multivitamin-eser element 1 × 1/gün, ilk 10 gün', 'Balanced multivitamin and trace element supplement once daily for the first 10 days'), why: [B('Yüksek refeeding riski', 'High refeeding risk')], src: ['nice-cg32'] });
@@ -558,7 +569,7 @@ function monitoring(p, rf, route) {
   out.push(B('Kan şekeri: başlangıçta ve ilk 2 gün en az 4 saatte bir; 180 mg/dL (10 mmol/L) üzerinde insülin.', 'Blood glucose: at start and at least every 4 h for the first 2 days; insulin above 180 mg/dL (10 mmol/L).'));
   if (icu || rf.level !== 'low' || p.hypoPhosphate) out.push(B('K, Mg, fosfat: ilk hafta en az günde bir. Fosfat <0,65 mmol/L ya da >0,16 mmol/L düşüş (refeeding hipofosfatemisi): günde 2–3 kez ölçüp yerine koyun, enerjiyi 48 saat kısıtlayıp sonra yavaşça artırın.', 'K, Mg, phosphate: at least daily in the first week. Phosphate <0.65 mmol/L or a drop >0.16 mmol/L (refeeding hypophosphataemia): measure 2–3 times a day and replace; restrict energy for 48 h, then increase slowly.'));
   if (rf.level === 'extreme') out.push(B('Aşırı refeeding riski: kalp ritmini sürekli izleyin; sıvı dengesini yakından izleyin.', 'Extreme refeeding risk: monitor cardiac rhythm continuously; monitor fluid balance closely.'));
-  if (route.kind === 'en' || (route.kind === 'delay' && route.reason !== 'grv')) out.push(B('Mide aspiratı 6 saatte 500 mL’yi aşarsa enteral beslenmeyi erteleyin; prokinetik ve gerekirse postpilorik tüp.', 'If gastric aspirate exceeds 500 mL in 6 h, delay enteral feeding; prokinetics and, if needed, a post-pyloric tube.'));
+  if (route.kind === 'en' || (route.kind === 'delay' && route.reason !== 'grv' && !route.gutBlocked)) out.push(B('Mide aspiratı 6 saatte 500 mL’yi aşarsa enteral beslenmeyi erteleyin; prokinetik ve gerekirse postpilorik tüp.', 'If gastric aspirate exceeds 500 mL in 6 h, delay enteral feeding; prokinetics and, if needed, a post-pyloric tube.'));
   if (p.swallow === 'modified') out.push(B('Kıvam ayarlı diyette sıvı ve besin alımını günlük izleyin; yutma değerlendirmesini düzenli tekrarlayın.', 'With texture-modified diets monitor fluid and food intake daily; repeat the swallowing assessment regularly.'));
   return out;
 }
@@ -572,7 +583,9 @@ function clinicalNotes(p, m, route, plan) {
   if (route.kind === 'delay' && route.reason === 'grv' && w) {
     notes.push({ text: B((f) => `Mide aspiratı >500 mL/6 sa: karında akut bir sorun yoksa prokinetik başlayın. Birinci seçenek IV eritromisin ${f(3 * w)}–${f(7 * w)} mg/gün (3–7 mg/kg/gün); alternatif IV metoklopramid 10 mg × 3/gün ya da ikisi birlikte. Düzelmezse postpilorik tüp.`, (f) => `Gastric aspirate >500 mL/6 h: if the abdomen shows no acute problem, start a prokinetic. First choice IV erythromycin ${f(3 * w)}–${f(7 * w)} mg/day (3–7 mg/kg/day); alternative IV metoclopramide 10 mg three times a day, or both. If not resolved, a post-pyloric tube.`), src: ['espen-icu-2023'] });
   }
-  if (route.kind === 'delay' && route.reason === 'shock') notes.push({ text: B('Kontrolsüz şokta enteral ya da parenteral beslenme başlatılmaz. Sıvı ve vazopressörle perfüzyon hedefleri sağlanınca düşük dozla başlayın.', 'Neither enteral nor parenteral feeding is started in uncontrolled shock. Once perfusion goals are met with fluids and vasopressors, start at a low dose.'), src: ['espen-icu-2023'] });
+  if (route.kind === 'delay' && route.reason === 'shock') notes.push({ text: route.gutBlocked
+    ? B('Kontrolsüz şokta beslenme başlatılmaz. Sindirim kanalı da kullanılamadığı için şok kontrol altına alınınca enteral değil parenteral beslenme planlanır (yoğun bakımda 3–7. günler arasında).', 'No feeding is started in uncontrolled shock. Because the gut is also unusable, once shock is controlled the plan is parenteral, not enteral (between ICU days 3 and 7).')
+    : B('Kontrolsüz şokta enteral ya da parenteral beslenme başlatılmaz. Sıvı ve vazopressörle perfüzyon hedefleri sağlanınca düşük dozla başlayın.', 'Neither enteral nor parenteral feeding is started in uncontrolled shock. Once perfusion goals are met with fluids and vasopressors, start at a low dose.'), src: ['espen-icu-2023'] });
   if (route.kind === 'pn-later') notes.push({ text: B('Sindirim kanalı kullanılamıyor ve ağır malnütrisyon yok: parenteral beslenme 3–7. günler arasında başlatılır. Enteral yolu her gün yeniden değerlendirin.', 'The gut cannot be used and there is no severe malnutrition: parenteral nutrition starts between days 3 and 7. Reassess the enteral route daily.'), src: ['espen-icu-2023'] });
   if (p.diabetes === true) {
     notes.push({ text: icu
@@ -706,7 +719,8 @@ export function recommend(raw = {}) {
     }
   }
 
-  if (route.kind === 'en' || route.kind === 'delay') {
+  const pnAfterShock = route.kind === 'delay' && route.gutBlocked === true;
+  if (route.kind === 'en' || (route.kind === 'delay' && !pnAfterShock)) {
     const fiber = p.bowel === 'diarrhea' || p.bowel === 'constipation' || (!icu && (p.age ?? 0) >= 65);
     const oralShare = route.supplementalToOral ? (p.oralIntakePct ?? 0) / 100 : 0;
     const mode = route.mode === 'intermittent' ? 'intermittent' : 'continuous';
@@ -727,25 +741,28 @@ export function recommend(raw = {}) {
       const cls = plan.rows[0].cls;
       plan.restart = enRow(lowRow, nn, cls, plan.rows[0].comp, product, 'continuous');
     }
-    plan.today = plan.rows[0];
-    const cls = plan.today.cls;
-    result.product = { cls, label: PRODUCT_LABELS[cls], composition: plan.today.comp, fromLabel: Boolean(product.en) || product.form === 'powder', fiber };
+    // While feeding is delayed there is no feed today; the table shows the progression after the restart.
+    plan.today = route.kind === 'delay' ? null : plan.rows[0];
+    const first = plan.rows[0];
+    const cls = first.cls;
+    result.product = { cls, label: PRODUCT_LABELS[cls], composition: first.comp, fromLabel: Boolean(product.en) || product.form === 'powder', fiber };
     const later = plan.rows.find((r) => r.cls !== cls);
     if (later) result.product.changeFrom = { day: icu ? later.icuDay : later.feedDay, cls: later.cls, label: PRODUCT_LABELS[later.cls] };
-    if (plan.today.proteinOver > 0) result.warnings.push(B((f) => `Bugün mamadan gelen protein hedefi ${f(plan.today.proteinOver)} g aşıyor: daha düşük proteinli bir ürün seçin ya da kullandığınız ürünün etiketini girin.`, (f) => `Today the formula exceeds the protein target by ${f(plan.today.proteinOver)} g: choose a lower-protein product or enter the label of the product you use.`));
-    if (nn.total > plan.today.kcalTarget) result.warnings.push(B((f) => `Propofol ve dekstroz (${f(nn.total)} kcal) bugünkü enerji hedefini tek başına aşıyor: mama verilmez; sedasyonu ve dekstrozu gözden geçirin.`, (f) => `Propofol and dextrose (${f(nn.total)} kcal) alone exceed today's energy target: no formula is given; review sedation and dextrose.`));
+    if (plan.today && plan.today.proteinOver > 0) result.warnings.push(B((f) => `Bugün mamadan gelen protein hedefi ${f(plan.today.proteinOver)} g aşıyor: daha düşük proteinli bir ürün seçin ya da kullandığınız ürünün etiketini girin.`, (f) => `Today the formula exceeds the protein target by ${f(plan.today.proteinOver)} g: choose a lower-protein product or enter the label of the product you use.`));
+    if (plan.today && nn.total > plan.today.kcalTarget) result.warnings.push(B((f) => `Propofol ve dekstroz (${f(nn.total)} kcal) bugünkü enerji hedefini tek başına aşıyor: mama verilmez; sedasyonu ve dekstrozu gözden geçirin.`, (f) => `Propofol and dextrose (${f(nn.total)} kcal) alone exceed today's energy target: no formula is given; review sedation and dextrose.`));
     if (fiber) src('espen-hen-2022');
     if (fiber && !icu) src('espen-geriatrics-2022');
   }
 
-  if (route.kind === 'pn' || route.kind === 'pn-later') {
+  if (route.kind === 'pn' || route.kind === 'pn-later' || pnAfterShock) {
     plan.rows = rows.map((row) => {
       const kcal = Math.max(0, row.kcal - nn.total);
       return { ...row, pnKcal: kcal, aminoAcids: row.protein, nonProteinKcal: Math.max(0, kcal - 4 * row.protein),
         glucoseMaxG: Math.max(0, GLUCOSE_MAX_G_PER_KG_DAY * m.energyWeight - (p.dextroseG ?? 0)),
         lipidMaxG: Math.max(0, LIPID_MAX_G_PER_KG_DAY * m.energyWeight - nn.propofolLipidG) };
     });
-    plan.today = route.kind === 'pn-later' ? null : plan.rows[0];
+    plan.today = route.kind === 'pn' ? plan.rows[0] : null;
+    plan.pnAfterShock = pnAfterShock;
     plan.lipidLow = plan.rows[0].lipidMaxG < 0.5 * m.energyWeight;
     result.product = { cls: 'pn', label: B('Parenteral beslenme (amino asit + glukoz + lipit; 3 bölmeli torba ya da eczane karışımı)', 'Parenteral nutrition (amino acids + glucose + lipid; three-chamber bag or pharmacy compounded)') };
   }

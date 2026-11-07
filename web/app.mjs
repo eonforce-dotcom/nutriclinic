@@ -114,9 +114,7 @@ const STEPS = [
       ], unlock: ['Yutma/disfaji durumunu girerseniz beslenme yolunu (ağızdan, kıvam ayarlı, tüp) ve uygun ONS kıvamını öneririm.', 'Enter swallowing/dysphagia to get the route (oral, texture-modified, tube) and the right ONS texture.'] },
       ...(v.swallow === 'safe' || v.swallow === 'modified' ? [{ key: 'oralIntakePct', type: 'num', label: ['Gereksiniminin yüzde kaçını yiyor?', 'Share of needs eaten'], unit: ['%', '%'], hint: ['Son 1–3 günün ortalaması; tabağın yarısı ≈ %50', 'Average of the last 1–3 days; half the tray ≈ 50%'], unlock: ['Alımı girerseniz ONS sayısını ya da tüple ek beslenme gereğini kesinleştiririm.', 'Enter intake to fix the number of ONS servings or the need for extra tube feeding.'] }] : []),
       { key: 'gi', type: 'seg', label: ['Sindirim kanalı', 'Gut'], options: [{ value: 'ok', label: ['Kullanılabilir', 'Usable'] }, { value: 'contraindicated', label: ['Kullanılamaz (obstrüksiyon, iskemi vb.)', 'Not usable (obstruction, ischaemia, etc.)'] }], unlock: ['Sindirim kanalı kullanılamıyorsa parenteral beslenmenin zamanını ve miktarını hesaplarım.', 'If the gut cannot be used I time and size parenteral nutrition.'] },
-      ...(v.setting !== 'ward' ? [
-        { key: 'shock', type: 'seg', stack: true, label: ['Şok', 'Shock'], options: [{ value: 'none', label: ['Yok', 'None'] }, { value: 'controlled', label: ['Var, sıvı/vazopressörle kontrol altında', 'Present, controlled with fluids/vasopressors'] }, { value: 'uncontrolled', label: ['Kontrolsüz (perfüzyon hedefleri sağlanmadı)', 'Uncontrolled (perfusion goals not met)'] }], unlock: ['Şok durumunu girerseniz beslenmenin bugün başlayıp başlamayacağını ve dozunu belirlerim; girilmezse bugün düşük doz veririm.', 'Enter shock status to decide whether and how much to feed today; without it I give a low dose today.'] },
-      ] : []),
+      { key: 'shock', type: 'seg', stack: true, label: ['Şok', 'Shock'], options: [{ value: 'none', label: ['Yok', 'None'] }, { value: 'controlled', label: ['Var, sıvı/vazopressörle kontrol altında', 'Present, controlled with fluids/vasopressors'] }, { value: 'uncontrolled', label: ['Kontrolsüz (perfüzyon hedefleri sağlanmadı)', 'Uncontrolled (perfusion goals not met)'] }], unlock: v.setting === 'ward' ? ['Şok varsa beslenmenin ertelenip ertelenmeyeceğini belirlerim.', 'With shock I decide whether feeding must wait.'] : ['Şok durumunu girerseniz beslenmenin bugün başlayıp başlamayacağını ve dozunu belirlerim; girilmezse bugün düşük doz veririm.', 'Enter shock status to decide whether and how much to feed today; without it I give a low dose today.'] },
       { key: 'feeding', type: 'seg', label: ['Beslenme desteği', 'Nutrition support'], options: [{ value: 'none', label: ['Henüz başlamadı', 'Not started yet'] }, { value: 'ongoing', label: ['Sürüyor ve tolere ediliyor', 'Running and tolerated'] }], unlock: ['Beslenme sürüyorsa kademeli artışı bulunduğu günden sürdürürüm; girilmezse ilk basamaktan başlarım.', 'If feeding is running I continue the progression from today; otherwise I start from the first step.'] },
       ...(v.setting === 'ward' && v.swallow !== 'safe' && v.swallow !== 'modified' ? [{ key: 'feedingMode', type: 'seg', label: ['Tüple uygulama', 'Tube delivery'], options: [{ value: 'continuous', label: ['Pompayla sürekli', 'Continuous by pump'] }, { value: 'intermittent', label: ['Aralıklı öğünler (bolus)', 'Intermittent feeds (bolus)'] }], unlock: ['Aralıklı seçerseniz günlük öğün sayısını ve her öğünün mL’sini veririm.', 'Choose intermittent to get the number of feeds and mL per feed.'] }] : []),
       { key: 'checks-route', type: 'checks', wide: true, label: ['Varsa işaretleyin', 'Tick if present'], unlock: ['Mide rezidüsünde prokinetik dozunu, aspirasyon riskinde postpilorik yolu, uzun tüp gereğinde PEG zamanını öneririm.', 'High residuals give a prokinetic dose, aspiration risk a post-pyloric route, a long tube course the PEG timing.'], items: [
@@ -144,7 +142,7 @@ const STEPS = [
         { value: 'crrt', label: ['Sürekli böbrek replasman tedavisi (CRRT)', 'Continuous kidney replacement therapy (CRRT)'] },
       ], unlock: ['Böbrek durumunu girerseniz proteini AKI, diyaliz ya da CRRT’ye göre ayarlar, gerekirse düşük proteinli mama öneririm; girilmezse temkin için 1,0 g/kg alırım.', 'Enter kidney status to set protein for AKI, dialysis or CRRT and suggest a low-protein formula if needed; without it I use 1.0 g/kg.'] },
       { key: 'bowel', type: 'seg', label: ['Dışkılama', 'Bowel'], options: [{ value: 'normal', label: ['Normal', 'Normal'] }, { value: 'diarrhea', label: ['İshal', 'Diarrhoea'] }, { value: 'constipation', label: ['Kabızlık', 'Constipation'] }], unlock: ['İshal ya da kabızlık varsa lifli mama ve ek öneriler veririm.', 'With diarrhoea or constipation I suggest fibre and extra measures.'] },
-      ...(v.setting !== 'ward' ? [{ key: 'burnsTbsa', type: 'num', label: ['Yanık', 'Burn'], unit: ['% TVYA', '% TBSA'], hint: ['Yanık yoksa boş bırakın', 'Leave empty if no burn'], unlock: ['Yanık yüzdesini girerseniz çinko ve glutamin gereğini hesaplarım.', 'Enter the burn size to calculate zinc and glutamine.'] }] : []),
+      { key: 'burnsTbsa', type: 'num', label: ['Yanık', 'Burn'], unit: ['% TVYA', '% TBSA'], hint: ['Yanık yoksa boş bırakın', 'Leave empty if no burn'], unlock: v.setting === 'ward' ? ['Yanık yüzdesini girerseniz çinko gereğini hesaplarım.', 'Enter the burn size to calculate zinc.'] : ['Yanık yüzdesini girerseniz çinko ve glutamin gereğini hesaplarım.', 'Enter the burn size to calculate zinc and glutamine.'] },
       { key: 'checks-clinical', type: 'checks', wide: true, label: ['Varsa işaretleyin', 'Tick if present'], unlock: ['Sıvı kısıtlamasında enerji yoğun mama, inmede tüp/PEG zamanlaması, travmada glutamin, bası yarasında arjinin-glutamin-HMB öneririm.', 'Fluid restriction gives an energy-dense formula, stroke the tube/PEG timing, trauma glutamine, pressure ulcers arginine-glutamine-HMB.'], items: [
         { key: 'fluidRestriction', label: ['Sıvı kısıtlaması gerekiyor', 'Fluid restriction needed'] },
         { key: 'diabetes', label: ['Diyabet ya da hiperglisemi', 'Diabetes or hyperglycaemia'] },
@@ -339,44 +337,50 @@ function summaryHtml(r) {
       + kpi(t('proteinToday'), `${nf(Math.round(o.proteinTarget))} g`, `${nf(o.proteinTarget / r.metrics.proteinWeight, 2)} g/kg`)
       + kpi(L(['ONS ile', 'From ONS']), `${nf(o.onsKcal)} kcal`, `${nf(o.onsProtein)} g protein`)
       + (o.totalKcal !== null ? kpi(L(['Toplam (tahmini)', 'Total (estimated)']), `${nf(r10(o.totalKcal))} kcal`, `${nf(Math.round((o.totalKcal / o.kcalTarget) * 100))}% · ${nf(Math.round(o.totalProtein))} g protein`) : '');
-  } else if ((kind === 'en' || kind === 'delay') && today) {
+  } else if ((kind === 'en' && today) || (kind === 'delay' && !plan.pnAfterShock && plan.restart)) {
     const label = L(r.product.label) + (r.product.fiber ? `, ${t('fiber')}` : '');
     const restart = plan.restart;
+    const cur = kind === 'delay' ? restart : today;
     if (kind === 'delay') {
       big = L([`Şu an enteral beslenme başlatmayın: ${L(DELAY_TEXT[r.route.reason] ?? ['erteleme koşulu', 'delaying condition'])}.`, `Do not start enteral feeding now: ${L(DELAY_TEXT[r.route.reason] ?? ['delaying condition', 'delaying condition'])}.`]);
       lines.push(L([`Koşul düzelince düşük dozla başlayın: ${label}, ${nf(restart.rate)} mL/saat (24 saat sürekli); sonra aşağıdaki tabloya göre artırın.`, `Once it resolves, start at a low dose: ${label}, ${nf(restart.rate)} mL/h (continuous over 24 h); then increase as in the table below.`]));
-    } else if (!today.volume) {
+    } else if (!cur.volume) {
       big = L(['Bugün tüple mama verilmez: bugünkü hedef ağızdan alım ya da beslenme dışı kaloriyle karşılanıyor. Sonraki günler için tabloya bakın.', 'No tube feed today: today’s target is covered by oral intake or non-nutritional calories. See the table for the next days.']);
     } else if (today.feeds) {
       big = L([`${label}: günde ${today.feeds.n} öğün × ${nf(today.feeds.ml)} mL (3–4 saat arayla) = ${nf(today.volume)} mL/gün`, `${label}: ${today.feeds.n} feeds × ${nf(today.feeds.ml)} mL a day (every 3–4 h) = ${nf(today.volume)} mL/day`]);
     } else {
       big = L([`${label}: ${nf(today.rate)} mL/saat, 24 saat pompayla sürekli = ${nf(today.volume)} mL/gün`, `${label}: ${nf(today.rate)} mL/h by pump, continuous over 24 h = ${nf(today.volume)} mL/day`]);
     }
-    if (today.moduleProtein > 0) lines.push(L([`Protein modülü: ${nf(today.moduleProtein)} g protein/gün (≈ ${nf(today.moduleGrams)} g toz), 2–4 doza bölünüp suyla tüpten.`, `Protein module: ${nf(today.moduleProtein)} g protein/day (≈ ${nf(today.moduleGrams)} g powder), in 2–4 doses with water via the tube.`]));
-    if (today.powderGrams) lines.push(L([`Toz ürün kullanılıyorsa: günde ${nf(today.powderGrams)} g toz (etiketteki sulandırmayla).`, `If a powder is used: ${nf(today.powderGrams)} g powder a day (diluted as on the label).`]));
+    if (cur.moduleProtein > 0) lines.push(L([`Protein modülü: ${nf(cur.moduleProtein)} g protein/gün (≈ ${nf(cur.moduleGrams)} g toz), 2–4 doza bölünüp suyla tüpten.`, `Protein module: ${nf(cur.moduleProtein)} g protein/day (≈ ${nf(cur.moduleGrams)} g powder), in 2–4 doses with water via the tube.`]));
+    if (cur.powderGrams) lines.push(L([`Toz ürün kullanılıyorsa: günde ${nf(cur.powderGrams)} g toz (etiketteki sulandırmayla).`, `If a powder is used: ${nf(cur.powderGrams)} g powder a day (diluted as on the label).`]));
     if (r.route.supplementalToOral) lines.push(L([`Ağızdan alım (%${nf(r.input.oralIntakePct)}) sürer; ONS ile %75’e ulaşılamadığı için açık tüple kapatılır.`, `Oral intake (${nf(r.input.oralIntakePct)}%) continues; ONS cannot reach 75%, so the gap is covered by tube.`]));
     if (r.product.changeFrom) lines.push(L([`${r.product.changeFrom.day}. günden itibaren: ${L(r.product.changeFrom.label)} (tabloya bakın).`, `From day ${r.product.changeFrom.day}: ${L(r.product.changeFrom.label)} (see the table).`]));
     if (plan.fluid) lines.push(L([`Toplam sıvı 30–35 mL/kg: ${nf(r10(plan.fluid.min))}–${nf(r10(plan.fluid.max))} mL/gün. Mamadan ${nf(r10(plan.fluid.formulaWater))} mL; ek su (yıkama dahil) ${nf(r10(plan.fluid.extraMin))}–${nf(r10(plan.fluid.extraMax))} mL/gün.`, `Total fluid 30–35 mL/kg: ${nf(r10(plan.fluid.min))}–${nf(r10(plan.fluid.max))} mL/day. Formula water ${nf(r10(plan.fluid.formulaWater))} mL; extra water (flushes included) ${nf(r10(plan.fluid.extraMin))}–${nf(r10(plan.fluid.extraMax))} mL/day.`]));
-    const shown = kind === 'delay' ? restart : today;
-    kpis = kpi(t('energyToday'), `${nf(r10(shown.kcalTarget))} kcal`, `${nf(shown.kcalTarget / r.metrics.energyWeight, 1)} kcal/kg`)
-      + kpi(t('proteinToday'), `${nf(Math.round(shown.proteinTarget))} g`, `${nf(shown.proteinTarget / r.metrics.proteinWeight, 2)} g/kg`)
+    const shown = cur;
+    const kE = kind === 'delay' ? L(['Başlangıç enerjisi (koşul düzelince)', 'Start energy (once resolved)']) : t('energyToday');
+    const kP = kind === 'delay' ? L(['Başlangıç proteini (koşul düzelince)', 'Start protein (once resolved)']) : t('proteinToday');
+    kpis = kpi(kE, `${nf(r10(shown.kcalTarget))} kcal`, `${nf(shown.kcalTarget / r.metrics.energyWeight, 1)} kcal/kg`)
+      + kpi(kP, `${nf(Math.round(shown.proteinTarget))} g`, `${nf(shown.proteinTarget / r.metrics.proteinWeight, 2)} g/kg`)
       + kpi(t('delivered'), `${nf(r10(shown.formulaKcal))} kcal`, `${nf(Math.round(shown.formulaProtein + (shown.moduleProtein || 0)))} g protein${shown.moduleProtein ? L([' (modül dahil)', ' (module included)']) : ''}${r.nonNutritional.total > 0 ? L([` · + ${nf(r10(r.nonNutritional.total))} kcal propofol/dekstroz`, ` · + ${nf(r10(r.nonNutritional.total))} kcal propofol/dextrose`]) : ''}`)
       + fullKpi(r);
-  } else if ((kind === 'pn' || kind === 'pn-later') && plan?.rows?.length) {
+  } else if ((kind === 'pn' || kind === 'pn-later' || (kind === 'delay' && plan?.pnAfterShock)) && plan?.rows?.length) {
     const day1 = today ?? plan.rows[0];
-    big = kind === 'pn-later'
+    const later = kind !== 'pn';
+    big = kind === 'delay'
+      ? L(['Şu an beslenme başlatmayın: kontrolsüz şok. Sindirim kanalı da kullanılamadığı için şok kontrol altına alınınca parenteral beslenme planlanır.', 'Do not start feeding now: uncontrolled shock. Because the gut is also unusable, parenteral nutrition is planned once shock is controlled.'])
+      : kind === 'pn-later'
       ? L(['Sindirim kanalı kullanılamıyor: parenteral beslenmeyi 3–7. günler arasında başlatın (ağır malnütrisyonda daha erken ve kademeli). Enteral yolu her gün yeniden değerlendirin.', 'The gut cannot be used: start parenteral nutrition between days 3 and 7 (earlier and progressively if severely malnourished). Reassess the enteral route daily.'])
       : L([`Parenteral beslenme: ${nf(r10(day1.pnKcal))} kcal/gün, amino asit ${nf(Math.round(day1.aminoAcids))} g/gün`, `Parenteral nutrition: ${nf(r10(day1.pnKcal))} kcal/day, amino acids ${nf(Math.round(day1.aminoAcids))} g/day`]);
-    if (kind === 'pn-later') lines.push(L([`PN başlangıcı (${day1.icuDay}. gün): ${nf(r10(day1.pnKcal))} kcal, amino asit ${nf(Math.round(day1.aminoAcids))} g; sonra tabloya göre artırın.`, `PN start (day ${day1.icuDay}): ${nf(r10(day1.pnKcal))} kcal, amino acids ${nf(Math.round(day1.aminoAcids))} g; then increase as in the table.`]));
+    if (later && day1.icuDay) lines.push(L([`PN başlangıcı (${day1.icuDay}. gün): ${nf(r10(day1.pnKcal))} kcal, amino asit ${nf(Math.round(day1.aminoAcids))} g; sonra tabloya göre artırın.`, `PN start (day ${day1.icuDay}): ${nf(r10(day1.pnKcal))} kcal, amino acids ${nf(Math.round(day1.aminoAcids))} g; then increase as in the table.`]));
     lines.push(L([`Sınırlar: glukoz en çok ${nf(Math.round(day1.glucoseMaxG))} g/gün (5 mg/kg/dk); lipit en çok ${nf(Math.round(day1.lipidMaxG))} g/gün (1,5 g/kg, propofol dahil). Torbayı enerji ve amino asit hedefine en yakın olacak şekilde seçin.`, `Limits: glucose at most ${nf(Math.round(day1.glucoseMaxG))} g/day (5 mg/kg/min); lipid at most ${nf(Math.round(day1.lipidMaxG))} g/day (1.5 g/kg, propofol included). Choose the bag closest to the energy and amino-acid targets.`]));
-    const k1 = kind === 'pn-later' ? L([`PN başlangıç hedefi (${day1.icuDay}. gün)`, `PN start target (day ${day1.icuDay})`]) : t('energyToday');
+    const k1 = later ? L([`PN başlangıç hedefi${day1.icuDay ? ` (${day1.icuDay}. gün)` : ''}`, `PN start target${day1.icuDay ? ` (day ${day1.icuDay})` : ''}`]) : t('energyToday');
     kpis = kpi(k1, `${nf(r10(day1.kcal))} kcal`, `${nf(day1.kcal / r.metrics.energyWeight, 1)} kcal/kg`)
-      + kpi(kind === 'pn-later' ? L([`Amino asit (${day1.icuDay}. gün)`, `Amino acids (day ${day1.icuDay})`]) : t('proteinToday'), `${nf(Math.round(day1.protein))} g`, `${nf(day1.protein / r.metrics.proteinWeight, 2)} g/kg`) + fullKpi(r);
+      + kpi(later ? L([`Amino asit${day1.icuDay ? ` (${day1.icuDay}. gün)` : ''}`, `Amino acids${day1.icuDay ? ` (day ${day1.icuDay})` : ''}`]) : t('proteinToday'), `${nf(Math.round(day1.protein))} g`, `${nf(day1.protein / r.metrics.proteinWeight, 2)} g/kg`) + fullKpi(r);
   }
   const access = r.route.access && kind !== 'oral' ? `<p class="muted">${esc(t('access'))}: ${esc(L(ACCESS_TEXT[r.route.access]))}</p>` : '';
   const comp = compText(r);
   return `<section class="card summary">
-    <span class="route">${esc(L(ROUTE_TEXT[kind]))}</span>
+    <span class="route">${esc(L(kind === 'delay' && plan?.pnAfterShock ? ['Beslenme şimdilik ertelenir', 'Feeding is delayed for now'] : ROUTE_TEXT[kind]))}</span>
     <h2>${esc(t('todayPlan'))}</h2>
     <p class="big">${esc(big)}</p>
     ${comp ? `<p class="muted">${esc(comp)}</p>` : ''}
@@ -432,7 +436,8 @@ function tableHtml(r) {
   const dayLabel = icu ? t('icuDayCol') : t('feedDayCol');
   let head;
   let body;
-  if (kind === 'pn' || kind === 'pn-later') {
+  const pnTable = kind === 'pn' || kind === 'pn-later' || (kind === 'delay' && r.plan.pnAfterShock);
+  if (pnTable) {
     head = `<th class="l">${esc(dayLabel)}</th><th>${esc(t('energyCol'))}</th><th>${esc(t('aaCol'))}</th>`;
     body = rows.map((x, i) => `<tr class="${i === 0 ? 'today' : ''}"><td>${icu ? x.icuDay : x.feedDay}${i === 0 ? ` (${esc(t('today'))})` : ''}</td><td>${nf(r10(x.pnKcal ?? x.kcal))}</td><td>${nf(Math.round(x.aminoAcids ?? x.protein))}</td></tr>`).join('');
   } else if (kind === 'en' || kind === 'delay') {
@@ -443,7 +448,8 @@ function tableHtml(r) {
     head = `<th class="l">${esc(dayLabel)}</th><th>${esc(t('energyCol'))}</th><th>${esc(t('proteinCol'))}</th>`;
     body = rows.map((x, i) => `<tr class="${i === 0 ? 'today' : ''}"><td>${icu ? x.icuDay : x.feedDay}</td><td>${nf(r10(x.kcal))}</td><td>${nf(Math.round(x.protein))}</td></tr>`).join('');
   }
-  return `<section class="card"><h2>${esc(t('progression'))}</h2><div class="table-wrap"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div></section>`;
+  const title = kind === 'delay' ? L(['Beslenme başlayınca ilerleme', 'Progression once feeding starts']) : t('progression');
+  return `<section class="card"><h2>${esc(title)}</h2><div class="table-wrap"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div></section>`;
 }
 
 function missingHtml(r) {

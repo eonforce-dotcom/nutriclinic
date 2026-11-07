@@ -29,7 +29,7 @@ data never leave the page: nothing is stored, logged or sent.
 
 Doses and recommendation numbers were read from the official full texts. PMIDs, titles, authors and issues were
 checked with NCBI E-utilities on 2026-11-07. The rules were audited twice by an independent model (Gemini, through
-Antigravity). Each finding was checked against the code and the full texts before it was fixed.
+Antigravity). Each finding was checked against the code and the full texts before it was fixed or declined.
 
 | Id | Source | PMID |
 |---|---|---|
@@ -91,8 +91,9 @@ Pump rates are rounded down on cautious days, so that a ceiling is never exceede
 | Ward, eGFR < 30 or AKI without KRT | 0.8 (0.8–1.0) | ESPEN-POLY-2024 R13; ESPEN-KIDNEY-2024 R18 |
 | Ward, intermittent KRT | 1.2 | ESPEN-KIDNEY-2024 R18 |
 
-Protein rises with energy and reaches its full target when energy reaches the phase cap (R22, "progressively").
-Because of this, one formula class covers the first ICU week. Routine doses above 1.3 g/kg are not used: EFFORT
+Protein rises with energy and reaches its full target when energy reaches 65% (70% with calorimetry) of the full
+estimate, in every phase (R22, "progressively"). Because of this, one formula class covers the first ICU week, and
+protein never falls when the energy cap rises after the early phase. Routine doses above 1.3 g/kg are not used: EFFORT
 Protein, PRECISe and TARGET Protein found no benefit, and EFFORT Protein found harm in AKI.
 
 **Anabolic/catabolic state.** It is calculated from 24-hour urine urea nitrogen (UUN) and the protein received in the
@@ -100,13 +101,15 @@ same 24 hours.
 
 - Nitrogen balance = protein/6.25 − (UUN + 4).
 - If the balance is negative, kidneys are known to be normal, and in the ICU it is day 5 or later: protein is raised
-  to replace the measured loss, (UUN + 4) × 6.25. The ceiling is 1.5 g/kg, or 2.0 g/kg of ideal weight in obesity
-  (ESPEN-ICU-2023 R51–R52).
+  to replace the measured loss, (UUN + 4) × 6.25. The ceiling is 1.5 g/kg, or 2.0 g/kg in major trauma
+  (ESPEN-ICU-2023 trauma commentary 1.5–2) and 2.0 g/kg of ideal weight in obesity (ESPEN-ICU-2023 R51–R52).
 - The balance is not interpreted in kidney failure.
 
 ## Route
 
-1. **Uncontrolled shock**: neither EN nor PN. Start at a low dose once resuscitated (R38).
+1. **Uncontrolled shock** (ICU or ward): neither EN nor PN today, so no feed is given for today.
+   - Once resuscitated: start at a low dose (R38).
+   - If the gut is also unusable, the restart plan is PN from ICU day 3, never enteral.
 2. **Gut unusable** (obstruction, ischaemia, high-output fistula without distal access, abdominal compartment
    syndrome): PN.
    - ICU: from day 3–7. Severe malnutrition (NICE Box 1 single criteria, or BMI < 18.5 with > 10% loss) gets early
@@ -168,7 +171,7 @@ protein over-delivery or non-nutritional calories above the target are shown as 
 | PN | daily IV multivitamins and trace elements | ESPEN-ICU-2023 R34 |
 | EN below 1500 kcal/day | one complete multivitamin-mineral dose per day | ESPEN-MN-2022 |
 | 25(OH)D < 20 ng/mL | ICU: no extra dose (dose and timing uncertain; a single ultra-high dose showed no benefit); feeding provides the standard content. Ward: vitamin D3 4000–5000 IU/day for 2 months, target 40–60 ng/mL (the ESPEN dose for recurrent deficiency) | ESPEN-ICU-2023 R36; ESPEN-MN-2022 R24.3–R24.5; VIOLET |
-| Burns > 20% TBSA | zinc 30–35 mg/day IV for 2–3 weeks. In the ICU, with EN/oral feeding, up to day 15 and with normal kidneys: enteral glutamine 0.3–0.5 g/kg/day for 10–15 days (RE-ENERGIZE found no benefit; ESPEN kept the recommendation) | ESPEN-MN-2022 R13.6; ESPEN-ICU-2023 R26 |
+| Burns > 20% TBSA (ICU or ward) | zinc 30–35 mg/day IV for 2–3 weeks. In the ICU, with EN/oral feeding, up to day 15 and with normal kidneys: enteral glutamine 0.3–0.5 g/kg/day for 10–15 days (RE-ENERGIZE found no benefit; ESPEN kept the recommendation) | ESPEN-MN-2022 R13.6; ESPEN-ICU-2023 R26 |
 | ICU major trauma (days 1–5, EN/oral, normal kidneys) | enteral glutamine 0.2–0.3 g/kg/day | ESPEN-ICU-2023 R27 |
 | Ward pressure ulcer (normal kidneys) | arginine 14 g + glutamine 14 g + calcium HMB 2.4 g/day | ESPEN-POLY-2024 R16 |
 
@@ -195,14 +198,14 @@ guideline indication in the ICU.
 
 ## Tests
 
-`tests/engine.test.mjs` checks the rules against 42 hand-calculated cases, covering:
+`tests/engine.test.mjs` checks the rules against 45 hand-calculated cases, covering:
 
 - ICU: standard, with calorimetry, obese, CRRT, AKI;
 - refeeding: high and extreme risk, undetermined risk, refeeding while eating;
 - ward: ONS and supplemental tube feeding;
 - burns and trauma;
 - PN timing;
-- shock and delays;
+- shock and delays, including shock with an unusable gut and shock on the ward;
 - missing and invalid data;
 - catabolism;
 - Wernicke;
