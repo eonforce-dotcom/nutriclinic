@@ -30,14 +30,20 @@ and a recorded SAPS II total are shown for ICU patients.
 - Live service: <https://sahnoroloji.org/nutriclinic/>
 - Previous workspace (saved patients, detailed assessment): <https://sahnoroloji.org/nutriclinic2/>; its source is in
   [`nutriclinic2/`](nutriclinic2/)
-- Version: 1.7.1 (7 November 2026); clinical rules and sources: [`docs/CLINICAL-RULES.md`](docs/CLINICAL-RULES.md)
+- Version: 1.8.0 (7 November 2026); clinical rules and sources: [`docs/CLINICAL-RULES.md`](docs/CLINICAL-RULES.md)
 
 ## Privacy
 
-The application is a static page. It has no server component and sends nothing. With device storage on (the default), cases are kept only in this browser's
-storage: at most 50, listed under "My cases" (case code, summary, last change; open, rename, delete); the last case
+The application is a static page with one small optional service. With device storage on (the default), cases are kept in this browser's
+storage: at most 200, listed under "My cases" (case code, summary, last change; open, rename, delete); the last case
 reopens by itself only within 12 hours of its last change; the example case is never kept; turning device storage off
-deletes the cases from the device. The chosen language is remembered too. Its Content Security
+deletes the cases from the device. The chosen language is remembered too. Only when the clinician turns on "Also keep
+on the site" are cases sent: each case is encrypted in the browser (WebCrypto: HKDF-SHA-256, AES-GCM 256, the case id as
+additional data) with a key derived from a personal code of 160 random bits, and `server/nutriclinic_vault.py` (Python
+standard library) keeps only the encrypted text, under an account identifier and an access token also derived from the
+code (only the token's SHA-256 is stored). The server and its administrator cannot read the cases; the same code opens
+them on another device; a lost code cannot be recovered. The page's Content Security Policy allows network requests to
+that service only. Its Content Security
 Policy blocks all network requests from the page. A case can be saved as a JSON file and opened again, and the
 day-by-day table downloaded as CSV; these files are created on the device only and contain patient data, so they are
 kept according to local rules. A follow-up table compares the energy and protein delivered each day with that
@@ -50,7 +56,7 @@ summary of every entered value.
 
 | Path | Contents |
 |---|---|
-| `web/` | The application: `index.html`, `app.css`, `app.mjs` (staged interface), `engine.mjs` (rule engine, pure functions), `scales.mjs` (screening and assessment scales), `labs.mjs` (laboratory units and indices), `followup.mjs` (delivered nutrition), `cases.mjs` (cases kept on this device), `evidence-data.mjs` (evidence library and decision topics), `vendor/` (PDF.js 6.2.108, Apache-2.0), `text.mjs`, `sources.mjs` (sources with PMIDs), `initial-locale.mjs`. |
+| `web/` | The application: `index.html`, `app.css`, `app.mjs` (staged interface), `engine.mjs` (rule engine, pure functions), `scales.mjs` (screening and assessment scales), `labs.mjs` (laboratory units and indices), `followup.mjs` (delivered nutrition), `cases.mjs` (cases kept on this device), `vault.mjs` (encrypted cases on the site), `evidence-data.mjs` (evidence library and decision topics), `vendor/` (PDF.js 6.2.108, Apache-2.0), `text.mjs`, `sources.mjs` (sources with PMIDs), `initial-locale.mjs`. |
 | `tests/` | Engine and scale tests with hand-calculated clinical cases (Node's built-in test runner). |
 | `docs/` | Clinical rules with recommendation numbers and sources; `durum.md`: migration plan and status (Turkish). |
 | `tools/` | `build_source_zip.py`: builds the corresponding-source archive served with the application (AGPL). |
@@ -69,7 +75,8 @@ Then open <http://127.0.0.1:4230/>. Use synthetic data only.
 ## Tests
 
 ```sh
-node --test tests/engine.test.mjs tests/scales.test.mjs tests/labs.test.mjs tests/followup.test.mjs tests/cases.test.mjs
+node --test tests/engine.test.mjs tests/scales.test.mjs tests/labs.test.mjs tests/followup.test.mjs tests/cases.test.mjs tests/vault.test.mjs
+python -m unittest discover -s server/tests
 ```
 
 No npm packages are needed (Node.js 24 or later).

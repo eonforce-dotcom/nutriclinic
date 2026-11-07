@@ -2,7 +2,7 @@
 
     python -I tools/build_source_zip.py
 
-The archive holds the application, tests, documents and this tool. Entries are sorted and carry a fixed
+The archive holds the application, the case vault service, tests, documents and this tool. Entries are sorted and carry a fixed
 timestamp, so the same tree always gives the same archive. Standard library only.
 """
 # SPDX-License-Identifier: AGPL-3.0-only
@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / 'web' / 'source-code.zip'
 FILES = ('README.md', 'LICENSE', 'NOTICE', 'CITATION.cff')
-TREES = ('web', 'tests', 'docs', 'tools')
+TREES = ('web', 'tests', 'docs', 'tools', 'server')
 SKIP_SUFFIXES = {'.zip', '.pyc'}
 STAMP = (2026, 11, 7, 0, 0, 0)
 

@@ -13,7 +13,7 @@ import { LAB_KEYS, readLab, labIndices, phosphateDrop, labFlags, sofa2, inverted
 const IDDSI_NAMES = { food: IDDSI_FOOD, drink: IDDSI_DRINK };
 
 export { B };
-export const ENGINE_VERSION = '1.7.1';
+export const ENGINE_VERSION = '1.8.0';
 export const RULES_DATE = '2026-11-07';
 export const INTENDED_USE = B('NutriClinic klinik kararı destekler, yerine geçmez. Her öneri hasta başında, girdileri ve kaynaklarıyla birlikte değerlendirilir.', 'NutriClinic supports clinical decisions and does not replace them. Every recommendation is reviewed at the bedside with its inputs and sources.');
 

@@ -1,6 +1,6 @@
 # NutriClinic staged recommender — clinical rules
 
-Version 1.7.1 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
+Version 1.8.0 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
 
 NutriClinic supports clinical decisions and does not replace them. Every recommendation is reviewed at the bedside
 together with its inputs and sources.
@@ -362,13 +362,25 @@ per µL are whole numbers and take no separator at all ("250.000 /µL" → 25000
 ## Cases on this device
 
 With device storage on (the default), the open case is saved in this browser shortly after each change and when the
-page is left; nothing is sent. At most 50 cases are kept. "My cases" lists each case's code (the page asks for a case
+page is left; nothing is sent. At most 200 cases are kept. "My cases" lists each case's code (the page asks for a case
 code, never a name or ID number), a short summary and the last change, and opens, renames or deletes it. The last case
 reopens by itself only within 12 hours of its last change, with a notice and a button to start a new case, so the next
 user of a shared computer does not open it unknowingly; older cases stay in the list. The example case is never kept. A
 case file (JSON) opened on the page becomes a case on this device, and a saved case file carries the case code. Turning
 device storage off deletes the cases from this device after confirmation. In a private window or with blocked site
 data nothing can be kept, and the page says so.
+
+## Cases on the site (optional)
+
+"Also keep on the site" under My cases is off until the clinician turns it on. Turning it on creates a personal code (32
+characters, 160 random bits) or takes an existing one. Each case is encrypted on the device with a key derived from the
+code (AES-GCM 256; the case id is bound to the encrypted text) and sent to the site, which keeps only the encrypted text
+under an account identifier and an access token also derived from the code; neither the server nor its administrator
+can read a case. The same code opens the cases on another device; changes are synchronised (the later change of a case
+wins; a case deleted on one device is deleted on the others unless it was changed after the deletion). A lost code
+cannot be recovered, so the page shows the new code at once and offers to copy it or save it to a file. Turning site
+storage off on a device forgets the code there; the cases on the site stay. At most 200 cases (2 MB) per code and 1000 codes;
+writing stops while the server has less than 5 GB free.
 
 ## Notes shown when relevant
 

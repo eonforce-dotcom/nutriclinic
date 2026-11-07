@@ -7,7 +7,7 @@
 export const CASES_KEY = 'nc-staged.cases.v1';
 export const CURRENT_KEY = 'nc-staged.current.v1';
 export const DEVICE_KEY = 'nc-staged.device.v1';
-export const MAX_CASES = 50;
+export const MAX_CASES = 200;
 export const MAX_CASE_BYTES = 128 * 1024;
 export const MAX_LABEL = 40;
 // The last case reopens by itself after a reload only when it changed within this time (a shared computer's next
@@ -69,6 +69,20 @@ export function putCase(storage, { id, label = '', data, view = 'cards', step = 
   if (at < 0) list.push(record); else list[at] = record;
   try { writeAll(storage, list); } catch { return { ok: false, error: 'storage' }; }
   return { ok: true };
+}
+// Writes a whole case as it is, keeping its own times (a case received from the site). False when it is damaged or
+// the device is full.
+export function storeCase(storage, c) {
+  if (!c || !isCaseId(c.id) || !c.data || typeof c.data !== 'object' || Array.isArray(c.data) || !ISO.test(String(c.updatedAt))) return false;
+  if (JSON.stringify(c.data).length > MAX_CASE_BYTES) return false;
+  const list = readAll(storage);
+  const at = list.findIndex((x) => x.id === c.id);
+  if (at < 0 && list.length >= MAX_CASES) return false;
+  const record = { id: c.id, label: cleanLabel(c.label), createdAt: ISO.test(String(c.createdAt)) ? c.createdAt : c.updatedAt, updatedAt: c.updatedAt,
+    view: c.view === 'result' ? 'result' : 'cards', step: Number.isInteger(c.step) && c.step >= 1 && c.step <= 20 ? c.step : 1, data: c.data };
+  if (at < 0) list.push(record); else list[at] = record;
+  try { writeAll(storage, list); } catch { return false; }
+  return true;
 }
 export function renameCase(storage, id, label) {
   const list = readAll(storage);

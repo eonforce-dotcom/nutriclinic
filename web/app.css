@@ -218,6 +218,7 @@ details.ev p, details.topic p { margin: 6px 0; font-size: .92rem; }
 tr.current td { background: var(--brand-soft); }
 #cases td input[data-case-label] { width: 100%; min-width: 12ch; min-height: 38px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; font: inherit; font-size: 16px; background: var(--surface); color: inherit; }
 .device-note p { margin: 4px 0; }
+.vault-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 1.1rem; letter-spacing: .04em; padding: 8px 10px; margin: 8px 0; background: var(--surface-2); border-radius: 8px; user-select: all; overflow-wrap: anywhere; }
 @media (max-width: 560px) { #cases td { white-space: normal; } }
 @media print {
   .print-only { display: block; }
