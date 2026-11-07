@@ -13,6 +13,12 @@ Enter the patient's data in seven short steps. NutriClinic recommends:
 
 It also gives a day-by-day progression table and the monitoring to do.
 
+A menu lists every part of the application: the steps, calculators and scales on their own (NRS 2002, GLIM, ESPEN
+2015, AND/ASPEN, sarcopenia, swallowing, refeeding risk, SOFA-2 and SAPS II, laboratory values and indices, weight and
+targets), the follow-up, the cases on the device and the evidence library. On wide screens it is a fixed column on the
+left; on phones and tablets it opens from the menu button. A calculator shows only its questions - the same fields as
+in the steps, so what is entered there also goes into the open case - and its result while typing.
+
 NutriClinic never stops because data are missing. It answers with the most cautious documented assumption and lists
 the missing data, ordered by how much each one would change the answer. Once the data are complete, the
 recommendation becomes the ideal one for that patient. The anabolic/catabolic state (24-hour urine urea nitrogen),
@@ -30,7 +36,7 @@ and a recorded SAPS II total are shown for ICU patients.
 - Live service: <https://sahnoroloji.org/nutriclinic/>
 - Previous workspace (saved patients, detailed assessment): <https://sahnoroloji.org/nutriclinic2/>; its source is in
   [`nutriclinic2/`](nutriclinic2/)
-- Version: 1.9.1 (7 November 2026); clinical rules and sources: [`docs/CLINICAL-RULES.md`](docs/CLINICAL-RULES.md)
+- Version: 1.10.0 (8 November 2026); clinical rules and sources: [`docs/CLINICAL-RULES.md`](docs/CLINICAL-RULES.md)
 
 ## Privacy
 

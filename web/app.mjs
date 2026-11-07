@@ -12,12 +12,13 @@ import { newCaseId, deviceStorageOn, setDeviceStorage, listCases, getCase, putCa
 import { TOKEN_KEY, PENDING_KEY, WIPE_KEY, SITE_CODE, isToken, newToken, siteApi, siteSchema, pushCases, wipeSite } from './vault.mjs';
 
 let lang = getInitialLocale();
-const state = { step: 1, values: { setting: 'icu' }, product: {}, followup: [], decisions: {}, view: 'cards', prevView: 'cards', evidenceQuery: '', evidenceKind: '', openDetails: new Set(), openMore: new Set(), caseId: null, caseLabel: '', example: false, reopened: null, siteMsg: null };
+const state = { step: 1, values: { setting: 'icu' }, product: {}, followup: [], decisions: {}, view: 'cards', prevView: 'cards', evidenceQuery: '', evidenceKind: '', openDetails: new Set(), openMore: new Set(), caseId: null, caseLabel: '', example: false, reopened: null, siteMsg: null, tool: null };
 
 // ---------------------------------------------------------------------------------------------
 // Text
 const T = {
   tagline: ['Kademeli beslenme önerisi', 'Staged nutrition recommendation'],
+  menu: ['Menü', 'Menu'],
   example: ['Örnek olgu', 'Example case'],
   back: ['Geri', 'Back'],
   next: ['Devam', 'Next'],
@@ -322,7 +323,7 @@ function renderProgress() {
   const nav = $('#progress');
   const items = STEPS.map((s, i) => {
     const n = i + 1;
-    const current = state.view === 'cards' && state.step === n;
+    const current = state.view === 'cards' && !state.tool && state.step === n;
     return `<button type="button" data-goto="${n}" ${current ? 'aria-current="step"' : ''} class="${state.view === 'result' || state.step > n ? 'done' : ''}"><span class="num">${n}</span>${esc(L(s.title))}</button>`;
   });
   items.push(`<button type="button" data-goto="result" ${state.view === 'result' ? 'aria-current="step"' : ''}><span class="num">✓</span>${esc(t('result'))}</button>`);
@@ -629,7 +630,7 @@ function locateField(key) {
   }
   return null;
 }
-const currentField = (key) => flatFields(STEPS[state.step - 1].fields(state.values)).find((f) => f.key === key);
+const currentField = (key) => flatFields(state.tool && toolById(state.tool) ? toolFields(toolById(state.tool)) : STEPS[state.step - 1].fields(state.values)).find((f) => f.key === key);
 function setFieldError(input, text) {
   const wrap = input.closest('.input-wrap');
   const line = document.getElementById(`err-${input.dataset.key}`);
@@ -652,6 +653,7 @@ function focusField(key) {
 }
 
 function renderCards() {
+  if (state.tool && toolById(state.tool)) { renderTool(); return; }
   const s = STEPS[state.step - 1];
   const last = state.step === STEPS.length;
   const fields = s.fields(state.values).map(fieldHtml).join('');
@@ -959,36 +961,44 @@ function scaleRow(title, status, lines, sources) {
   return `<div class="scale"><h3>${esc(title)} ${statusChip(status)}</h3>${lines.filter(Boolean).map((x) => `<p>${esc(x)}</p>`).join('')}<div>${sources.map(srcChip).join('')}</div></div>`;
 }
 
-function scalesHtml(r) {
+// The scale rows of a case. `only`: the scales to show, each shown even before anything is entered for it (the
+// calculators of the menu); without it, every scale with something entered, as on the result page.
+function scaleRows(r, only = null) {
   const s = r.scales;
-  if (!s) return '';
+  if (!s) return [];
+  const want = (name) => !only || only.includes(name);
+  const forced = (name) => Boolean(only && only.includes(name));
   const rows = [];
   // NRS 2002
-  const n = s.nrs;
-  const missingNrs = [n.disease === null ? L(['hastalık şiddeti', 'disease severity']) : null, n.nutritionOpen ? L(['beslenme puanı için kilo kaybı ve süresi, BKİ ile genel durum, son haftadaki alım', 'for the nutrition score: weight loss and its duration, BMI with general condition, intake in the last week']) : null, !n.ageKnown ? L(['yaş', 'age']) : null].filter(Boolean);
-  const nrsLine = L([`Puan ${n.exact ? '' : 'en az '}${n.score} = beslenme ${n.nutrition}${n.nutritionFrom === 'entered' ? ' (girilen)' : ''} + hastalık ${n.disease ?? '?'} + yaş ${n.agePoint}${n.ageKnown ? '' : '?'}.`, `Score ${n.exact ? '' : 'at least '}${n.score} = nutrition ${n.nutrition}${n.nutritionFrom === 'entered' ? ' (entered)' : ''} + disease ${n.disease ?? '?'} + age ${n.agePoint}${n.ageKnown ? '' : '?'}.`]);
-  rows.push(scaleRow('NRS 2002', n.status, [
-    nrsLine,
-    n.parts.length ? L(['Beslenme puanı: ', 'Nutrition score: ']) + n.parts.map((x) => L(x)).join('; ') : null,
-    missingNrs.length && n.status !== 'risk' ? L(['Eksik: ', 'Missing: ']) + missingNrs.join(', ') : null,
-    n.status === 'risk' ? L(['≥3: beslenme riski; bireysel beslenme planı yapılır ve GLIM ile malnütrisyon değerlendirilir.', '≥3: nutritional risk; an individual nutrition plan is made and malnutrition is assessed with GLIM.']) : n.status === 'no_risk' ? L(['<3: haftada bir yeniden tarayın.', '<3: rescreen weekly.']) : null,
-  ], ['nrs2002-2003']));
+  if (want('nrs')) {
+    const n = s.nrs;
+    const missingNrs = [n.disease === null ? L(['hastalık şiddeti', 'disease severity']) : null, n.nutritionOpen ? L(['beslenme puanı için kilo kaybı ve süresi, BKİ ile genel durum, son haftadaki alım', 'for the nutrition score: weight loss and its duration, BMI with general condition, intake in the last week']) : null, !n.ageKnown ? L(['yaş', 'age']) : null].filter(Boolean);
+    const nrsLine = L([`Puan ${n.exact ? '' : 'en az '}${n.score} = beslenme ${n.nutrition}${n.nutritionFrom === 'entered' ? ' (girilen)' : ''} + hastalık ${n.disease ?? '?'} + yaş ${n.agePoint}${n.ageKnown ? '' : '?'}.`, `Score ${n.exact ? '' : 'at least '}${n.score} = nutrition ${n.nutrition}${n.nutritionFrom === 'entered' ? ' (entered)' : ''} + disease ${n.disease ?? '?'} + age ${n.agePoint}${n.ageKnown ? '' : '?'}.`]);
+    rows.push(scaleRow('NRS 2002', n.status, [
+      nrsLine,
+      n.parts.length ? L(['Beslenme puanı: ', 'Nutrition score: ']) + n.parts.map((x) => L(x)).join('; ') : null,
+      missingNrs.length && n.status !== 'risk' ? L(['Eksik: ', 'Missing: ']) + missingNrs.join(', ') : null,
+      n.status === 'risk' ? L(['≥3: beslenme riski; bireysel beslenme planı yapılır ve GLIM ile malnütrisyon değerlendirilir.', '≥3: nutritional risk; an individual nutrition plan is made and malnutrition is assessed with GLIM.']) : n.status === 'no_risk' ? L(['<3: haftada bir yeniden tarayın.', '<3: rescreen weekly.']) : null,
+    ], ['nrs2002-2003']));
+  }
   // GLIM
-  const g = s.glim;
-  const c = g.criteria;
-  const phen = [c.weightLoss >= 1 ? L([`kilo kaybı ${L(GRADE[c.weightLoss])}`, `weight loss ${L(GRADE[c.weightLoss])}`]) : null, c.bmi >= 1 ? L([`düşük BKİ ${L(GRADE[c.bmi])}`, `low BMI ${L(GRADE[c.bmi])}`]) : null, c.muscle >= 1 ? L([`kas kitlesi azalmış ${L(GRADE[c.muscle])}${FROM(c.muscleFrom)}`, `reduced muscle mass ${L(GRADE[c.muscle])}${FROM(c.muscleFrom)}`]) : null].filter(Boolean);
-  const etio = [c.intake === true ? L(['alım azlığı', 'reduced intake']) + FROM(c.intakeFrom) : null, c.inflammation === true ? L(['inflamasyon/hastalık yükü', 'inflammation/disease burden']) + FROM(c.inflammationFrom) : null].filter(Boolean);
-  rows.push(scaleRow('GLIM', g.status, [
-    g.status === 'met' ? L([`Malnütrisyon, ${g.severe ? 'ağır (evre 2)' : `orta (evre 1)${g.stageExact ? '' : '; eksik veriyle, daha ağır olabilir'}`}.`, `Malnutrition, ${g.severe ? 'severe (stage 2)' : `moderate (stage 1)${g.stageExact ? '' : '; with incomplete data, may be more severe'}`}.`])
-      : g.status === 'not_met' ? L([g.phenotype === false ? 'Fenotipik ölçütlerin hiçbiri yok: GLIM malnütrisyonu yok.' : 'Etiyolojik ölçüt yok: GLIM tanısı konmaz.', g.phenotype === false ? 'No phenotypic criterion: no GLIM malnutrition.' : 'No etiologic criterion: no GLIM diagnosis.'])
-        : L(['Tamamlanmadı: en az bir fenotipik (kilo kaybı ve süresi, BKİ, kas kitlesi) ve bir etiyolojik (alım azlığı, inflamasyon) ölçüt gerekir.', 'Incomplete: at least one phenotypic (weight loss and its duration, BMI, muscle mass) and one etiologic (reduced intake, inflammation) criterion are needed.']),
-    phen.length ? L(['Fenotipik: ', 'Phenotypic: ']) + phen.join('; ') : null,
-    etio.length ? L(['Etiyolojik: ', 'Etiologic: ']) + etio.join('; ') : null,
-    s.nrs.status === 'no_risk' && g.status === 'met' ? L(['Not: NRS 2002 taraması negatif; GLIM normalde pozitif taramadan sonra uygulanır.', 'Note: NRS 2002 screening is negative; GLIM is normally applied after a positive screen.']) : null,
-  ], ['glim-2019']));
+  if (want('glim')) {
+    const g = s.glim;
+    const c = g.criteria;
+    const phen = [c.weightLoss >= 1 ? L([`kilo kaybı ${L(GRADE[c.weightLoss])}`, `weight loss ${L(GRADE[c.weightLoss])}`]) : null, c.bmi >= 1 ? L([`düşük BKİ ${L(GRADE[c.bmi])}`, `low BMI ${L(GRADE[c.bmi])}`]) : null, c.muscle >= 1 ? L([`kas kitlesi azalmış ${L(GRADE[c.muscle])}${FROM(c.muscleFrom)}`, `reduced muscle mass ${L(GRADE[c.muscle])}${FROM(c.muscleFrom)}`]) : null].filter(Boolean);
+    const etio = [c.intake === true ? L(['alım azlığı', 'reduced intake']) + FROM(c.intakeFrom) : null, c.inflammation === true ? L(['inflamasyon/hastalık yükü', 'inflammation/disease burden']) + FROM(c.inflammationFrom) : null].filter(Boolean);
+    rows.push(scaleRow('GLIM', g.status, [
+      g.status === 'met' ? L([`Malnütrisyon, ${g.severe ? 'ağır (evre 2)' : `orta (evre 1)${g.stageExact ? '' : '; eksik veriyle, daha ağır olabilir'}`}.`, `Malnutrition, ${g.severe ? 'severe (stage 2)' : `moderate (stage 1)${g.stageExact ? '' : '; with incomplete data, may be more severe'}`}.`])
+        : g.status === 'not_met' ? L([g.phenotype === false ? 'Fenotipik ölçütlerin hiçbiri yok: GLIM malnütrisyonu yok.' : 'Etiyolojik ölçüt yok: GLIM tanısı konmaz.', g.phenotype === false ? 'No phenotypic criterion: no GLIM malnutrition.' : 'No etiologic criterion: no GLIM diagnosis.'])
+          : L(['Tamamlanmadı: en az bir fenotipik (kilo kaybı ve süresi, BKİ, kas kitlesi) ve bir etiyolojik (alım azlığı, inflamasyon) ölçüt gerekir.', 'Incomplete: at least one phenotypic (weight loss and its duration, BMI, muscle mass) and one etiologic (reduced intake, inflammation) criterion are needed.']),
+      phen.length ? L(['Fenotipik: ', 'Phenotypic: ']) + phen.join('; ') : null,
+      etio.length ? L(['Etiyolojik: ', 'Etiologic: ']) + etio.join('; ') : null,
+      s.nrs.status === 'no_risk' && g.status === 'met' ? L(['Not: NRS 2002 taraması negatif; GLIM normalde pozitif taramadan sonra uygulanır.', 'Note: NRS 2002 screening is negative; GLIM is normally applied after a positive screen.']) : null,
+    ], ['glim-2019']));
+  }
   // ESPEN 2015
   const e = s.espen2015;
-  if (e.status !== 'incomplete' || e.ffmi !== null || e.criteriaMet === true) {
+  if (want('espen') && (forced('espen') || e.status !== 'incomplete' || e.ffmi !== null || e.criteriaMet === true)) {
     rows.push(scaleRow(L(['ESPEN 2015 malnütrisyon tanısı', 'ESPEN 2015 malnutrition diagnosis']), e.status, [
       e.status === 'met' ? L([e.option === 1 ? 'Seçenek 1: BKİ <18,5.' : 'Seçenek 2: istemsiz kilo kaybı ile düşük BKİ ya da düşük yağsız kütle indeksi.', e.option === 1 ? 'Option 1: BMI <18.5.' : 'Option 2: unintentional weight loss with a low BMI or a low fat-free mass index.'])
         : e.status === 'not_met' ? L(['Ölçütler karşılanmadı.', 'Criteria not met.']) : e.status === 'not_applicable' ? L(['Tarama negatif: tanı değerlendirmesi gerekmez.', 'Negative screening: no diagnostic assessment needed.'])
@@ -1000,7 +1010,7 @@ function scalesHtml(r) {
   }
   // AND/ASPEN
   const a = s.aspen;
-  if (a.entered) {
+  if (want('aspen') && (forced('aspen') || a.entered)) {
     rows.push(scaleRow('AND/ASPEN', a.status, [
       L([`${a.count}/${a.total} özellik doğrulandı, ${a.unknown} değerlendirilmedi${a.context ? '' : '; bağlam seçilmedi'}. En az 2 özellik malnütrisyonu destekler; şiddet otomatik verilmez.`, `${a.count}/${a.total} characteristics confirmed, ${a.unknown} not assessed${a.context ? '' : '; no context chosen'}. At least 2 support malnutrition; severity is not assigned automatically.`]),
       a.gripExcluded ? L(['Yoğun bakımda kavrama gücü sayılmaz.', 'Grip strength is not counted in the ICU.']) : null,
@@ -1008,14 +1018,14 @@ function scalesHtml(r) {
   }
   // EWGSOP2
   const w = s.ewgsop2;
-  if (w.entered) {
+  if (want('ewgsop2') && (forced('ewgsop2') || w.entered)) {
     const text = {
       met: w.severe ? ['Ağır sarkopeni: düşük güç, düşük kas miktarı ve düşük performans.', 'Severe sarcopenia: low strength, low muscle quantity and low performance.'] : ['Sarkopeni: düşük güç ve düşük kas miktarı.', 'Sarcopenia: low strength and low muscle quantity.'],
       probable: ['Olası sarkopeni: düşük kas gücü; kas miktarı ölçülmedi.', 'Probable sarcopenia: low muscle strength; muscle quantity not measured.'],
       review: w.confounded ? ['Yoğun bakım ya da karıştırıcı etken: ölçümler yalnız kayıt içindir, sarkopeni sınıflaması yapılmaz.', 'ICU or a confounder: the measurements are for the record only; no sarcopenia classification.'] : ['Düşük güç, kas miktarı normal: diğer nedenleri araştırın.', 'Low strength with normal muscle quantity: look for other causes.'],
       not_met: ['Kas gücü normal: sarkopeni olası değil.', 'Normal muscle strength: sarcopenia unlikely.'],
       incomplete: ['Kas gücü (kavrama ya da sandalye testi) ve cinsiyet gerekir.', 'Muscle strength (grip or chair test) and sex are needed.'],
-    }[w.status];
+    }[w.status] ?? ['Kas gücü (kavrama ya da sandalye testi) ve cinsiyet gerekir.', 'Muscle strength (grip or chair test) and sex are needed.'];
     rows.push(scaleRow('EWGSOP2', w.status, [
       L(text),
       w.asmIndex !== null ? L([`ASM/boy² ${nf(w.asmIndex, 2)} kg/m² (düşük: erkek <7,0, kadın <5,5).`, `ASM/height² ${nf(w.asmIndex, 2)} kg/m² (low: men <7.0, women <5.5).`]) : null,
@@ -1024,14 +1034,17 @@ function scalesHtml(r) {
   }
   // EAT-10, FOIS, IDDSI and swallowing
   const t10 = s.eat10;
-  if (t10.entered) rows.push(scaleRow('EAT-10', t10.status, [L([`Puan ${t10.score} (≥3 anormal).${t10.unreliable ? ' Uyanıklık bozukken öz bildirim güvenilir değil.' : ''}`, `Score ${t10.score} (≥3 abnormal).${t10.unreliable ? ' Self-report is unreliable with impaired alertness.' : ''}`])], ['eat10-2008', 'eat10-tr-2016']));
-  if (s.fois !== null) rows.push(scaleRow('FOIS', 'info', [L([`Düzey ${s.fois}: ${FOIS_TEXT[s.fois].tr}.`, `Level ${s.fois}: ${FOIS_TEXT[s.fois].en}.`])], ['fois-2005']));
-  if (s.iddsi.food !== null || s.iddsi.fluid !== null) rows.push(scaleRow('IDDSI', 'info', [L([
+  if (want('eat10') && t10.entered) rows.push(scaleRow('EAT-10', t10.status, [L([`Puan ${t10.score} (≥3 anormal).${t10.unreliable ? ' Uyanıklık bozukken öz bildirim güvenilir değil.' : ''}`, `Score ${t10.score} (≥3 abnormal).${t10.unreliable ? ' Self-report is unreliable with impaired alertness.' : ''}`])], ['eat10-2008', 'eat10-tr-2016']));
+  else if (forced('eat10')) rows.push(scaleRow('EAT-10', 'incomplete', [L(['Toplam puanı girin (0–40; ≥3 anormal).', 'Enter the total score (0–40; ≥3 abnormal).'])], ['eat10-2008', 'eat10-tr-2016']));
+  if (want('fois') && s.fois !== null) rows.push(scaleRow('FOIS', 'info', [L([`Düzey ${s.fois}: ${FOIS_TEXT[s.fois].tr}.`, `Level ${s.fois}: ${FOIS_TEXT[s.fois].en}.`])], ['fois-2005']));
+  else if (forced('fois')) rows.push(scaleRow('FOIS', 'incomplete', [L(['Düzey seçilmedi.', 'No level chosen.'])], ['fois-2005']));
+  if (want('iddsi') && (s.iddsi.food !== null || s.iddsi.fluid !== null)) rows.push(scaleRow('IDDSI', 'info', [L([
     [s.iddsi.food !== null ? `Yiyecek ${s.iddsi.food} (${IDDSI_FOOD[s.iddsi.food].tr})` : null, s.iddsi.fluid !== null ? `içecek ${s.iddsi.fluid} (${IDDSI_DRINK[s.iddsi.fluid].tr})` : null].filter(Boolean).join(', ') + '.',
     [s.iddsi.food !== null ? `Food ${s.iddsi.food} (${IDDSI_FOOD[s.iddsi.food].en})` : null, s.iddsi.fluid !== null ? `drinks ${s.iddsi.fluid} (${IDDSI_DRINK[s.iddsi.fluid].en})` : null].filter(Boolean).join(', ') + '.',
   ])], ['iddsi-2017']));
+  else if (forced('iddsi')) rows.push(scaleRow('IDDSI', 'incomplete', [L(['Yiyecek ya da içecek düzeyi seçilmedi.', 'No food or drink level chosen.'])], ['iddsi-2017']));
   const sw = s.swallow;
-  if (sw.found.some((x) => x.from !== 'entered') || s.assessment) {
+  if (want('swallow') && (forced('swallow') || sw.found.some((x) => x.from !== 'entered') || s.assessment)) {
     const word = { safe: ['güvenle yiyebilir', 'can eat safely'], modified: ['kıvam ayarlı diyet', 'texture-modified diet'], unsafe: ['ağızdan beslenmez', 'no oral feeding'] };
     const how = { none: ['yapılmadı', 'not done'], bedside: ['yatak başı', 'bedside'], fees: ['FEES', 'FEES'], vfss: ['VFSS', 'VFSS'] };
     rows.push(scaleRow(L(['Yutma güvenliği', 'Swallowing safety']), sw.value === 'unsafe' || sw.conflict ? 'review' : sw.value ? 'info' : 'incomplete', [
@@ -1040,8 +1053,175 @@ function scalesHtml(r) {
       L(['Yatak başı bulgular sessiz aspirasyonu dışlamaz; gerekirse VFSS ya da FEES.', 'Bedside findings do not exclude silent aspiration; VFSS or FEES if needed.']),
     ], ['ueg-esnm-2025']));
   }
+  return rows;
+}
+function scalesHtml(r) {
+  if (!r.scales) return '';
   const open = state.openDetails.has('scales') ? ' open' : '';
-  return `<section class="card"><details data-details="scales"${open}><summary>${esc(L(['Tarama ve değerlendirme ölçekleri', 'Screening and assessment scales']))}</summary>${rows.join('')}</details></section>`;
+  return `<section class="card"><details data-details="scales"${open}><summary>${esc(L(['Tarama ve değerlendirme ölçekleri', 'Screening and assessment scales']))}</summary>${scaleRows(r).join('')}</details></section>`;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Calculators and scales of the menu: a card with only their questions - the same fields as in the steps, so what is
+// entered goes into the open case and the recommendation uses it - and their result, updated while typing.
+const TOOLS = [
+  { id: 'nrs', title: ['NRS 2002: beslenme riski taraması', 'NRS 2002: nutritional risk screening'], menu: ['NRS 2002', 'NRS 2002'],
+    keys: ['setting', 'age', 'heightCm', 'weightKg', 'usualWeightKg', 'weightLossPct', 'lossMonths', 'swallow', 'oralIntakePct', 'lowIntakeDays', 'nrsDisease', 'nrsImpaired', 'more-nrs'],
+    result: (r) => scaleRows(r, ['nrs']).join('') },
+  { id: 'glim', title: ['GLIM: malnütrisyon tanısı ve evresi', 'GLIM: malnutrition diagnosis and stage'], menu: ['GLIM', 'GLIM'],
+    keys: ['age', 'heightCm', 'weightKg', 'usualWeightKg', 'weightLossPct', 'lossMonths', 'glimMuscle', 'glimIntake', 'glimInflammation', 'checks-risk'],
+    result: (r) => scaleRows(r, ['glim']).join('') },
+  { id: 'espen', title: ['ESPEN 2015 malnütrisyon tanısı', 'ESPEN 2015 malnutrition diagnosis'], menu: ['ESPEN 2015', 'ESPEN 2015'],
+    keys: ['age', 'sex', 'heightCm', 'weightKg', 'usualWeightKg', 'weightLossPct', 'lossMonths', 'swallow', 'oralIntakePct', 'lowIntakeDays', 'nrsDisease', 'nrsImpaired', 'more-nrs', 'ffmKg'],
+    result: (r) => scaleRows(r, ['nrs', 'espen']).join('') },
+  { id: 'aspen', title: ['AND/ASPEN malnütrisyon özellikleri', 'AND/ASPEN malnutrition characteristics'], menu: ['AND/ASPEN', 'AND/ASPEN'],
+    keys: ['setting', 'aspenContext', 'aspenIntake', 'aspenWeight', 'aspenMuscle', 'aspenFat', 'aspenFluid', 'aspenGrip'],
+    result: (r) => scaleRows(r, ['aspen']).join('') },
+  { id: 'sarcopenia', title: ['Sarkopeni (EWGSOP2)', 'Sarcopenia (EWGSOP2)'], menu: ['Sarkopeni (EWGSOP2)', 'Sarcopenia (EWGSOP2)'],
+    keys: ['setting', 'sex', 'heightCm', 'gripKg', 'chairRiseS', 'asmKg', 'gaitSpeed', 'sppb', 'checks-muscle'],
+    result: (r) => scaleRows(r, ['ewgsop2']).join('') },
+  { id: 'swallow', title: ['Yutma: EAT-10, FOIS, IDDSI ve yutma güvenliği', 'Swallowing: EAT-10, FOIS, IDDSI and swallowing safety'],
+    menu: ['Yutma (EAT-10, FOIS, IDDSI)', 'Swallowing (EAT-10, FOIS, IDDSI)'],
+    keys: ['swallow', 'eat10', 'fois', 'iddsiFood', 'iddsiFluid', 'swallowAssessment', 'checks-swallow'],
+    result: (r) => scaleRows(r, ['eat10', 'fois', 'iddsi', 'swallow']).join('') },
+  { id: 'refeeding', title: ['Refeeding riski (NICE)', 'Refeeding risk (NICE)'], menu: ['Refeeding riski', 'Refeeding risk'],
+    keys: ['heightCm', 'weightKg', 'usualWeightKg', 'weightLossPct', 'lossMonths', 'lowIntakeDays', 'lowElectrolytes', 'alcohol', 'riskDrugs', 'checks-refeed'],
+    result: refeedingHtml },
+  { id: 'icu', title: ['Yoğun bakım ciddiyet skorları: SOFA-2 ve SAPS II', 'ICU severity scores: SOFA-2 and SAPS II'], menu: ['SOFA-2 ve SAPS II', 'SOFA-2 and SAPS II'],
+    note: ['Yalnız yoğun bakımda sorulur.', 'Asked in intensive care only.'],
+    keys: ['setting', 'kidney', 'creatinine', 'more-sofa'], open: ['more-sofa'], details: ['icu-scores'], result: icuScoresHtml },
+  { id: 'labs', title: ['Kan sonuçları ve indeksler', 'Laboratory values and indices'], menu: ['Kan sonuçları ve indeksler', 'Laboratory values and indices'],
+    step: 7, details: ['labs'], result: labsHtml },
+  { id: 'targets', title: ['Kilo ve enerji-protein hedefleri', 'Weight and energy-protein targets'], menu: ['Kilo ve hedefler', 'Weight and targets'],
+    keys: ['setting', 'age', 'sex', 'heightCm', 'weightKg', 'icuDay', 'usualWeightKg', 'kidney', 'burnsTbsa', 'measuredEE'], details: ['calc'], result: targetsHtml },
+];
+const toolById = (id) => TOOLS.find((x) => x.id === id) ?? null;
+// A field anywhere in the steps (also inside an "optional" group), as shown for the open case's answers.
+function findField(fields, key) {
+  for (const f of fields) {
+    if (f.key === key) return f;
+    if (f.type === 'more') { const inner = findField(f.fields, key); if (inner) return inner; }
+  }
+  return null;
+}
+function toolFields(tool) {
+  if (tool.step) return STEPS[tool.step - 1].fields(state.values);
+  const all = STEPS.flatMap((s) => s.fields(state.values));
+  return tool.keys.map((k) => findField(all, k)).filter(Boolean);
+}
+function refeedingHtml(r) {
+  const rf = r.refeeding;
+  if (!rf) return '';
+  const status = rf.level === 'low' ? 'no_risk' : rf.level === 'unknown' ? 'incomplete' : 'risk';
+  return scaleRow(L(['Refeeding riski (NICE)', 'Refeeding risk (NICE)']), status, [L(REFEED_TEXT[rf.level]),
+    L(['Başlangıç miktarı, tiamin ve elektrolitler önerinin tamamında.', 'The starting amount, thiamine and electrolytes are in the full recommendation.'])], ['nice-cg32']);
+}
+// The targets the summary shows first, by route: today's (oral, tube, PN), the start once the delaying condition is
+// resolved (delayed tube feeding), or the PN start day (PN later, or after shock).
+function firstTargets(r) {
+  const plan = r.plan;
+  const kind = r.route?.kind;
+  if (!plan) return null;
+  if (kind === 'oral' && plan.oral) return { e: t('energyToday'), p: t('proteinToday'), kcal: plan.oral.kcalTarget, protein: plan.oral.proteinTarget };
+  if ((kind === 'en' && plan.today) || (kind === 'delay' && !plan.pnAfterShock && plan.restart)) {
+    const cur = kind === 'delay' ? plan.restart : plan.today;
+    return kind === 'delay'
+      ? { e: L(['Başlangıç enerjisi (koşul düzelince)', 'Start energy (once resolved)']), p: L(['Başlangıç proteini (koşul düzelince)', 'Start protein (once resolved)']), kcal: cur.kcalTarget, protein: cur.proteinTarget }
+      : { e: t('energyToday'), p: t('proteinToday'), kcal: cur.kcalTarget, protein: cur.proteinTarget };
+  }
+  if ((kind === 'pn' || kind === 'pn-later' || (kind === 'delay' && plan.pnAfterShock)) && plan.rows?.length) {
+    const day1 = plan.today ?? plan.rows[0];
+    const later = kind !== 'pn';
+    return {
+      e: later ? L([`PN başlangıç hedefi${day1.icuDay ? ` (${day1.icuDay}. gün)` : ''}`, `PN start target${day1.icuDay ? ` (day ${day1.icuDay})` : ''}`]) : t('energyToday'),
+      p: later ? L([`Amino asit${day1.icuDay ? ` (${day1.icuDay}. gün)` : ''}`, `Amino acids${day1.icuDay ? ` (day ${day1.icuDay})` : ''}`]) : t('proteinToday'),
+      kcal: day1.kcal, protein: day1.protein,
+    };
+  }
+  return null;
+}
+function targetsHtml(r) {
+  if (!r.plan) return `<p class="muted">${esc(L(['Hedefler için kilo gerekir.', 'The targets need the weight.']))}</p>${detailsHtml(r)}`;
+  const first = firstTargets(r);
+  // The full target: in the ICU from the energy estimate (as in the summary), elsewhere the last day of the table.
+  const rows = r.plan.rows ?? [];
+  const last = rows[rows.length - 1];
+  const lastKcal = last ? last.kcalTarget ?? last.kcal : null;
+  const lastProtein = last ? last.proteinTarget ?? last.protein : null;
+  const icuFull = r.input.setting === 'icu' && last && Number.isFinite(last.proteinPerKgFull) && Number.isFinite(r.fullEnergy?.kcal) ? fullKpi(r) : '';
+  const lower = Boolean(first && Number.isFinite(lastKcal) && Number.isFinite(lastProtein) && (lastKcal > first.kcal || lastProtein > first.protein));
+  const full = icuFull || (lower ? kpi(t('fullTarget'), `${nf(r10(lastKcal))} kcal`, `${nf(Math.round(lastProtein))} g protein`) : '');
+  const kpis = first && Number.isFinite(first.kcal) && Number.isFinite(first.protein)
+    ? kpi(first.e, `${nf(r10(first.kcal))} kcal`, `${nf(first.kcal / r.metrics.energyWeight, 1)} kcal/kg`)
+      + kpi(first.p, `${nf(Math.round(first.protein))} g`, `${nf(first.protein / r.metrics.proteinWeight, 2)} g/kg`) + full
+    : '';
+  const note = kpis && (lower || icuFull) ? `<p class="muted">${esc(L(['İlk hedef, ilk günlerin kademeli artışı ya da refeeding temkini nedeniyle tam hedeften düşük olabilir; gün gün tablo önerinin tamamında.', 'The first target may be lower than the full target because of the stepwise first days or refeeding caution; the day-by-day table is in the full recommendation.']))}</p>` : '';
+  return `${kpis ? `<div class="kpis">${kpis}</div>${note}` : ''}${detailsHtml(r)}`;
+}
+const TOOL_LEAD = ['Buraya girdikleriniz açık vakaya da yazılır; adım adım öneri aynı bilgileri kullanır.', 'What you enter here also goes into the open case; the step-by-step recommendation uses the same answers.'];
+const toolKeys = (tool) => flatFields(toolFields(tool)).map((f) => f.key).join(' ');
+function toolResultHtml(tool) {
+  const failed = `<p class="field-error">${esc(L(['Hesap yapılamadı.', 'The calculation could not be made.']))}</p>`;
+  let r;
+  try { r = recommend(engineInput()); } catch { return failed; }
+  if (r.blocked) {
+    if (!r.invalid?.length) return `<p class="field-error">${esc(L(r.blocked))}</p>`;
+    // A value of this card shows its note under the field; one elsewhere gets a button to its step.
+    const here = new Set(toolKeys(tool).split(' '));
+    const items = r.invalid.map((k) => {
+      const at = locateField(k);
+      const name = at ? `${L(at.field.label)} (${at.step}. ${L(['adım', 'step'])})` : k;
+      return `<li><span class="txt">${esc(name)}</span>${at && !here.has(k) ? ` <button type="button" class="btn" data-fix="${at.step}" data-field="${esc(k)}">${esc(L(['Düzelt', 'Correct']))}</button>` : ''}</li>`;
+    }).join('');
+    return `<p class="field-error">${esc(L(['Hesap yapılmadı: aşağıdaki değerleri düzeltin.', 'No calculation was made: correct the values below.']))}</p><ul class="lines">${items}</ul>`;
+  }
+  let html = '';
+  try { html = tool.result(r) || ''; } catch { return failed; }
+  return html || `<p class="muted">${esc(L(['Bilgi girdikçe sonuç burada görünür.', 'The result appears here as you enter the data.']))}</p>`;
+}
+function renderTool() {
+  const tool = toolById(state.tool);
+  $('#cards').innerHTML = `<section class="card tool" aria-labelledby="card-title">
+    <p class="crumb">${esc(L(['Hesaplayıcılar ve ölçekler', 'Calculators and scales']))}</p>
+    <h2 id="card-title">${esc(L(tool.title))}</h2>
+    <p class="lead">${esc(L(TOOL_LEAD))}${tool.note ? ` ${esc(L(tool.note))}` : ''}</p>
+    <div class="fields">${toolFields(tool).map(fieldHtml).join('')}</div>
+    <div class="tool-result" id="tool-result" aria-live="polite">${toolResultHtml(tool)}</div>
+    <div class="actions">
+      <button type="button" class="btn" data-act="tool-new">${esc(L(['Yeni vaka', 'New case']))}</button>
+      <div class="right"><button type="button" class="btn primary" data-goto="result">${esc(L(['Önerinin tamamını göster', 'Show the full recommendation']))}</button></div>
+    </div>
+  </section>`;
+  toolShownKeys = toolKeys(tool);
+}
+// While typing: the result follows (a quarter of a second after the last key); when the answers change which questions
+// apply (BMI ≤20.5, a weight loss), the card is drawn again with the caret where it was.
+let toolShownKeys = '';
+let toolTimer = null;
+function updateToolResult() {
+  clearTimeout(toolTimer);
+  const tool = state.tool ? toolById(state.tool) : null;
+  const box = document.getElementById('tool-result');
+  if (!tool || !box || state.view !== 'cards') return;
+  if (toolKeys(tool) === toolShownKeys) { box.innerHTML = toolResultHtml(tool); return; }
+  const active = document.activeElement;
+  const id = active?.id;
+  const pos = active && typeof active.selectionStart === 'number' ? active.selectionStart : null;
+  redrawCards();
+  const again = id ? document.getElementById(id) : null;
+  if (again) { again.focus({ preventScroll: true }); try { if (pos !== null) again.setSelectionRange(pos, pos); } catch { /* not a text input */ } }
+}
+const scheduleToolResult = () => { clearTimeout(toolTimer); toolTimer = setTimeout(updateToolResult, 250); };
+function openTool(id) {
+  const tool = toolById(id);
+  if (!tool) return;
+  state.view = 'cards';
+  state.tool = id;
+  for (const k of tool.open ?? []) state.openMore.add(k);
+  for (const k of tool.details ?? []) state.openDetails.add(k);
+  render();
+  window.scrollTo({ top: 0 });
+  document.querySelector('#cards input, #cards button[data-seg]')?.focus({ preventScroll: true });
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1352,7 +1532,7 @@ function followupHtml(r) {
   const over = sum.rows.some((x) => x.over);
   const summary = sum.counted ? L([`${sum.counted} günde birikmiş fark: enerji ${sum.energyBalance >= 0 ? '+' : ''}${nf(r10(sum.energyBalance))} kcal, protein ${sum.proteinBalance >= 0 ? '+' : ''}${nf(Math.round(sum.proteinBalance))} g.`, `Cumulative difference over ${sum.counted} days: energy ${sum.energyBalance >= 0 ? '+' : ''}${nf(r10(sum.energyBalance))} kcal, protein ${sum.proteinBalance >= 0 ? '+' : ''}${nf(Math.round(sum.proteinBalance))} g.`]) : '';
   const open = state.openDetails.has('followup') || state.followup.length ? ' open' : '';
-  return `<section class="card"><details data-details="followup"${open}><summary>${esc(L(['İzlem: verilen beslenme', 'Follow-up: delivered nutrition']))}</summary>
+  return `<section class="card" id="followup-card"><details data-details="followup"${open}><summary>${esc(L(['İzlem: verilen beslenme', 'Follow-up: delivered nutrition']))}</summary>
     <p class="hint">${esc(L(['Her gün verilen toplam enerji ve proteini (mama, ONS, ağızdan, PN, propofol ve dekstroz dahil) girin. Hedef o gün için şimdiki girdilerle hesaplanır; beslenme sürüyor kabul edilir.', 'Enter the total energy and protein delivered each day (formula, ONS, oral, PN, propofol and dextrose included). The target is calculated for that day with the current inputs, feeding taken as running.']))}</p>
     ${state.followup.length ? `<div class="table-wrap"><table class="limits"><thead><tr><th>${esc(icu ? t('icuDayCol') : t('feedDayCol'))}</th><th>${esc(L(['Enerji (kcal)', 'Energy (kcal)']))}</th><th>${esc(L(['Protein (g)', 'Protein (g)']))}</th><th>${esc(L(['Hedef', 'Target']))}</th><th>${esc(L(['Karşılanan', 'Achieved']))}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : ''}
     ${summary ? `<p><strong>${esc(summary)}</strong></p>` : ''}
@@ -1518,6 +1698,7 @@ function render() {
   document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
   document.querySelectorAll('[data-lang]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
   renderProgress();
+  renderSide();
   const cards = $('#cards');
   const result = $('#result');
   const evidence = $('#evidence');
@@ -1533,11 +1714,76 @@ function render() {
   renderFooter();
   renderCasesButton();
   renderDeviceNote();
+  setTopHeight();
 }
+
+// ---------------------------------------------------------------------------------------------
+// Menu: every part of the application in one list - a fixed column on wide screens, a drawer behind the menu button
+// on phones and tablets (app.css). The step-by-step recommendation stays the main screen.
+const WIDE = window.matchMedia('(min-width: 1100px)');
+function renderSide() {
+  const side = $('#side');
+  if (!side) return;
+  side.setAttribute('aria-label', t('menu'));
+  const item = (attrs, label, current, num = '') => `<li><button type="button" ${attrs}${current ? ' aria-current="page"' : ''}>${num ? `<span class="num">${esc(num)}</span>` : ''}<span>${esc(label)}</span></button></li>`;
+  const onSteps = state.view === 'cards' && !state.tool;
+  const steps = STEPS.map((s, i) => item(`data-goto="${i + 1}"`, L(s.title), onSteps && state.step === i + 1, String(i + 1))).join('')
+    + item('data-goto="result"', t('result'), state.view === 'result', '✓');
+  const tools = TOOLS.map((x) => item(`data-tool="${x.id}"`, L(x.menu ?? x.title), state.view === 'cards' && state.tool === x.id)).join('')
+    + item('data-act="followup-open"', L(['Verilen beslenme izlemi', 'Delivered nutrition follow-up']), false);
+  const other = item('data-act="menu-cases"', t('myCases'), state.view === 'cases')
+    + item('data-act="evidence"', L(['Kanıt kütüphanesi ve karar konuları', 'Evidence library and decision topics']), state.view === 'evidence')
+    + item('data-act="about"', L(['Hakkında ve kaynak kodu', 'About and source code']), false);
+  side.innerHTML = `<div class="side-head"><strong>${esc(t('menu'))}</strong><button type="button" class="side-close" data-act="menu-close" aria-label="${esc(L(['Menüyü kapat', 'Close the menu']))}">×</button></div>
+    <p class="side-group">${esc(L(['Öneri (adım adım)', 'Recommendation (step by step)']))}</p><ul>${steps}</ul>
+    <p class="side-group">${esc(L(['Hesaplayıcılar ve ölçekler', 'Calculators and scales']))}</p><ul>${tools}</ul>
+    <p class="side-group">${esc(L(['Diğer', 'More']))}</p><ul>${other}</ul>`;
+}
+const menuOpen = () => document.body.classList.contains('menu-open');
+function openMenu() {
+  if (WIDE.matches) return;
+  document.body.classList.add('menu-open');
+  for (const el of document.querySelectorAll('.content, .top .brand, .top-actions')) el.setAttribute('inert', '');
+  $('#menu-btn')?.setAttribute('aria-expanded', 'true');
+  const back = $('#side-backdrop');
+  if (back) back.hidden = false;
+  ($('#side [aria-current="page"]') ?? $('#side li button'))?.focus();
+}
+function closeMenu(restoreFocus = false) {
+  if (!menuOpen()) return;
+  document.body.classList.remove('menu-open');
+  for (const el of document.querySelectorAll('[inert]')) el.removeAttribute('inert');
+  $('#menu-btn')?.setAttribute('aria-expanded', 'false');
+  const back = $('#side-backdrop');
+  if (back) back.hidden = true;
+  if (restoreFocus) $('#menu-btn')?.focus();
+}
+// The sticky menu column starts under the header, whose height changes with the language and the screen.
+function setTopHeight() {
+  const h = $('.top')?.offsetHeight;
+  if (h) document.documentElement.style.setProperty('--top-h', `${h}px`);
+}
+// Focus for a place reached from the menu (a heading or the footer gets tabindex=-1).
+function focusPlace(el) {
+  if (!el) return;
+  if (!el.matches('a, button, input, select, textarea, summary, [tabindex]')) el.setAttribute('tabindex', '-1');
+  el.focus({ preventScroll: true });
+}
+function openCases() {
+  if (state.view !== 'cases') state.prevView = state.view;
+  state.view = 'cases';
+  render();
+  window.scrollTo({ top: 0 });
+  if (site && (!lastPush || Date.now() - Date.parse(lastPush.at) > 30000)) pushNow();
+}
+WIDE.addEventListener('change', () => { if (WIDE.matches) closeMenu(); });
+window.addEventListener('resize', setTopHeight);
+document.getElementById('side-backdrop')?.addEventListener('click', () => closeMenu(true));
 
 // ---------------------------------------------------------------------------------------------
 // Events
 function go(step, focusKey) {
+  state.tool = null;
   if (step === 'result') { state.view = 'result'; render(); $('#result').scrollIntoView({ block: 'start' }); return; }
   state.view = 'cards';
   state.step = Math.min(STEPS.length, Math.max(1, Number(step)));
@@ -1556,6 +1802,18 @@ function setLabelValue(path, value) {
 document.addEventListener('click', (e) => {
   const el = e.target.closest('button');
   if (!el) return;
+  if (el.id === 'menu-btn') { if (menuOpen()) closeMenu(true); else openMenu(); return; }
+  if (el.dataset.act === 'menu-close') { closeMenu(true); return; }
+  if (el.closest('#side')) {
+    closeMenu(); // a choice in the menu closes the drawer
+    setTimeout(() => {
+      const now = document.activeElement;
+      if (now && now !== document.body && !now.closest('#side')) return;
+      const view = ['#cards', '#result', '#evidence', '#cases'].map((q) => $(q)).find((x) => x && !x.hidden);
+      focusPlace(view?.querySelector('h2') ?? $('#main'));
+    }, 0);
+  }
+  if (el.dataset.tool) { openTool(el.dataset.tool); return; }
   if (el.dataset.lang) {
     lang = el.dataset.lang;
     try { localStorage.setItem(LANGUAGE_STORAGE_KEY, lang); } catch { /* storage unavailable */ }
@@ -1563,14 +1821,7 @@ document.addEventListener('click', (e) => {
     return;
   }
   if (el.id === 'open-case') { document.getElementById('case-file')?.click(); return; }
-  if (el.id === 'my-cases') {
-    if (state.view !== 'cases') state.prevView = state.view;
-    state.view = 'cases';
-    render();
-    window.scrollTo({ top: 0 });
-    if (site && (!lastPush || Date.now() - Date.parse(lastPush.at) > 30000)) pushNow();
-    return;
-  }
+  if (el.id === 'my-cases') { openCases(); return; }
   if (el.id === 'example') {
     resetCase({ setting: 'icu', age: 67, sex: 'male', heightCm: 172, weightKg: 78, icuDay: 3, swallow: 'unsafe', gi: 'ok', shock: 'none', feeding: 'ongoing', kidney: 'normal', bowel: 'normal', stroke: true, usualWeightKg: 81, lossMonths: '3', lowIntakeDays: 2, nrsDisease: '3', lowElectrolytes: 'no', alcohol: 'no', riskDrugs: 'no', propofolMlH: 8 });
     state.example = true; // the example is never kept on the device
@@ -1599,6 +1850,27 @@ document.addEventListener('click', (e) => {
     return;
   }
   const act = el.dataset.act;
+  if (act === 'menu-cases') { openCases(); return; }
+  if (act === 'about') { $('#foot')?.scrollIntoView({ block: 'start' }); focusPlace($('#foot')); return; }
+  if (act === 'followup-open') {
+    state.openDetails.add('followup');
+    go('result');
+    $('#followup-card')?.scrollIntoView({ block: 'start' });
+    focusPlace($('#followup-card summary'));
+    return;
+  }
+  if (act === 'tool-new') {
+    const tool = toolById(state.tool);
+    const kept = deviceOn() && !state.example;
+    if (!caseIsEmpty() && !window.confirm(L(kept ? ['Yeni, boş bir vaka başlatılsın mı? Açık vaka Vakalarım’da kalır.', 'Start a new, empty case? The open case stays under My cases.']
+      : ['Yeni, boş bir vaka başlatılsın mı? Açık vakanın bilgileri silinir.', 'Start a new, empty case? The open case’s data are cleared.']))) return;
+    if (kept) saveToDevice();
+    resetCase({ setting: state.values.setting ?? 'icu' });
+    if (tool) { for (const k of tool.open ?? []) state.openMore.add(k); for (const k of tool.details ?? []) state.openDetails.add(k); }
+    render();
+    window.scrollTo({ top: 0 });
+    return;
+  }
   if (act === 'fu-add' || act === 'fu-del') {
     if (act === 'fu-add') addFollowupRow(); else state.followup.splice(Number(el.dataset.i), 1);
     state.openDetails.add('followup');
@@ -1718,6 +1990,7 @@ document.addEventListener('change', (e) => {
     const field = box.closest('.field');
     const hint = field?.querySelector('.unlock');
     if (hint) hint.hidden = [...field.querySelectorAll('input[type="checkbox"]')].some((x) => x.checked);
+    if (state.tool) updateToolResult();
   }
 });
 
@@ -1730,6 +2003,7 @@ document.addEventListener('input', (e) => {
     // A shown error disappears as soon as the value is valid; a new error appears when leaving the field.
     const f = currentField(input.dataset.key);
     if (f && !fieldError(f, input.value)) setFieldError(input, null);
+    if (state.tool) scheduleToolResult();
     return;
   }
   if (input.dataset.ev === 'q') {
@@ -1772,11 +2046,18 @@ document.addEventListener('toggle', (e) => {
 }, true);
 
 document.addEventListener('keydown', (e) => {
+  if (menuOpen() && e.key === 'Escape') { e.preventDefault(); closeMenu(true); return; }
+  if (menuOpen() && e.key === 'Tab') {
+    const items = [...document.querySelectorAll('#side button')];
+    const i = items.indexOf(document.activeElement);
+    if (e.shiftKey && i <= 0) { e.preventDefault(); items[items.length - 1]?.focus(); return; }
+    if (!e.shiftKey && (i === -1 || i === items.length - 1)) { e.preventDefault(); items[0]?.focus(); return; }
+  }
   if (e.key === 'Enter' && e.target.matches('#cards input[data-key]')) {
     e.preventDefault();
     const inputs = [...document.querySelectorAll('#cards input[data-key]')].filter((x) => x.offsetParent !== null);
     const i = inputs.indexOf(e.target);
-    if (i < inputs.length - 1) inputs[i + 1].focus(); else go(state.step < STEPS.length ? state.step + 1 : 'result');
+    if (i < inputs.length - 1) inputs[i + 1].focus(); else if (!state.tool) go(state.step < STEPS.length ? state.step + 1 : 'result');
   }
 });
 
@@ -1785,7 +2066,7 @@ document.addEventListener('keydown', (e) => {
 // the form's questions, the age as a band, without the label - under a case code; this device keeps the whole case and
 // matches the code to show the real case. On the site only this device (by its token) and the administrator can see
 // a copy. Unticked, cases stay on this device only.
-const SITE_BASE = new URL('api/vault/', document.baseURI).href;
+const SITE_BASE = new URL('/nutriclinic/api/vault/', document.baseURI).href;
 let site = null; // { token, api, abort }
 let siteGen = 0; // changes whenever site storage stops or changes here: a sending still running then changes nothing
 let pushing = false;

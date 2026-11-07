@@ -15,6 +15,7 @@
 <body>
   <a class="skip" href="#main">Ana içeriğe geç</a>
   <header class="top">
+    <button type="button" class="menu-btn no-print" id="menu-btn" aria-controls="side" aria-expanded="false"><span aria-hidden="true">☰</span> <span data-i18n="menu">Menü</span></button>
     <div class="brand">
       <span class="logo" aria-hidden="true">N</span>
       <div>
@@ -33,15 +34,21 @@
       </div>
     </div>
   </header>
-  <main id="main">
-    <div id="device-note" class="note device-note no-print" hidden></div>
-    <nav class="progress" aria-label="Adımlar" id="progress"></nav>
-    <div id="cards"></div>
-    <section id="result" class="result" hidden aria-live="polite"></section>
-    <section id="evidence" class="result" hidden></section>
-    <section id="cases" class="result no-print" hidden></section>
-    <noscript><p class="card">Bu uygulama JavaScript gerektirir. / This application requires JavaScript.</p></noscript>
-  </main>
-  <footer class="foot" id="foot"></footer>
+  <div class="layout">
+    <nav class="side no-print" id="side" aria-label="Menü"></nav>
+    <div class="content">
+      <main id="main">
+        <div id="device-note" class="note device-note no-print" hidden></div>
+        <nav class="progress" aria-label="Adımlar" id="progress"></nav>
+        <div id="cards"></div>
+        <section id="result" class="result" hidden aria-live="polite"></section>
+        <section id="evidence" class="result" hidden></section>
+        <section id="cases" class="result no-print" hidden></section>
+        <noscript><p class="card">Bu uygulama JavaScript gerektirir. / This application requires JavaScript.</p></noscript>
+      </main>
+      <footer class="foot" id="foot"></footer>
+    </div>
+  </div>
+  <div class="side-backdrop no-print" id="side-backdrop" hidden></div>
 </body>
 </html>
