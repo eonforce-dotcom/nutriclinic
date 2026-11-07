@@ -1,6 +1,6 @@
 # NutriClinic staged recommender — clinical rules
 
-Version 1.0.0 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
+Version 1.1.0 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
 
 NutriClinic supports clinical decisions and does not replace them. Every recommendation is reviewed at the bedside
 together with its inputs and sources.
@@ -22,14 +22,19 @@ used, and lists the missing data, ordered by how much each would change the answ
 interface shows a short coloured sentence saying what entering it would add. Once data are entered, each assumption
 is replaced by the entered value.
 
-The calculation is blocked in three cases: an invalid (out-of-range) value, age under 18, and pregnancy. Patient
-data never leave the page: nothing is stored, logged or sent.
+The calculation is blocked in three cases: an invalid (out-of-range) value, age under 18, and pregnancy. An invalid
+value is shown under its own field with the accepted range; "Next" and "Show recommendation" stay on the card and go
+to the first wrong field. The result page lists any remaining invalid field with a button that opens it. An invalid
+product-label value is shown at the label field and is not used. Patient data never leave the page: nothing is
+stored, logged or sent.
 
 ## Sources
 
 Doses and recommendation numbers were read from the official full texts. PMIDs, titles, authors and issues were
 checked with NCBI E-utilities on 2026-11-07. The rules were audited twice by an independent model (Gemini, through
-Antigravity). Each finding was checked against the code and the full texts before it was fixed or declined.
+Antigravity), and the scales of version 1.1.0 once more (8 findings: 6 fixed; 2 declined because the ICFSR source is
+already registered through its note and the ward protein target is already 1.2 g/kg). Each finding was checked against
+the code and the full texts before it was fixed or declined.
 
 | Id | Source | PMID |
 |---|---|---|
@@ -47,6 +52,17 @@ Antigravity). Each finding was checked against the code and the full texts befor
 | EFFORT Protein | Heyland DK, et al. Lancet 2023;401:568-576 | 36708732 |
 | PRECISe | Bels JLM, et al. Lancet 2024;404:659-669 | 39153816 |
 | TARGET Protein | Summers MJ, et al. JAMA 2025;334:319-328 | 40495743 |
+| NRS-2002 | Kondrup J, et al. Nutritional risk screening (NRS 2002). Clin Nutr 2003;22:321-336 | 12765673 |
+| ESPEN-SCREEN-2002 | Kondrup J, et al. ESPEN guidelines for nutrition screening 2002. Clin Nutr 2003;22:415-421 | 12880610 |
+| GLIM-2019 | Cederholm T, et al. GLIM criteria for the diagnosis of malnutrition. Clin Nutr 2019;38:1-9 | 30181091 |
+| ESPEN-MALN-2015 | Cederholm T, et al. Diagnostic criteria for malnutrition — an ESPEN consensus statement. Clin Nutr 2015;34:335-340 | 25799486 |
+| AND-ASPEN-2012 | White JV, et al. J Acad Nutr Diet 2012;112:730-738 | 22709779 |
+| EWGSOP2 | Cruz-Jentoft AJ, et al. Sarcopenia: revised European consensus. Age Ageing 2019;48:16-31; correction 48:601 (PMID 31081853) | 30312372 |
+| ICFSR-2018 | Dent E, et al. International clinical practice guidelines for sarcopenia. J Nutr Health Aging 2018;22:1148-1161 | 30498820 |
+| EAT-10 | Belafsky PC, et al. Ann Otol Rhinol Laryngol 2008;117:919-924; Turkish form: Demir N, et al. Dysphagia 2016;31:644-649 (PMID 27405421) | 19140539 |
+| FOIS | Crary MA, et al. Arch Phys Med Rehabil 2005;86:1516-1520 | 16084801 |
+| IDDSI | Cichero JAY, et al. The IDDSI framework. Dysphagia 2017;32:293-314 | 27913916 |
+| UEG-ESNM-2025 | Mari A, et al. Esophageal and oropharyngeal dysphagia: UEG/ESNM recommendations. United European Gastroenterol J 2025;13:855-901 | 40543044 |
 
 ## Body weight
 
@@ -178,6 +194,56 @@ protein over-delivery or non-nutritional calories above the target are shown as 
 Glutamine is never given to other ICU patients (R28), nor parenterally (R29). Leucine, BCAA and HMB have no
 guideline indication in the ICU.
 
+## Screening and assessment scales
+
+The scales are entered on cards 2, 4 and 6. Their results are shown on the result page; the summary shows the
+NRS 2002 score, GLIM malnutrition, sarcopenia and an abnormal EAT-10 as chips. Missing data never count as normal:
+a scale stays incomplete, or its score is shown as a lower bound ("≥3"), until the data decide it.
+
+- **NRS 2002** (NRS-2002, ESPEN-SCREEN-2002). Nutrition score from the data, taking the highest that applies:
+  weight loss >5% in 3 months (1), in 2 months (2), in 1 month or >15% in 3 months (3); BMI 18.5–20.5 inclusive (2)
+  or <18.5 (3) with an impaired general condition; intake in the last week <75% (1), ≤60% (2), ≤25% (3), where a week
+  or more of little or no intake counts as 0–25%. The clinician may enter the nutrition score; a lower entry than
+  the data show is replaced, with a warning. Disease score 0–3 as in the original table; +1 from age 70. ≥3 = at
+  nutritional risk; <3 = rescreen weekly.
+- **GLIM** (GLIM-2019). Phenotype: weight loss >5% within 6 months or >10% beyond (stage 2: >10% / >20%); BMI <20
+  below 70 years, <22 from 70 (stage 2: <18.5 / <20); reduced muscle mass (clinician grading, or a measured ASM
+  below the EWGSOP2 cut-offs as a moderate deficit). Etiology: reduced intake or assimilation (by default after
+  more than 7 days of little or no intake) or inflammation (by default in the ICU, with burns or major trauma).
+  Both groups are needed; the stage comes from the phenotype.
+- **ESPEN 2015** (ESPEN-MALN-2015) after positive screening: BMI <18.5, or weight loss (>10% at any time, >5% in
+  3 months) with an age-specific low BMI or FFMI <15 (women) / <17 (men). A 5–10% loss over a period known to be
+  longer than 3 months does not meet the loss criterion. While the screen is incomplete the result stays incomplete,
+  and the page says when the criteria are already met.
+- **AND/ASPEN** (AND-ASPEN-2012): at least two of six clinician-confirmed characteristics in a stated context; grip
+  strength is not counted in the ICU. No automatic severity.
+- **EWGSOP2** (EWGSOP2): low strength (grip <27 / <16 kg, five chair rises >15 s) = probable sarcopenia; with low
+  muscle quantity (ASM <20 / <15 kg or ASM/height² <7.0 / <5.5 kg/m², the corrected female value) = sarcopenia; with
+  low performance (gait speed ≤0.8 m/s or SPPB ≤8) = severe. In the ICU, or when acute illness, weakness, pain or
+  sedation confound the tests, the result is for review only.
+- **Swallowing.** The most cautious of: the swallowing question; FOIS 1–3 (tube), 4–6 (texture-modified), 7 (safe)
+  (FOIS); IDDSI levels other than regular food with thin drinks (texture-modified) (IDDSI); impaired alertness or
+  unsafe signs while swallowing (no oral intake) (UEG-ESNM-2025). Disagreeing findings give a warning. EAT-10 ≥3 is
+  abnormal; it never clears oral feeding.
+
+How the scales change the recommendation:
+
+| Finding | Effect | Source |
+|---|---|---|
+| FOIS, IDDSI, impaired alertness, unsafe signs | set the swallowing status and with it the route | FOIS, IDDSI, UEG-ESNM-2025 |
+| IDDSI drink level 0 | liquid high-protein ONS instead of a texture-modified ONS | IDDSI |
+| IDDSI drink level ≥1 | all drinks, ONS included, thickened to that level; note on the flow test | IDDSI, ESPEN-NEURO-2018 |
+| Ward, intake unknown, complete NRS 2002 <3, no malnutrition by GLIM, ESPEN 2015 or AND/ASPEN | no ONS; rescreen weekly | ESPEN-POLY-2024 R21, NRS-2002 |
+| Ward, NRS 2002 ≥3 or GLIM met | ONS at least 400 kcal and 30 g protein when intake is unknown | ESPEN-POLY-2024 R21 |
+| GLIM stage 2, ICU, gut unusable, day 1–2 | parenteral nutrition starts now, progressively | ESPEN-ICU-2023 R7 |
+| Malnutrition by GLIM, ESPEN 2015 or AND/ASPEN | counts as malnutrition for thiamine, the vitamin D check and ward ONS | ESPEN-MN-2022, ESPEN-POLY-2024 R21 |
+| ICU, gut unusable, day 1–2, GLIM stage 2 neither shown nor ruled out | high-impact request for weight loss, BMI or muscle mass | ESPEN-ICU-2023 R7 |
+| Oedema ticked | "not met" weight- and BMI-based criteria become unknown | GLIM-2019, NICE-CG32 |
+| Weight loss over more than 6 months | NICE weight-loss criteria become unknown (cautious start) | NICE-CG32 |
+| Stroke, oral route, no swallowing screen | warning: screen before oral intake | ESPEN-NEURO-2018 R52 |
+| EAT-10 ≥3 while swallowing is taken as safe | warning: clinical swallowing assessment, VFSS or FEES | EAT-10, UEG-ESNM-2025 |
+| Ward sarcopenia (probable or confirmed) | note: resistance exercise, reach the protein target; no separate leucine or HMB dose | ICFSR-2018 |
+
 ## Notes shown when relevant
 
 - Diabetes.
@@ -197,6 +263,12 @@ guideline indication in the ICU.
 - **Dysphagia:** fluid and food intake monitoring (ESPEN-NEURO-2018 R60).
 
 ## Tests
+
+`tests/scales.test.mjs` checks the scales and their effect on the recommendation in 21 tests (NRS 2002 scoring and
+lower bounds, GLIM stages and age-specific BMI, ESPEN 2015 options, AND/ASPEN in the ICU, EWGSOP2 cut-offs including
+the corrected female ASM index, EAT-10, swallowing from FOIS and IDDSI, ONS choice by IDDSI, ONS by nutritional risk,
+early PN in severe malnutrition, oedema, loss duration, stroke screening, sarcopenia note, sources, and the audit
+fixes).
 
 `tests/engine.test.mjs` checks the rules against 45 hand-calculated cases, covering:
 

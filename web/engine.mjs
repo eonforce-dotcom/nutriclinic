@@ -6,20 +6,14 @@
 // docs/CLINICAL-RULES.md). When an input is missing the engine still answers with the most cautious
 // documented assumption, says which assumption it used, and lists the missing input with its effect.
 
-export const ENGINE_VERSION = '1.0.0';
-export const RULES_DATE = '2026-11-07';
+import { B } from './text.mjs';
+import { evaluateScales, swallowStatus, FOIS_TEXT as FOIS_NAMES, IDDSI_FOOD, IDDSI_DRINK } from './scales.mjs';
 
-// ---------------------------------------------------------------------------------------------
-// Bilingual text helper. Each text is { tr, en }; numbers are formatted per language.
-const LOCALES = { tr: 'tr-TR', en: 'en-GB' };
-const formatter = (lang) => (x, digits = 0) => {
-  if (x === null || x === undefined || !Number.isFinite(x)) return '–';
-  return Number(x).toLocaleString(LOCALES[lang], { minimumFractionDigits: digits, maximumFractionDigits: digits });
-};
-export const B = (tr, en) => ({
-  tr: typeof tr === 'function' ? tr(formatter('tr')) : tr,
-  en: typeof en === 'function' ? en(formatter('en')) : en,
-});
+const IDDSI_NAMES = { food: IDDSI_FOOD, drink: IDDSI_DRINK };
+
+export { B };
+export const ENGINE_VERSION = '1.1.0';
+export const RULES_DATE = '2026-11-07';
 export const INTENDED_USE = B('NutriClinic klinik kararı destekler, yerine geçmez. Her öneri hasta başında, girdileri ve kaynaklarıyla birlikte değerlendirilir.', 'NutriClinic supports clinical decisions and does not replace them. Every recommendation is reviewed at the bedside with its inputs and sources.');
 
 // ---------------------------------------------------------------------------------------------
@@ -82,30 +76,78 @@ const toNumber = (v) => {
 };
 const empty = (v) => v === undefined || v === null || v === '' || v === 'unknown';
 
+// Allowed numeric ranges. The interface uses the same table to show an error next to the field.
+export const FIELD_LIMITS = Object.freeze({
+  age: { min: 0, max: 120 },
+  heightCm: { min: 100, max: 230 },
+  weightKg: { min: 15, max: 350 },
+  icuDay: { min: 1, max: 365, integer: 'round' },
+  oralIntakePct: { min: 0, max: 100 },
+  burnsTbsa: { min: 0, max: 100 },
+  usualWeightKg: { min: 15, max: 350 },
+  weightLossPct: { min: 0, max: 80 },
+  lowIntakeDays: { min: 0, max: 365 },
+  measuredEE: { min: 300, max: 6000 },
+  uun: { min: 0.5, max: 80 },
+  uunProtein: { min: 0, max: 400 },
+  propofolMlH: { min: 0, max: 100 },
+  dextroseG: { min: 0, max: 1500 },
+  vitD: { min: 0, max: 200 },
+  crp: { min: 0, max: 600 },
+  lossMonths: { min: 0.5, max: 120 },
+  ffmKg: { min: 10, max: 150 },
+  gripKg: { min: 0, max: 100 },
+  chairRiseS: { min: 1, max: 120 },
+  asmKg: { min: 5, max: 60 },
+  gaitSpeed: { min: 0.05, max: 3 },
+  nrsDisease: { min: 0, max: 3, integer: 'strict' },
+  nrsNutrition: { min: 0, max: 3, integer: 'strict' },
+  sppb: { min: 0, max: 12, integer: 'strict' },
+  eat10: { min: 0, max: 40, integer: 'strict' },
+  fois: { min: 1, max: 7, integer: 'strict' },
+  iddsiFood: { min: 3, max: 7, integer: 'strict' },
+  iddsiFluid: { min: 0, max: 4, integer: 'strict' },
+});
+// null when the value is empty or valid; otherwise { code: 'nan' | 'integer' | 'range', min, max }.
+export function checkNumber(key, value) {
+  const lim = FIELD_LIMITS[key];
+  if (!lim || empty(value)) return null;
+  const x = toNumber(value);
+  if (x === null) return { code: 'nan', ...lim };
+  if (lim.integer === 'strict' && !Number.isInteger(x)) return { code: 'integer', ...lim };
+  if (x < lim.min || x > lim.max) return { code: 'range', value: x, ...lim };
+  return null;
+}
+
 export function normalize(raw = {}) {
   const invalid = [];
-  const num = (key, min, max, integer = false) => {
+  const num = (key) => {
     if (empty(raw[key])) return null;
+    if (checkNumber(key, raw[key])) { invalid.push(key); return null; }
     const x = toNumber(raw[key]);
-    if (x === null || x < min || x > max) { invalid.push(key); return null; }
-    return integer ? Math.round(x) : x;
+    return FIELD_LIMITS[key].integer === 'round' ? Math.round(x) : x;
   };
   const pick = (key, options) => {
     if (empty(raw[key])) return null;
     if (!options.includes(raw[key])) { invalid.push(key); return null; }
     return raw[key];
   };
+  const int = (key) => {
+    if (empty(raw[key])) return null;
+    if (checkNumber(key, raw[key])) { invalid.push(key); return null; }
+    return toNumber(raw[key]);
+  };
   const flag = (key) => (raw[key] === true || raw[key] === 'yes' ? true : raw[key] === false || raw[key] === 'no' ? false : null);
   const p = {
     setting: pick('setting', ['icu', 'ward']) ?? 'icu',
-    age: num('age', 0, 120),
+    age: num('age'),
     sex: pick('sex', ['female', 'male']),
-    heightCm: num('heightCm', 100, 230),
-    weightKg: num('weightKg', 15, 350),
-    icuDay: num('icuDay', 1, 365, true),
+    heightCm: num('heightCm'),
+    weightKg: num('weightKg'),
+    icuDay: num('icuDay'),
     feeding: pick('feeding', ['none', 'ongoing']),
     swallow: pick('swallow', ['safe', 'modified', 'unsafe']),
-    oralIntakePct: num('oralIntakePct', 0, 100),
+    oralIntakePct: num('oralIntakePct'),
     gi: pick('gi', ['ok', 'contraindicated']),
     shock: pick('shock', ['none', 'controlled', 'uncontrolled']),
     hypoxemia: flag('hypoxemia'), giBleed: flag('giBleed'), ischemia: flag('ischemia'),
@@ -115,18 +157,30 @@ export function normalize(raw = {}) {
     kidney: pick('kidney', ['normal', 'aki', 'ihd', 'crrt']),
     fluidRestriction: flag('fluidRestriction'), diabetes: flag('diabetes'),
     bowel: pick('bowel', ['normal', 'diarrhea', 'constipation']),
-    burnsTbsa: num('burnsTbsa', 0, 100), trauma: flag('trauma'), pressureUlcer: flag('pressureUlcer'),
+    burnsTbsa: num('burnsTbsa'), trauma: flag('trauma'), pressureUlcer: flag('pressureUlcer'),
     stroke: flag('stroke'), pregnant: flag('pregnant'),
-    usualWeightKg: num('usualWeightKg', 15, 350), weightLossPct: num('weightLossPct', 0, 80),
-    lowIntakeDays: num('lowIntakeDays', 0, 365), lowElectrolytes: flag('lowElectrolytes'),
+    usualWeightKg: num('usualWeightKg'), weightLossPct: num('weightLossPct'),
+    lowIntakeDays: num('lowIntakeDays'), lowElectrolytes: flag('lowElectrolytes'),
     alcohol: flag('alcohol'), riskDrugs: flag('riskDrugs'), wernicke: flag('wernicke'),
     hypoPhosphate: flag('hypoPhosphate'),
-    measuredEE: num('measuredEE', 300, 6000), uun: num('uun', 0.5, 80), uunProtein: num('uunProtein', 0, 400),
-    propofolMlH: num('propofolMlH', 0, 100), dextroseG: num('dextroseG', 0, 1500), vitD: num('vitD', 0, 200),
-    crp: num('crp', 0, 600),
+    measuredEE: num('measuredEE'), uun: num('uun'), uunProtein: num('uunProtein'),
+    propofolMlH: num('propofolMlH'), dextroseG: num('dextroseG'), vitD: num('vitD'),
+    crp: num('crp'),
+    // Screening and assessment scales (scales.mjs).
+    lossMonths: num('lossMonths'), oedema: flag('oedema'),
+    nrsDisease: int('nrsDisease'), nrsNutrition: int('nrsNutrition'), nrsImpaired: flag('nrsImpaired'),
+    glimMuscle: pick('glimMuscle', ['normal', 'moderate', 'severe']), glimIntake: flag('glimIntake'), glimInflammation: flag('glimInflammation'),
+    aspenContext: pick('aspenContext', ['acute', 'chronic', 'social']),
+    aspenIntake: flag('aspenIntake'), aspenWeight: flag('aspenWeight'), aspenMuscle: flag('aspenMuscle'),
+    aspenFat: flag('aspenFat'), aspenFluid: flag('aspenFluid'), aspenGrip: flag('aspenGrip'),
+    ffmKg: num('ffmKg'), gripKg: num('gripKg'), chairRiseS: num('chairRiseS'), asmKg: num('asmKg'),
+    gaitSpeed: num('gaitSpeed'), sppb: int('sppb'), sarcopeniaConfounded: flag('sarcopeniaConfounded'),
+    eat10: int('eat10'), fois: int('fois'), iddsiFood: int('iddsiFood'), iddsiFluid: int('iddsiFluid'),
+    swallowAssessment: pick('swallowAssessment', ['none', 'bedside', 'fees', 'vfss']),
+    impairedAlertness: flag('impairedAlertness'), unsafeSigns: flag('unsafeSigns'),
   };
   if (p.setting === 'ward') { p.icuDay = null; p.measuredEE = null; p.propofolMlH = null; p.trauma = null; }
-  if (p.setting === 'icu') p.pressureUlcer = null;
+  if (p.setting === 'icu') { p.pressureUlcer = null; p.aspenGrip = null; } // grip is not an AND/ASPEN criterion in the ICU
   if (p.sex !== 'female') p.pregnant = null;
   if (p.weightLossPct === null && p.usualWeightKg !== null && p.weightKg !== null) {
     p.weightLossPct = Math.max(0, ((p.usualWeightKg - p.weightKg) / p.usualWeightKg) * 100);
@@ -136,29 +190,50 @@ export function normalize(raw = {}) {
   return { p, invalid };
 }
 
+// Product label values: above 0 and at most the stated maximum.
+export const PRODUCT_LIMITS = Object.freeze({
+  'en.kcalPerMl': 3,
+  'en.proteinPer100': 20,
+  'en.waterPer100': 100,
+  'ons.serving': 1000,
+  'ons.kcal': 1500,
+  'ons.protein': 100,
+  'module.proteinPer100g': 100,
+  'powder.kcalPer100g': 900,
+  'powder.proteinPer100g': 100,
+  'powder.kcalPerMl': 3,
+});
+export function checkProduct(path, value) {
+  const max = PRODUCT_LIMITS[path];
+  if (max === undefined || empty(value)) return null;
+  const x = toNumber(value);
+  if (x === null) return { code: 'nan', min: 0, max };
+  if (x <= 0 || x > max) return { code: 'range', value: x, min: 0, max, exclusiveMin: true };
+  return null;
+}
+
 function normalizeProduct(raw, invalid) {
   const out = {};
   if (!raw || typeof raw !== 'object') return out;
-  const read = (group, key, max) => {
+  const read = (group, key) => {
     const v = raw[group]?.[key];
     if (empty(v)) return null;
-    const x = toNumber(v);
-    if (x === null || x <= 0 || x > max) { invalid.push(`product.${group}.${key}`); return null; }
-    return x;
+    if (checkProduct(`${group}.${key}`, v)) { invalid.push(`product.${group}.${key}`); return null; }
+    return toNumber(v);
   };
-  const en = { kcalPerMl: read('en', 'kcalPerMl', 3), proteinPer100: read('en', 'proteinPer100', 20), waterPer100: read('en', 'waterPer100', 100) };
+  const en = { kcalPerMl: read('en', 'kcalPerMl'), proteinPer100: read('en', 'proteinPer100'), waterPer100: read('en', 'waterPer100') };
   if (en.kcalPerMl && en.proteinPer100) out.en = en;
-  const ons = { serving: read('ons', 'serving', 1000), kcal: read('ons', 'kcal', 1500), protein: read('ons', 'protein', 100), unit: raw.ons?.unit === 'g' ? 'g' : 'mL' };
+  const ons = { serving: read('ons', 'serving'), kcal: read('ons', 'kcal'), protein: read('ons', 'protein'), unit: raw.ons?.unit === 'g' ? 'g' : 'mL' };
   if (ons.serving && ons.kcal && ons.protein) out.ons = ons;
-  const module = read('module', 'proteinPer100g', 100);
+  const module = read('module', 'proteinPer100g');
   if (module) out.module = { proteinPer100g: module };
   if (raw.form === 'powder') {
     out.form = 'powder';
     const d = PRODUCT_DEFAULTS.powder;
     out.powder = {
-      kcalPer100g: read('powder', 'kcalPer100g', 900) ?? d.kcalPer100g,
-      proteinPer100g: read('powder', 'proteinPer100g', 100) ?? d.proteinPer100g,
-      kcalPerMl: read('powder', 'kcalPerMl', 3) ?? d.kcalPerMl,
+      kcalPer100g: read('powder', 'kcalPer100g') ?? d.kcalPer100g,
+      proteinPer100g: read('powder', 'proteinPer100g') ?? d.proteinPer100g,
+      kcalPerMl: read('powder', 'kcalPerMl') ?? d.kcalPerMl,
     };
   }
   return out;
@@ -219,16 +294,21 @@ export function bodyMetrics(p) {
 // Refeeding risk (nice-cg32 Box 1, 1.4.5, 1.4.8) and malnutrition (nice-cg32 1.3.1), tri-state.
 // "Severe" malnutrition for early PN (espen-icu-2023 R7) uses the Box 1 single criteria.
 export function refeedingRisk(p, m) {
-  const wl = p.weightLossPct;
+  // The NICE weight-loss criteria cover the last 3–6 months: a loss over a longer period cannot be placed in it.
+  const wl = p.lossMonths !== null && p.lossMonths > 6 ? null : p.weightLossPct;
+  // Oedema or fluid overload hides weight loss and raises the BMI: a criterion "not met" is not reassuring.
+  const reliable = (x) => (p.oedema === true && x === false ? null : x);
+  const bmiBelow = (c) => reliable(lt(m.bmi, c));
+  const lossAbove = (c) => reliable(gt(wl, c));
   const days = p.lowIntakeDays;
-  const major = [lt(m.bmi, 16), gt(wl, 15), gt(days, 10), p.lowElectrolytes];
-  const minor = [lt(m.bmi, 18.5), gt(wl, 10), gt(days, 5), anyOf(p.alcohol, p.riskDrugs)];
+  const major = [bmiBelow(16), lossAbove(15), gt(days, 10), p.lowElectrolytes];
+  const minor = [bmiBelow(18.5), lossAbove(10), gt(days, 5), anyOf(p.alcohol, p.riskDrugs)];
   const highKnown = major.some((x) => x === true) || minor.filter((x) => x === true).length >= 2;
   const highPossible = major.some((x) => x !== false) || minor.filter((x) => x !== false).length >= 2;
   let level = highKnown ? 'high' : highPossible ? 'unknown' : 'low';
   if (level === 'high' && (lt(m.bmi, 14) === true || gt(days, 15) === true)) level = 'extreme';
-  const malnourished = anyOf(lt(m.bmi, 18.5), gt(wl, 10), m.bmi !== null && wl !== null ? m.bmi < 20 && wl > 5 : null);
-  const severe = anyOf(lt(m.bmi, 16), gt(wl, 15), gt(days, 10), allOf(lt(m.bmi, 18.5), gt(wl, 10)));
+  const malnourished = anyOf(bmiBelow(18.5), lossAbove(10), m.bmi !== null && wl !== null ? reliable(m.bmi < 20 && wl > 5) : null);
+  const severe = anyOf(bmiBelow(16), lossAbove(15), gt(days, 10), allOf(bmiBelow(18.5), lossAbove(10)));
   return { level, reducedStart: gt(days, 5), malnourished, severe };
 }
 
@@ -276,7 +356,7 @@ function proteinPerKg(p, m, nb, day) {
 
 // ---------------------------------------------------------------------------------------------
 // Route of feeding (espen-icu-2023, espen-polymorbid-2024, espen-neurology-2018, espen-hen-2022).
-function decideRoute(p, rf) {
+function decideRoute(p, rf, severeMalnutrition) {
   const icu = p.setting === 'icu';
   const r = { kind: null, access: null, mode: null, reason: null };
   const gutBlocked = p.gi === 'contraindicated' || p.ischemia === true || p.fistula === true || p.acs === true;
@@ -288,10 +368,12 @@ function decideRoute(p, rf) {
     r.mode = 'continuous';
     return r;
   }
-  // Gut unusable (espen-icu-2023 R38 delay list; R6 PN within 3–7 days; R7 early progressive PN if severely malnourished).
+  // Gut unusable (espen-icu-2023 R38 delay list; R6 PN within 3–7 days; R7 early progressive PN if severely
+  // malnourished: NICE Box 1 single criteria or GLIM stage 2).
   if (gutBlocked) {
     r.reason = p.ischemia ? 'ischemia' : p.acs ? 'acs' : p.fistula ? 'fistula' : 'gut';
-    r.kind = !icu || rf.severe === true || (p.icuDay ?? 1) >= 3 ? 'pn' : 'pn-later';
+    r.kind = !icu || severeMalnutrition || (p.icuDay ?? 1) >= 3 ? 'pn' : 'pn-later';
+    r.earlyPn = icu && severeMalnutrition && (p.icuDay ?? 1) < 3;
     r.access = 'iv';
     return r;
   }
@@ -444,8 +526,9 @@ function enRow(row, nn, cls, comp, product, mode, otherProtein = 0, otherKcal = 
 
 // ---------------------------------------------------------------------------------------------
 // Supplements: shown only when indicated, with the calculated dose and a route that fits the feeding.
-function supplements(p, m, rf, route, plan) {
+function supplements(p, m, rf, route, plan, scales) {
   const list = [];
+  const malnourished = rf.malnourished === true || scales.malnutrition;
   const icu = p.setting === 'icu';
   const w = m.energyWeight; // adjusted weight in obesity, actual otherwise
   const kidneyFailure = kidneyFailureOf(p);
@@ -460,9 +543,9 @@ function supplements(p, m, rf, route, plan) {
       : B(`Beslenmeden hemen önce ve ilk 10 gün 200–300 mg/gün ağızdan; ${tablets ? 'B kompleks (kuvvetli) 1–2 tablet × 3/gün' : 'tablet yutamıyorsa tam doz IV B vitamini preparatı'}`, `200–300 mg/day orally immediately before and for the first 10 days of feeding; ${tablets ? 'vitamin B co strong 1–2 tablets three times a day' : 'full-dose IV vitamin B preparation if tablets cannot be swallowed'}`),
       why: B('Yüksek refeeding riski', 'High refeeding risk') });
   }
-  const atRisk = p.alcohol === true || rf.malnourished === true || gt(p.lowIntakeDays, 5) === true || rf.level === 'unknown';
+  const atRisk = p.alcohol === true || malnourished || gt(p.lowIntakeDays, 5) === true || rf.level === 'unknown';
   if (atRisk) thiamine.push({ level: 3, dose: icu ? B('100 mg × 3/gün IV, yatıştan itibaren 3–4 gün', '100 mg three times a day IV for 3–4 days from admission') : noOral ? B('100 mg × 3/gün IV', '100 mg three times a day IV') : B('100 mg × 3/gün ağızdan ya da IV', '100 mg three times a day orally or IV'),
-    why: rf.level === 'unknown' && !(p.alcohol === true || rf.malnourished === true || gt(p.lowIntakeDays, 5) === true) ? B('Eksiklik riski dışlanamadı (refeeding verisi eksik)', 'Deficiency risk not excluded (refeeding data missing)') : B('Eksiklik riski: alkol, malnütrisyon ya da 5 günden uzun düşük alım', 'At risk of deficiency: alcohol, malnutrition or more than 5 days of low intake') });
+    why: rf.level === 'unknown' && !(p.alcohol === true || malnourished || gt(p.lowIntakeDays, 5) === true) ? B('Eksiklik riski dışlanamadı (refeeding verisi eksik)', 'Deficiency risk not excluded (refeeding data missing)') : B('Eksiklik riski: alkol, malnütrisyon ya da 5 günden uzun düşük alım', 'At risk of deficiency: alcohol, malnutrition or more than 5 days of low intake') });
   if (icu && (p.icuDay ?? 1) <= 4) thiamine.push({ level: 2, dose: B('100 mg/gün IV (100–300 aralığı), yatıştan itibaren 3–4 gün', '100 mg/day IV (range 100–300) for 3–4 days from admission'), why: B('Yoğun bakıma yatış (ilk 3–4 gün)', 'ICU admission (first 3–4 days)') });
   if (!icu && (gt(p.lowIntakeDays, 0) === true || (p.oralIntakePct !== null && p.oralIntakePct < 75) || ['en', 'pn'].includes(route.kind))) {
     thiamine.push({ level: 2, dose: noOral ? B('100 mg/gün IV', '100 mg/day IV') : B('100 mg/gün ağızdan ya da IV', '100 mg/day orally or IV'), why: B('Serviste son günlerde azalmış besin alımı', 'Reduced food intake in recent days on the ward') });
@@ -529,9 +612,9 @@ function supplements(p, m, rf, route, plan) {
 
 // ---------------------------------------------------------------------------------------------
 // Missing data, ordered by impact on the recommendation.
-function missingData(p, m, rf, nb, route) {
+function missingData(p, m, rf, nb, route, scales) {
   const out = [];
-  const add = (field, card, impact, text) => out.push({ field, card, impact, text });
+  const add = (field, card, impact, text, focus = field) => out.push({ field, card, impact, text, focus });
   const icu = p.setting === 'icu';
   if (!p.weightKg) add('weightKg', 1, 'critical', p.heightCm ? B('Kilo yok: miktarlar BKİ 18,5’e karşılık gelen kiloyla (temkinli) hesaplandı. Gerçek kilo girilince düzelir.', 'Weight missing: amounts use the weight at BMI 18.5 (cautious). Enter the actual weight to correct them.') : B('Kilo ve boy yok: miktar hesaplanamaz.', 'Weight and height missing: amounts cannot be calculated.'));
   if (!p.heightCm) add('heightCm', 1, m.energyWeightKind === 'capped-no-height' ? 'critical' : 'high', m.energyWeightKind === 'capped-no-height' ? B('Boy yok ve kilo 100 kg üzerinde: obezite değerlendirilemediği için hesap 100 kg ile sınırlandı.', 'Height missing and weight above 100 kg: obesity cannot be assessed, so the calculation is capped at 100 kg.') : B('Boy yok: BKİ, ideal ve düzeltilmiş kilo hesaplanamadı; obezite ve zayıflıkta hedef değişir, refeeding riski eksik değerlendirildi.', 'Height missing: BMI, ideal and adjusted weight cannot be calculated; targets change in obesity and underweight, and refeeding risk is incompletely assessed.'));
@@ -549,14 +632,28 @@ function missingData(p, m, rf, nb, route) {
       ? B('Olağan (hastalık öncesi) kilo yok: böbrek hastasında protein ideal kiloyla hesaplandı (ödem nedeniyle gerçek kilo kullanılmaz).', 'Usual (pre-illness) weight missing: protein uses ideal weight in kidney disease (actual weight is not used because of oedema).')
       : B('Olağan kilo yok: böbrek hastasında protein, ödemi de içerebilen güncel kiloyla hesaplandı.', 'Usual weight missing: protein in kidney disease uses the current weight, which may include oedema.'));
   }
-  if (rf.level === 'unknown') add('refeeding', 4, 'high', B('Refeeding riski belirlenemedi (kilo kaybı, düşük alım süresi, beslenme öncesi K/P/Mg, alkol ve ilaçlar): temkin için yavaş başlangıç ve tiamin uygulandı.', 'Refeeding risk undetermined (weight loss, days of low intake, pre-feeding K/P/Mg, alcohol and drugs): a slow start and thiamine are used as a precaution.'));
-  if (icu && p.measuredEE === null) add('measuredEE', 5, 'medium', B('İndirekt kalorimetri yok: enerji 25 kcal/kg tahminiyle hesaplandı. Ventilatördeki hastada kalorimetri önerilir.', 'No indirect calorimetry: energy uses the 25 kcal/kg estimate. Calorimetry is recommended in ventilated patients.'));
-  if (nb.status === 'unknown') add('uun', 5, 'medium', nb.reason === 'kidney' ? B('Böbrek yetmezliğinde idrar üre azotu azot kaybını yansıtmaz: katabolik durum ölçülemedi; rutin protein hedefi kullanıldı.', 'In kidney failure urinary urea nitrogen does not reflect nitrogen loss: catabolic state not measured; routine protein target used.') : B('24 saatlik idrar üre azotu ve o günkü protein alımı yok: anabolik/katabolik durum belirlenemedi; rutin protein hedefi kullanıldı.', '24-h urine urea nitrogen and that day’s protein intake missing: anabolic/catabolic state undetermined; routine protein target used.'));
-  if (icu && p.propofolMlH === null) add('propofolMlH', 5, 'medium', B('Propofol hızı girilmedi: beslenme dışı kalori sıfır kabul edildi (propofol 1,1 kcal/mL); propofol alıyorsa fazla beslenme olur.', 'Propofol rate not entered: non-nutritional calories assumed zero (propofol 1.1 kcal/mL); if propofol runs, this overfeeds.'));
-  if (icu && p.dextroseG === null) add('dextroseG', 5, 'medium', B('IV dekstroz girilmedi: sıfır kabul edildi.', 'IV dextrose not entered: assumed zero.'));
-  if (p.vitD === null && ((icu && (p.icuDay ?? 1) >= 7) || rf.malnourished === true || (p.age ?? 0) >= 65)) add('vitD', 5, 'low', B('25(OH)D ölçülmedi: risk taşıyan hastada D vitamini durumu belirlenebilir.', '25(OH)D not measured: vitamin D status can be checked in patients at risk.'));
+  if (rf.level === 'unknown') {
+    // Weight loss and days of low intake are asked on card 4; K/P/Mg, alcohol and drugs on card 5.
+    const card4 = p.weightLossPct === null || p.lowIntakeDays === null || m.bmi === null;
+    add('refeeding', card4 ? 4 : 5, 'high', B('Refeeding riski belirlenemedi (kilo kaybı, düşük alım süresi, beslenme öncesi K/P/Mg, alkol ve ilaçlar): temkin için yavaş başlangıç ve tiamin uygulandı.', 'Refeeding risk undetermined (weight loss, days of low intake, pre-feeding K/P/Mg, alcohol and drugs): a slow start and thiamine are used as a precaution.'), card4 ? 'weightLossPct' : 'lowElectrolytes');
+  }
+  if (p.weightLossPct !== null && p.weightLossPct > 5 && p.lossMonths === null) add('lossMonths', 4, 'medium', B('Kilo kaybının süresi girilmedi: NRS 2002 ve GLIM kaybı süresine göre puanlar; NICE refeeding ölçütü için son 3–6 ay kabul edildi.', 'Duration of the weight loss missing: NRS 2002 and GLIM grade the loss by its duration; the NICE refeeding criteria assume the last 3–6 months.'));
+  if (!icu && scales.nrs.status === 'incomplete') {
+    if (p.nrsDisease === null) add('nrsDisease', 4, 'medium', B('NRS 2002 tamamlanmadı: hastalık şiddetini seçerseniz beslenme riskini hesaplarım. Risk yoksa ONS önerilmez; risk varsa ONS ve hedefler kesinleşir.', 'NRS 2002 incomplete: choose the disease severity and I calculate the nutritional risk. Without risk no ONS is given; with risk ONS and targets are confirmed.'));
+    else add('nrsNutrition', 4, 'low', B('NRS 2002 beslenme puanı eksik verilerle hesaplandı (kilo kaybı ve süresi, BKİ ile genel durum, son haftadaki alım): eksikleri girin ya da puanı doğrudan seçin.', 'The NRS 2002 nutrition score was calculated from incomplete data (weight loss and its duration, BMI with general condition, intake in the last week): enter them or choose the score directly.'));
+  }
+  const severeRuledOut = scales.glim.phenotype === false || (scales.glim.status === 'met' && scales.glim.stageExact);
+  if (route.kind === 'pn-later' && !scales.glim.severe && !severeRuledOut) add('glimMuscle', 4, 'high', B('Sindirim kanalı kullanılamıyor: ağır malnütrisyon (GLIM evre 2) varsa parenteral beslenme 3. günü beklemeden, kademeli başlar. Kilo kaybı ve süresi, BKİ ya da kas kitlesi girilirse belirlenir.', 'The gut cannot be used: with severe malnutrition (GLIM stage 2) parenteral nutrition starts progressively without waiting for day 3. Weight loss and its duration, BMI or muscle mass decide it.'));
+  else if (!icu && scales.nrs.status === 'risk' && scales.glim.status === 'incomplete') add('glimMuscle', 4, 'low', B('Beslenme riski var; GLIM tamamlanmadı: kas kitlesi ile alım ve inflamasyon ölçütleri girilirse malnütrisyon tanısı ve evresi belirlenir.', 'Nutritional risk present; GLIM incomplete: muscle mass and the intake and inflammation criteria decide the diagnosis and stage of malnutrition.'));
+  if (route.kind === 'oral' && p.swallow === 'modified' && p.iddsiFluid === null) add('iddsiFluid', 2, 'medium', B('IDDSI sıvı düzeyi girilmedi: kıvamlı (puding ya da koyulaştırılmış) ONS seçildi. Yutma değerlendirmesindeki düzeyi girerseniz ONS türünü ve kıvamını kesinleştiririm.', 'IDDSI drink level not entered: a texture-modified (pudding or thickened) ONS is chosen. Enter the level from the swallowing assessment to confirm the ONS type and thickness.'));
+  if (p.stroke === true && route.kind === 'oral' && p.swallowAssessment === null) add('swallowAssessment', 2, 'high', B('İnme: ağızdan beslenmeden önce resmî yutma taraması yapılmalıdır (ESPEN 2018 öneri 52). Yapılan yutma değerlendirmesini girin.', 'Stroke: a formal dysphagia screen is needed before oral intake (ESPEN 2018 recommendation 52). Enter the swallowing assessment that was done.'));
+  if (icu && p.measuredEE === null) add('measuredEE', 6, 'medium', B('İndirekt kalorimetri yok: enerji 25 kcal/kg tahminiyle hesaplandı. Ventilatördeki hastada kalorimetri önerilir.', 'No indirect calorimetry: energy uses the 25 kcal/kg estimate. Calorimetry is recommended in ventilated patients.'));
+  if (nb.status === 'unknown') add('uun', 6, 'medium', nb.reason === 'kidney' ? B('Böbrek yetmezliğinde idrar üre azotu azot kaybını yansıtmaz: katabolik durum ölçülemedi; rutin protein hedefi kullanıldı.', 'In kidney failure urinary urea nitrogen does not reflect nitrogen loss: catabolic state not measured; routine protein target used.') : B('24 saatlik idrar üre azotu ve o günkü protein alımı yok: anabolik/katabolik durum belirlenemedi; rutin protein hedefi kullanıldı.', '24-h urine urea nitrogen and that day’s protein intake missing: anabolic/catabolic state undetermined; routine protein target used.'));
+  if (icu && p.propofolMlH === null) add('propofolMlH', 6, 'medium', B('Propofol hızı girilmedi: beslenme dışı kalori sıfır kabul edildi (propofol 1,1 kcal/mL); propofol alıyorsa fazla beslenme olur.', 'Propofol rate not entered: non-nutritional calories assumed zero (propofol 1.1 kcal/mL); if propofol runs, this overfeeds.'));
+  if (icu && p.dextroseG === null) add('dextroseG', 6, 'medium', B('IV dekstroz girilmedi: sıfır kabul edildi.', 'IV dextrose not entered: assumed zero.'));
+  if (p.vitD === null && ((icu && (p.icuDay ?? 1) >= 7) || rf.malnourished === true || scales.malnutrition || (p.age ?? 0) >= 65)) add('vitD', 6, 'low', B('25(OH)D ölçülmedi: risk taşıyan hastada D vitamini durumu belirlenebilir.', '25(OH)D not measured: vitamin D status can be checked in patients at risk.'));
   if (p.bowel === null) add('bowel', 3, 'low', B('Dışkılama (ishal/kabızlık) girilmedi: ishal ya da kabızlığa göre lif seçimi yapılmadı.', 'Bowel pattern (diarrhoea/constipation) not entered: no fibre choice for diarrhoea or constipation.'));
-  if (!icu && p.crp === null) add('crp', 5, 'low', B('CRP girilmedi: CRP >100 mg/L olan servis hastasında beslenme desteğine yanıt azalır.', 'CRP not entered: ward patients with CRP >100 mg/L respond less to nutritional support.'));
+  if (!icu && p.crp === null) add('crp', 6, 'low', B('CRP girilmedi: CRP >100 mg/L olan servis hastasında beslenme desteğine yanıt azalır.', 'CRP not entered: ward patients with CRP >100 mg/L respond less to nutritional support.'));
   const order = { critical: 0, high: 1, medium: 2, low: 3 };
   return out.sort((a, b) => order[a.impact] - order[b.impact]);
 }
@@ -576,7 +673,7 @@ function monitoring(p, rf, route) {
 
 // ---------------------------------------------------------------------------------------------
 // Condition-specific notes (only when relevant).
-function clinicalNotes(p, m, route, plan) {
+function clinicalNotes(p, m, route, plan, scales) {
   const notes = [];
   const icu = p.setting === 'icu';
   const w = m.energyWeight;
@@ -599,12 +696,62 @@ function clinicalNotes(p, m, route, plan) {
   if (route.pegPlanned) notes.push({ text: B('Tüple beslenme 4 haftadan uzun sürecekse PEG planlanır; stabil döneme kadar nazogastrik tüp kullanılır. Sorunsuz PEG sonrası beslenme 2–4 saat içinde başlayabilir.', 'If tube feeding will last beyond 4 weeks, plan a PEG; use a nasogastric tube until the stable phase. After an uncomplicated PEG, feeding can start within 2–4 h.'), src: ['espen-hen-2022', 'espen-neurology-2018'] });
   if (route.access === 'postpyloric') notes.push({ text: B('Aspirasyon riski çok yüksek: postpilorik (tercihen jejunal) tüp. Yerleştirilemezse ve yutma eğitimi sürüyorsa geçici parenteral beslenme düşünülebilir.', 'Very high aspiration risk: post-pyloric (preferably jejunal) tube. If it cannot be placed and swallowing training is ongoing, temporary parenteral nutrition can be considered.'), src: ['espen-icu-2023'] });
   if (route.kind === 'en' && icu) notes.push({ text: B('Yoğun bakımda mama pompayla sürekli verilir (bolus değil); başlangıç yolu mide. Mide intoleransı prokinetikle düzelmezse postpilorik tüp.', 'In the ICU the formula runs continuously by pump (not bolus); gastric access first. Post-pyloric if gastric intolerance persists despite prokinetics.'), src: ['espen-icu-2023'] });
-  if (route.kind === 'oral' && p.swallow === 'modified') notes.push({ text: B('Disfaji: kıvam ayarlı, enerji ve protein bakımından zenginleştirilmiş diyet; sıvıların kıvamını (IDDSI düzeyi) yutma değerlendirmesi belirler. Yutma güvenli değilse tüple beslenmeye geçin.', 'Dysphagia: texture-modified, energy- and protein-enriched diet; the fluid thickness (IDDSI level) is set by the swallowing assessment. If swallowing is unsafe, switch to tube feeding.'), src: ['espen-icu-2023', 'espen-neurology-2018', 'espen-geriatrics-2022'] });
+  if (route.kind === 'oral' && p.swallow === 'modified' && p.iddsiFood === null && p.iddsiFluid === null) notes.push({ text: B('Disfaji: kıvam ayarlı, enerji ve protein bakımından zenginleştirilmiş diyet; sıvıların kıvamını (IDDSI düzeyi) yutma değerlendirmesi belirler. Yutma güvenli değilse tüple beslenmeye geçin.', 'Dysphagia: texture-modified, energy- and protein-enriched diet; the fluid thickness (IDDSI level) is set by the swallowing assessment. If swallowing is unsafe, switch to tube feeding.'), src: ['espen-icu-2023', 'espen-neurology-2018', 'espen-geriatrics-2022'] });
   if (p.bowel === 'diarrhea') notes.push({ text: ['en', 'delay'].includes(route.kind) ? B('İshal enteral beslenmeyi durdurma nedeni değildir; lifli mama ve sürekli (bolus olmayan) uygulama ishali azaltır. Nedenlerini (ilaç, enfeksiyon) araştırın.', 'Diarrhoea is not a reason to stop enteral feeding; fibre-containing formula and continuous (non-bolus) delivery reduce diarrhoea. Look for causes (drugs, infection).') : B('İshal: beslenmeyi kesmeyin; nedenlerini (ilaç, enfeksiyon) araştırın ve sıvı kaybını izleyin.', 'Diarrhoea: do not stop feeding; look for causes (drugs, infection) and monitor fluid losses.'), src: ['espen-icu-2023', 'espen-hen-2022'] });
   if (p.bowel === 'constipation') notes.push({ text: B('Kabızlık: lif içeren mama/ONS ve yeterli sıvı; laksatif kurum protokolüne göre.', 'Constipation: fibre-containing formula/ONS and adequate fluid; laxatives per local protocol.'), src: ['espen-hen-2022'] });
   if (!icu && p.crp !== null && p.crp > 100) notes.push({ text: B((f) => `CRP ${f(p.crp)} mg/L (>100): yüksek inflamasyonda servis hastaları beslenme desteğine yanıt vermedi (EFFORT ikincil analizi). Hedefleri zorlamadan sürdürün; inflamasyon gerileyince yeniden değerlendirin.`, (f) => `CRP ${f(p.crp)} mg/L (>100): with high inflammation ward patients did not respond to nutritional support (EFFORT secondary analysis). Continue without forcing targets; reassess when inflammation settles.`), src: ['espen-polymorbid-2024'] });
   if (plan?.lipidLow) notes.push({ text: B('Propofol lipidi günlük lipit sınırına yaklaşıyor: lipitsiz ya da düşük lipitli parenteral karışım seçin.', 'Propofol lipid approaches the daily lipid limit: choose a lipid-free or low-lipid parenteral mixture.'), src: ['espen-icu-2023'] });
   if (p.hypoPhosphate) notes.push({ text: B('Beslenme sırasında refeeding hipofosfatemisi: enerji 48 saat başlangıç düzeyinde tutuldu, sonra yavaşça artırılıyor (tablo). Fosfatı kurum protokolüyle yerine koyun; K/Mg/P günde 2–3 kez.', 'Refeeding hypophosphataemia during feeding: energy held at the starting level for 48 h, then increased slowly (table). Replace phosphate per local protocol; K/Mg/P 2–3 times a day.'), src: ['espen-icu-2023'] });
+  notes.push(...scaleNotes(p, route, scales));
+  return notes;
+}
+
+// Notes from the screening and assessment scales (only when they change or explain the plan).
+function scaleNotes(p, route, scales) {
+  const notes = [];
+  const icu = p.setting === 'icu';
+  const sw = scales.swallow;
+  const { food, fluid } = scales.iddsi;
+  if (route.earlyPn) notes.push({ text: scales.glim.severe
+    ? B('Ağır malnütrisyon (GLIM evre 2) ve kullanılamayan sindirim kanalı: parenteral beslenme 3. günü beklemeden düşük dozla başlar, kademeli artırılır.', 'Severe malnutrition (GLIM stage 2) with an unusable gut: parenteral nutrition starts at a low dose without waiting for day 3 and is increased progressively.')
+    : B('Ağır malnütrisyon (NICE ölçütleri) ve kullanılamayan sindirim kanalı: parenteral beslenme 3. günü beklemeden düşük dozla başlar, kademeli artırılır.', 'Severe malnutrition (NICE criteria) with an unusable gut: parenteral nutrition starts at a low dose without waiting for day 3 and is increased progressively.'),
+  src: scales.glim.severe ? ['espen-icu-2023', 'glim-2019'] : ['espen-icu-2023', 'nice-cg32'] });
+  // Swallowing taken from the scales rather than from the swallowing question.
+  if (sw.value && sw.from !== 'entered') {
+    const what = {
+      fois: B((f) => `FOIS ${f(p.fois)}`, (f) => `FOIS ${f(p.fois)}`),
+      iddsi: B('IDDSI düzeyleri', 'IDDSI levels'),
+      alertness: B('uyanıklık bozukluğu', 'impaired alertness'),
+      signs: B('yutma sırasında güvensizlik bulgusu', 'unsafe signs during swallowing'),
+    }[sw.from];
+    const value = { safe: B('güvenle yiyebilir', 'can eat safely'), modified: B('kıvam ayarlı diyet', 'texture-modified diet'), unsafe: B('ağızdan beslenmez, tüple beslenir', 'no oral feeding, tube feeding') }[sw.value];
+    notes.push({ text: B(`Yutma durumu ${what.tr} ile belirlendi: ${value.tr}.`, `Swallowing was set from ${what.en}: ${value.en}.`), src: sw.from === 'fois' ? ['fois-2005'] : sw.from === 'iddsi' ? ['iddsi-2017'] : ['ueg-esnm-2025'] });
+  }
+  if (route.kind === 'oral' && p.swallow === 'modified' && (food !== null || fluid !== null)) {
+    const foodText = food !== null ? B(`yiyecekler IDDSI ${food} (${IDDSI_NAMES.food[food].tr})`, `foods IDDSI ${food} (${IDDSI_NAMES.food[food].en})`) : null;
+    const fluidText = fluid !== null ? B(`içecekler IDDSI ${fluid} (${IDDSI_NAMES.drink[fluid].tr})`, `drinks IDDSI ${fluid} (${IDDSI_NAMES.drink[fluid].en})`) : null;
+    const levels = [foodText, fluidText].filter(Boolean);
+    const join = (k) => levels.map((x) => x[k]).join(', ');
+    const tail = fluid === null
+      ? B('İçecek düzeyi bilinmediği için ONS kıvamlı seçildi.', 'The drink level is unknown, so a texture-modified ONS is chosen.')
+      : fluid === 0
+        ? B('İnce sıvı güvenli: sıvı ONS kullanılabilir.', 'Thin drinks are safe: a liquid ONS can be used.')
+        : B(`ONS dahil bütün sıvılar IDDSI ${fluid} düzeyine koyulaştırılır (kıvam artırıcıyla ya da hazır kıvamlı ürünle); düzeyi IDDSI akış testiyle doğrulayın.`, `All drinks, ONS included, are thickened to IDDSI level ${fluid} (with a thickener or a ready-thickened product); check the level with the IDDSI flow test.`);
+    notes.push({ text: B(`Disfaji, kıvam ayarlı diyet: ${join('tr')}. ${tail.tr} Yutma güvenli değilse tüple beslenmeye geçin.`, `Dysphagia, texture-modified diet: ${join('en')}. ${tail.en} If swallowing is unsafe, switch to tube feeding.`), src: ['iddsi-2017', 'espen-neurology-2018'] });
+  }
+  if (p.fois !== null && p.fois <= 3 && route.kind !== 'oral') notes.push({ text: B(`FOIS ${p.fois} (${FOIS_NAMES[p.fois].tr}): beslenme hedefi tüple karşılanır. Yutma terapisiyle FOIS düzeyini düzenli olarak yeniden değerlendirin.`, `FOIS ${p.fois} (${FOIS_NAMES[p.fois].en}): the nutrition target is met by tube. Reassess the FOIS level regularly with swallowing therapy.`), src: ['fois-2005', 'ueg-esnm-2025'] });
+  const eat = scales.eat10;
+  if (eat.entered && eat.unreliable) notes.push({ text: B('Uyanıklık bozukken EAT-10 (öz bildirim) güvenilir değildir; yutma kararı klinik değerlendirmeyle verilir.', 'With impaired alertness EAT-10 (self-report) is unreliable; the swallowing decision rests on clinical assessment.'), src: ['eat10-2008'] });
+  else if (eat.entered && eat.abnormal && p.swallow !== 'unsafe') notes.push({ text: p.swallow === null
+    ? B(`EAT-10 = ${eat.score} (≥3, disfaji belirtisi): klinik yutma değerlendirmesi yapın, gerekirse VFSS ya da FEES. Sonuç gelene kadar ağızdan sıvı ve ONS vermeyin.`, `EAT-10 = ${eat.score} (≥3, dysphagia symptoms): perform a clinical swallowing assessment, with VFSS or FEES if needed. Give no oral fluids or ONS until the result is known.`)
+    : B(`EAT-10 = ${eat.score} (≥3): disfaji belirtileri sürüyor; yutma değerlendirmesini yineleyin, gerekirse VFSS ya da FEES.`, `EAT-10 = ${eat.score} (≥3): dysphagia symptoms persist; repeat the swallowing assessment, with VFSS or FEES if needed.`), src: ['eat10-2008', 'ueg-esnm-2025'] });
+  else if (eat.entered && !eat.abnormal && p.swallow === null) notes.push({ text: B(`EAT-10 = ${eat.score} (<3): belirti eşiği aşılmadı, ancak sessiz aspirasyon dışlanmaz; ağızdan beslenme kararı yutma değerlendirmesiyle verilir.`, `EAT-10 = ${eat.score} (<3): below the symptom threshold, but silent aspiration is not excluded; oral feeding is decided by a swallowing assessment.`), src: ['eat10-2008'] });
+  const sarc = scales.ewgsop2;
+  if (!icu && !sarc.confounded && ['met', 'probable'].includes(sarc.status)) {
+    const what = sarc.status === 'probable' ? B('olası sarkopeni (düşük kas gücü)', 'probable sarcopenia (low muscle strength)') : sarc.severe ? B('ağır sarkopeni', 'severe sarcopenia') : B('sarkopeni', 'sarcopenia');
+    notes.push({ text: B(`EWGSOP2: ${what.tr}. Tedavinin temeli direnç egzersizidir; günlük protein hedefine besin ya da protein desteğiyle ulaşın. Lösin ya da HMB için ayrı doz önerilmez: hastaya anlamlı yarar gösteren yeterli kanıt yok. D vitamini sarkopeni için ayrıca önerilmez (eksiklik varsa takviyelere bakın).`, `EWGSOP2: ${what.en}. Resistance exercise is the basis of treatment; reach the daily protein target with food or protein supplements. No separate leucine or HMB dose is recommended: evidence of patient-relevant benefit is insufficient. Vitamin D is not recommended for sarcopenia itself (see supplements if deficient).`), src: ['ewgsop2-2019', 'icfsr-2018'] });
+  }
+  if (p.oedema === true) notes.push({ text: B('Ödem ya da sıvı yükü işaretlendi: kiloya ve BKİ’ye dayanan tarama ve refeeding ölçütlerinde “karşılanmadı” sonucu güvence vermez; bilinmiyor sayıldı.', 'Oedema or fluid overload was ticked: a "not met" result of the weight- and BMI-based screening and refeeding criteria is not reassuring and is treated as unknown.'), src: ['glim-2019', 'nice-cg32'] });
   return notes;
 }
 
@@ -642,14 +789,30 @@ export function recommend(raw = {}) {
     result.missing = [];
     return finish();
   }
+  // Swallowing: the most cautious of the entered findings (scales.mjs); the answer itself is kept.
+  const sw = swallowStatus(p);
+  p.swallowEntered = p.swallow;
+  p.swallow = sw.value;
+  if (sw.conflict) result.warnings.push(swallowConflict(sw));
   const m = bodyMetrics(p);
+  const scales = evaluateScales(p, m, sw);
+  result.scales = scales;
+  result.warnings.push(...scales.nrs.warnings);
   const rf = refeedingRisk(p, m);
   const nb = nitrogenBalance(p);
-  const route = decideRoute(p, rf);
+  const route = decideRoute(p, rf, rf.severe === true || scales.glim.severe);
   const full = fullEnergy(p, m);
   result.metrics = m; result.refeeding = rf; result.nitrogen = nb; result.route = route; result.fullEnergy = full;
   src(icu ? 'espen-icu-2023' : 'espen-polymorbid-2024');
   if (m.ibw) src('ardsnet-2000');
+  scaleSources(scales).forEach((id) => src(id));
+  if (p.stroke === true && route.kind === 'oral' && p.swallowAssessment === 'none') {
+    result.warnings.push(B('İnme: yutma taraması yapılmadan ağızdan beslenme önerilmez (ESPEN 2018 öneri 52). Önce resmî yutma taraması yapın.', 'Stroke: oral feeding is not advised before a dysphagia screen (ESPEN 2018 recommendation 52). Perform a formal dysphagia screen first.'));
+    src('espen-neurology-2018');
+  }
+  if (route.kind === 'oral' && p.swallow === 'safe' && scales.eat10.abnormal === true && !scales.eat10.unreliable) {
+    result.warnings.push(B(`EAT-10 = ${scales.eat10.score} (≥3) iken yutma güvenli kabul edildi: klinik yutma değerlendirmesi önerilir, gerekirse VFSS ya da FEES.`, `Swallowing is taken as safe while EAT-10 = ${scales.eat10.score} (≥3): a clinical swallowing assessment is advised, with VFSS or FEES if needed.`));
+  }
 
   const nn = nonNutritional(p);
   result.nonNutritional = nn;
@@ -657,7 +820,7 @@ export function recommend(raw = {}) {
   if (m.energyWeight && p.dextroseG !== null && p.dextroseG > GLUCOSE_MAX_G_PER_KG_DAY * m.energyWeight) result.warnings.push(B((f) => `IV dekstroz ${f(p.dextroseG)} g/gün: 5 mg/kg/dk (${f(GLUCOSE_MAX_G_PER_KG_DAY * m.energyWeight)} g/gün) sınırını aşıyor.`, (f) => `IV dextrose ${f(p.dextroseG)} g/day exceeds 5 mg/kg/min (${f(GLUCOSE_MAX_G_PER_KG_DAY * m.energyWeight)} g/day).`));
 
   if (!full.kcal || !m.proteinWeight) {
-    result.missing = missingData(p, m, rf, nb, route);
+    result.missing = missingData(p, m, rf, nb, route, scales);
     result.plan = null; result.product = null; result.supplements = [];
     result.monitoring = monitoring(p, rf, route);
     return finish();
@@ -669,7 +832,8 @@ export function recommend(raw = {}) {
   const product = p.product;
 
   if (route.kind === 'oral') {
-    const texture = p.swallow === 'modified';
+    // Texture-modified ONS unless the swallowing assessment allows thin drinks (IDDSI drink level 0).
+    const texture = p.swallow === 'modified' && p.iddsiFluid !== 0;
     const cls = texture ? 'ons-texture' : 'ons-high-protein';
     const ons = product.ons ?? PRODUCT_DEFAULTS[cls];
     const cautious = rf.level === 'high' || rf.level === 'extreme' || rf.reducedStart === true || p.hypoPhosphate === true;
@@ -684,8 +848,11 @@ export function recommend(raw = {}) {
     // ONS: at least 400 kcal and 30 g protein (espen-geriatrics-2022 R26), at most 3 servings. With a refeeding
     // risk the cautious day target is a ceiling: servings are rounded down without a minimum.
     const minServings = Math.min(3, Math.ceil(Math.max(400 / ons.kcal, 30 / ons.protein)));
+    // Ward, intake unknown: ONS for patients at nutritional risk or malnourished (espen-polymorbid-2024 R21);
+    // none when a complete NRS 2002 is below 3 and no malnutrition is diagnosed (rescreen weekly: nrs2002-2003).
+    const noRisk = !icu && intake === null && scales.nrs.status === 'no_risk' && !scales.malnutrition;
     let servings;
-    if (intake === null) servings = cautious ? Math.min(1, Math.floor(row.kcal / ons.kcal)) : minServings;
+    if (intake === null) servings = noRisk ? 0 : cautious ? Math.min(1, Math.floor(row.kcal / ons.kcal)) : minServings;
     else if (!cautious && intakeKcal + nn.total >= targetMin) servings = 0;
     else if (cautious) servings = Math.max(0, Math.min(3, Math.floor((row.kcal - intakeKcal - nn.total) / ons.kcal)));
     else {
@@ -710,12 +877,14 @@ export function recommend(raw = {}) {
         totalProtein, moduleProtein: gap >= 5 && !cautious ? round(gap) : 0, moduleGrams: gap >= 5 && !cautious ? round(gap / (modulePct / 100)) : 0,
         kcalTarget: row.kcal, proteinTarget: row.protein, share,
         fiber: p.bowel === 'constipation', capped: cautious,
+        noRisk, nrsScore: scales.nrs.score, iddsi: { ...scales.iddsi },
       };
       plan.today = { formulaKcal: servings * ons.kcal };
       plan.rows = rows;
       result.product = { cls, label: PRODUCT_LABELS[cls], composition: ons, fromLabel: Boolean(product.ons), fiber: p.bowel === 'constipation' };
       src('espen-polymorbid-2024', 'espen-geriatrics-2022');
       if (texture) src('espen-neurology-2018');
+      if (noRisk) src('nrs2002-2003');
     }
   }
 
@@ -776,11 +945,35 @@ export function recommend(raw = {}) {
   if (route.kind === 'en' && route.pegPlanned) src('espen-hen-2022');
   if (route.kind === 'en') plan.fluid = wardFluid(p, m, plan.today);
   if (plan.fluid) src('nice-cg32');
-  result.supplements = supplements(p, m, rf, route, plan);
+  result.supplements = supplements(p, m, rf, route, plan, scales);
   result.supplements.forEach((s) => src(...s.src));
-  result.notes = clinicalNotes(p, m, route, plan);
+  result.notes = clinicalNotes(p, m, route, plan, scales);
   result.notes.forEach((n) => src(...n.src));
   result.monitoring = monitoring(p, rf, route);
-  result.missing = missingData(p, m, rf, nb, route);
+  result.missing = missingData(p, m, rf, nb, route, scales);
   return finish();
+}
+
+// ---------------------------------------------------------------------------------------------
+// Scale helpers.
+const SWALLOW_WORD = { safe: B('güvenle yiyebilir', 'can eat safely'), modified: B('kıvam ayarlı diyet', 'texture-modified diet'), unsafe: B('ağızdan beslenmez', 'no oral feeding') };
+const SWALLOW_FROM = { entered: B('yutma sorusu', 'swallowing question'), fois: B('FOIS', 'FOIS'), iddsi: B('IDDSI', 'IDDSI'), alertness: B('uyanıklık bozukluğu', 'impaired alertness'), signs: B('güvensizlik bulgusu', 'unsafe signs') };
+function swallowConflict(sw) {
+  const list = (k) => sw.found.map((x) => `${SWALLOW_FROM[x.from][k]}: ${SWALLOW_WORD[x.value][k]}`).join('; ');
+  return B(`Yutma bilgileri birbirini tutmuyor (${list('tr')}). En temkinli olan kullanıldı: ${SWALLOW_WORD[sw.value].tr}. Klinik kaydı uzlaştırın.`,
+    `The swallowing findings disagree (${list('en')}). The most cautious one is used: ${SWALLOW_WORD[sw.value].en}. Reconcile the clinical record.`);
+}
+
+function scaleSources(s) {
+  const ids = [];
+  if (s.nrs.status !== 'incomplete') ids.push('nrs2002-2003', 'espen-screening-2002');
+  if (s.glim.status !== 'incomplete') ids.push('glim-2019');
+  if (s.espen2015.status === 'met' || s.espen2015.status === 'not_met') ids.push('espen-malnutrition-2015');
+  if (s.aspen.entered) ids.push('aspen-malnutrition-2012');
+  if (s.ewgsop2.entered) ids.push('ewgsop2-2019');
+  if (s.eat10.entered) ids.push('eat10-2008', 'eat10-tr-2016');
+  if (s.fois !== null) ids.push('fois-2005');
+  if (s.iddsi.food !== null || s.iddsi.fluid !== null) ids.push('iddsi-2017');
+  if ((s.assessment && s.assessment !== 'none') || s.swallow.from === 'alertness' || s.swallow.from === 'signs') ids.push('ueg-esnm-2025');
+  return ids;
 }

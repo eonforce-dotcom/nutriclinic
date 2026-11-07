@@ -87,6 +87,79 @@ export const SOURCES = {
     pmid: '40495743', doi: '10.1001/jama.2025.9110',
     used: { tr: 'Artırılmış enteral protein üstünlük göstermedi.', en: 'Augmented enteral protein showed no superiority.' },
   },
+  // Screening and assessment scales (scales.mjs). PMIDs checked with PubMed on 2026-11-07.
+  'nrs2002-2003': {
+    short: 'NRS 2002',
+    cite: 'Kondrup J, Rasmussen HH, Hamberg O, Stanga Z; Ad Hoc ESPEN Working Group. Nutritional risk screening (NRS 2002): a new method based on an analysis of controlled clinical trials. Clin Nutr. 2003;22(3):321-336.',
+    pmid: '12765673', doi: '10.1016/s0261-5614(02)00214-5',
+    used: { tr: 'NRS 2002 puanı: beslenme bozukluğu (0–3) + hastalık şiddeti (0–3) + 70 yaştan itibaren 1; ≥3 beslenme riski, <3 haftalık yeniden tarama.', en: 'NRS 2002 score: impaired nutritional status (0–3) + disease severity (0–3) + 1 from age 70; ≥3 nutritional risk, <3 weekly rescreening.' },
+  },
+  'espen-screening-2002': {
+    short: { tr: 'ESPEN 2002 · Tarama', en: 'ESPEN 2002 · Screening' },
+    cite: 'Kondrup J, Allison SP, Elia M, Vellas B, Plauth M. ESPEN guidelines for nutrition screening 2002. Clin Nutr. 2003;22(4):415-421.',
+    pmid: '12880610', doi: '10.1016/s0261-5614(03)00098-0',
+    used: { tr: 'Hastanede NRS 2002 ile tarama ve puanların tanımı.', en: 'Hospital screening with NRS 2002 and the definitions of its scores.' },
+  },
+  'glim-2019': {
+    short: 'GLIM 2019',
+    cite: 'Cederholm T, Jensen GL, Correia MITD, et al. GLIM criteria for the diagnosis of malnutrition — A consensus report from the global clinical nutrition community. Clin Nutr. 2019;38(1):1-9.',
+    pmid: '30181091', doi: '10.1016/j.clnu.2018.08.002',
+    used: { tr: 'Malnütrisyon tanısı (en az bir fenotipik ve bir etiyolojik ölçüt) ve evresi (evre 1 orta, evre 2 ağır); ağır malnütrisyonda erken parenteral beslenme.', en: 'Malnutrition diagnosis (at least one phenotypic and one etiologic criterion) and stage (stage 1 moderate, stage 2 severe); early parenteral nutrition in severe malnutrition.' },
+  },
+  'espen-malnutrition-2015': {
+    short: { tr: 'ESPEN 2015 · Malnütrisyon tanısı', en: 'ESPEN 2015 · Malnutrition diagnosis' },
+    cite: 'Cederholm T, Bosaeus I, Barazzoni R, et al. Diagnostic criteria for malnutrition — An ESPEN Consensus Statement. Clin Nutr. 2015;34(3):335-340.',
+    pmid: '25799486', doi: '10.1016/j.clnu.2015.03.001',
+    used: { tr: 'BKİ <18,5 ya da istemsiz kilo kaybı ile yaşa göre düşük BKİ veya cinsiyete göre düşük yağsız kütle indeksi.', en: 'BMI <18.5, or unintentional weight loss with an age-specific low BMI or a sex-specific low fat-free mass index.' },
+  },
+  'aspen-malnutrition-2012': {
+    short: 'AND/ASPEN 2012',
+    cite: 'White JV, Guenter P, Jensen G, Malone A, Schofield M; Academy Malnutrition Work Group; A.S.P.E.N. Malnutrition Task Force; A.S.P.E.N. Board of Directors. Consensus statement of the Academy of Nutrition and Dietetics/American Society for Parenteral and Enteral Nutrition: characteristics recommended for the identification and documentation of adult malnutrition (undernutrition). J Acad Nutr Diet. 2012;112(5):730-738.',
+    pmid: '22709779', doi: '10.1016/j.jand.2012.03.012',
+    used: { tr: 'Altı klinik özellikten en az ikisi (bağlam: akut hastalık, kronik hastalık, sosyal/çevresel); yoğun bakımda kavrama gücü sayılmaz.', en: 'At least two of six clinical characteristics (context: acute illness, chronic illness, social/environmental); grip strength is not counted in the ICU.' },
+  },
+  'ewgsop2-2019': {
+    short: 'EWGSOP2 2019',
+    cite: 'Cruz-Jentoft AJ, Bahat G, Bauer J, et al. Sarcopenia: revised European consensus on definition and diagnosis. Age Ageing. 2019;48(1):16-31. Correction: Age Ageing. 2019;48(4):601 (PMID 31081853).',
+    pmid: '30312372', doi: '10.1093/ageing/afy169',
+    used: { tr: 'Kas gücü (kavrama <27/<16 kg, 5 sandalye kalkışı >15 sn), kas miktarı (ASM <20/<15 kg; ASM/boy² <7,0/<5,5 kg/m², düzeltilmiş kadın eşiği) ve performans (yürüme hızı ≤0,8 m/sn, SPPB ≤8).', en: 'Muscle strength (grip <27/<16 kg, five chair rises >15 s), muscle quantity (ASM <20/<15 kg; ASM/height² <7.0/<5.5 kg/m², corrected female cut-off) and performance (gait speed ≤0.8 m/s, SPPB ≤8).' },
+  },
+  'icfsr-2018': {
+    short: { tr: 'ICFSR 2018 · Sarkopeni', en: 'ICFSR 2018 · Sarcopenia' },
+    cite: 'Dent E, Morley JE, Cruz-Jentoft AJ, et al. International Clinical Practice Guidelines for Sarcopenia (ICFSR): Screening, Diagnosis and Management. J Nutr Health Aging. 2018;22(10):1148-1161.',
+    pmid: '30498820', doi: '10.1007/s12603-018-1139-9',
+    used: { tr: 'Sarkopenide direnç egzersizi (güçlü öneri), protein desteği ya da proteinden zengin diyet (koşullu öneri); D vitamini için öneri yok.', en: 'In sarcopenia resistance exercise (strong), protein supplementation or a protein-rich diet (conditional); no recommendation for vitamin D.' },
+  },
+  'eat10-2008': {
+    short: 'EAT-10',
+    cite: 'Belafsky PC, Mouadeb DA, Rees CJ, et al. Validity and reliability of the Eating Assessment Tool (EAT-10). Ann Otol Rhinol Laryngol. 2008;117(12):919-924.',
+    pmid: '19140539', doi: '10.1177/000348940811701210',
+    used: { tr: 'EAT-10 toplam puanı ≥3 anormal kabul edilir.', en: 'An EAT-10 total of 3 or more is abnormal.' },
+  },
+  'eat10-tr-2016': {
+    short: { tr: 'EAT-10 Türkçe', en: 'EAT-10 Turkish' },
+    cite: 'Demir N, Serel Arslan S, İnal Ö, Karaduman AA. Reliability and Validity of the Turkish Eating Assessment Tool (T-EAT-10). Dysphagia. 2016;31(5):644-649.',
+    pmid: '27405421', doi: '10.1007/s00455-016-9723-9',
+    used: { tr: 'Türkçe formun geçerliliği ve güvenilirliği; anket maddeleri bu sayfada çoğaltılmaz.', en: 'Validity and reliability of the Turkish form; the questionnaire items are not reproduced here.' },
+  },
+  'fois-2005': {
+    short: 'FOIS',
+    cite: 'Crary MA, Mann GD, Groher ME. Initial psychometric assessment of a functional oral intake scale for dysphagia in stroke patients. Arch Phys Med Rehabil. 2005;86(8):1516-1520.',
+    pmid: '16084801', doi: '10.1016/j.apmr.2004.11.049',
+    used: { tr: 'Yedi düzeyli işlevsel ağızdan alım ölçeği: 1–3 tüple beslenme, 4–6 kısıtlamalı ağızdan, 7 kısıtlamasız.', en: 'Seven-level functional oral intake scale: 1–3 tube dependent, 4–6 oral with restrictions, 7 unrestricted.' },
+  },
+  'iddsi-2017': {
+    short: 'IDDSI',
+    cite: 'Cichero JAY, Lam P, Steele CM, et al. Development of International Terminology and Definitions for Texture-Modified Foods and Thickened Fluids Used in Dysphagia Management: The IDDSI Framework. Dysphagia. 2017;32(2):293-314.',
+    pmid: '27913916', doi: '10.1007/s00455-016-9758-y', url: 'https://www.iddsi.org/resources/framework-documents',
+    used: { tr: 'Yiyecek (3–7) ve içecek (0–4) kıvam düzeyleri; ONS ve sıvıların kıvamı.', en: 'Food (3–7) and drink (0–4) texture levels; thickness of ONS and drinks.' },
+  },
+  'ueg-esnm-2025': {
+    short: { tr: 'UEG/ESNM 2025 · Disfaji', en: 'UEG/ESNM 2025 · Dysphagia' },
+    cite: 'Mari A, Calabrese F, Pasta A, et al. Esophageal and Oropharyngeal Dysphagia: Clinical Recommendations From the United European Gastroenterology and European Society for Neurogastroenterology and Motility. United European Gastroenterol J. 2025;13(6):855-901.',
+    pmid: '40543044', doi: '10.1002/ueg2.70062',
+    used: { tr: 'Orofaringeal disfajide enstrümantal değerlendirme (VFSS, FEES) ve yutma terapisi.', en: 'Instrumental assessment (VFSS, FEES) and swallowing therapy in oropharyngeal dysphagia.' },
+  },
 };
 
 export const PROTEIN_TRIALS = ['effort-protein-2023', 'precise-2024', 'target-protein-2025'];
