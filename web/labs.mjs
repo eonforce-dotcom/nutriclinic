@@ -54,13 +54,19 @@ export function labFactor(key, unit) {
 }
 export const defaultUnit = (key) => LABS[key].units[0][0];
 
-// null when empty or valid; otherwise { code: 'nan' | 'unit' | 'range', min, max } with the limits expressed in
+// null when empty or valid; otherwise { code: 'nan' | 'unit' | 'range' | 'grouping', min, max } with the limits in
 // the entered unit, so the interface can say "between a and b mg/dL".
 export function checkLab(key, value, unit) {
   const def = LABS[key];
   if (!def || empty(value)) return null;
   const factor = labFactor(key, unit);
   if (factor === null) return { code: 'unit', min: null, max: null };
+  // A thousands separator ("250.000", "1,800") would be read as a decimal point, giving a value a thousand times
+  // too small: it is refused where values of 1000 or more are possible, and counts per µL (whole numbers) take no
+  // separator at all.
+  const raw = typeof value === 'string' ? value.trim() : '';
+  if (unit === '/µL' && /[.,]/.test(raw)) return { code: 'grouping', perUl: true, min: def.min / factor, max: def.max / factor };
+  if (def.max / factor >= 1000 && /^[+-]?\d{1,3}[.,]\d{3}$/.test(raw)) return { code: 'grouping', min: def.min / factor, max: def.max / factor };
   const x = toNumber(value);
   if (x === null) return { code: 'nan', min: def.min / factor, max: def.max / factor };
   const canonical = x * factor;
@@ -128,7 +134,7 @@ const ALIASES = new Map([
   ...['creatinine', 'kreatinin', 'crea', 'creat'].map((a) => [a, 'creatinine']),
   ...['urea', 'ure', 'bun', 'kanureazotu'].map((a) => [a, 'urea']),
   ...['albumin', 'alb'].map((a) => [a, 'albumin']),
-  ...['crp', 'creaktifprotein'].map((a) => [a, 'crp']),
+  ...['crp', 'creaktifprotein', 'hscrp'].map((a) => [a, 'crp']),
   ...['neutrophils', 'neutrophil', 'notrofil', 'notrofil#', 'neu', 'neu#', 'neut', 'anc'].map((a) => [a, 'neutrophils']),
   ...['lymphocytes', 'lymphocyte', 'lenfosit', 'lenfosit#', 'lym', 'lym#', 'lymph'].map((a) => [a, 'lymphocytes']),
   ...['lactate', 'laktat', 'lac'].map((a) => [a, 'lactate']),
@@ -178,6 +184,8 @@ export function importRow(row) {
   const date = isoDate(pick('date', 'tarih'));
   const base = { test: test.slice(0, 60), rawUnit: String(rawUnit ?? '').slice(0, 30), rawValue: String(rawValue ?? '').slice(0, 30) };
   const key = ALIASES.get(nameKey(test));
+  // A comparator in the test name or the value ("CRP <", "<0,5") is a censored result: never an exact value.
+  if (/[<>≤≥]/.test(test) || /[<>≤≥]/.test(String(rawValue ?? ''))) return { ...base, ...(key ? { key } : {}), error: 'censored' };
   if (!key) return { ...base, error: 'test' };
   const bun = nameKey(test) === 'bun' || nameKey(test) === 'kanureazotu';
   if (!unitText(rawUnit)) return { ...base, key, error: 'unit-missing' };
@@ -187,7 +195,7 @@ export function importRow(row) {
   if (!unit) return { ...base, key, error: 'unit' };
   const value = typeof rawValue === 'number' ? String(rawValue) : String(rawValue ?? '').trim();
   const err = checkLab(key, value, unit);
-  if (!value || err) return { ...base, key, unit, error: err?.code === 'range' ? 'range' : 'value' };
+  if (!value || err) return { ...base, key, unit, error: ['range', 'grouping'].includes(err?.code) ? err.code : 'value' };
   if (date === null) return { ...base, key, unit, value, error: 'date' };
   return { ...base, key, unit, value, date };
 }
@@ -246,16 +254,34 @@ export function importText(name, text) {
     if (!rows) throw new Error('json');
   } else rows = parseCSV(text);
   if (rows.length > 300) throw new Error('size');
-  const out = rows.map((r, i) => ({ i, ...importRow(r) }));
-  // Preselect the latest valid row of each test.
-  const latest = new Map();
-  for (const r of out) {
-    if (r.error) continue;
-    const prev = latest.get(r.key);
-    if (!prev || (r.date || '') >= (prev.date || '')) latest.set(r.key, r);
+  return preselect(rows.map((r, i) => ({ i, ...importRow(r) })));
+}
+
+// One row per test is preselected: the only result (or identical results), or the latest-dated one when every row
+// of that test has a date and the latest date has a single result. Otherwise the rows are marked `choose` and the
+// clinician picks one; nothing is preselected for that test. A test that also has a recognised but unusable row (a
+// unit, range, date or censored-value error) is never preselected, and `none` (an incomplete text) preselects nothing.
+function preselect(rows, { none = false } = {}) {
+  const groups = new Map();
+  const blocked = new Set();
+  for (const r of rows) {
+    r.selected = false;
+    r.choose = false;
+    if (r.error) { if (r.key) blocked.add(r.key); continue; }
+    groups.set(r.key, [...(groups.get(r.key) ?? []), r]);
   }
-  for (const r of out) r.selected = !r.error && latest.get(r.key) === r;
-  return out;
+  if (none) return rows;
+  const distinct = (list) => new Set(list.map((x) => `${String(x.value).replace(',', '.')}|${x.unit}`)).size;
+  for (const [key, same] of groups) {
+    if (blocked.has(key)) { same.forEach((x) => { x.choose = true; }); continue; }
+    const dated = same.every((x) => x.date);
+    const latestDate = dated ? same.reduce((d, x) => (x.date > d ? x.date : d), '') : '';
+    const latest = latestDate ? same.filter((x) => x.date === latestDate) : [];
+    if (distinct(same) === 1) (latest[0] ?? same[0]).selected = true;
+    else if (latest.length && distinct(latest) === 1) latest[0].selected = true;
+    else same.forEach((x) => { x.choose = true; });
+  }
+  return rows;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -283,4 +309,156 @@ export function sofa2(s) {
   if (s.platelets !== null) c.hemostasis = s.platelets > 150 ? 0 : s.platelets > 100 ? 1 : s.platelets > 80 ? 2 : s.platelets > 50 ? 3 : 4;
   const known = Object.values(c).filter((v) => v !== null);
   return { components: c, total: known.length === 6 ? known.reduce((a, b) => a + b, 0) : null, known: known.length, partial: known.reduce((a, b) => a + b, 0) };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Laboratory results in a report's text (for example a PDF): one or more "<test> <value> <unit>" segments per line,
+// read from the left. Around the value (between the name and the value, or the value and its unit) only result flags
+// (H, L, *, ↑ …), dates and times and specimen words (serum, plazma …) may stand; the unit may also come just before
+// the value. Any other word ends the line, so "Bilirubin direkt 0,3" is not read as total bilirubin, "Kreatinin
+// (idrar) 80" not as serum creatinine and "CRP < 0,5" (a censored result) not at all; a reference range is never taken
+// as a result, nor a name that mixes urea and BUN. A second test on the same line is read only right after the first
+// one's unit (and its reference range). Test names need three or more letters (K or P alone are ambiguous in free text). Every row goes through the
+// same checks as a file row, carries its report line and page, and is preselected only when it is unambiguous.
+const SPECIMEN = new Set(['serum', 'plazma', 'plasma', 'kan', 'blood', 'tamkan', 'wholeblood', 'venoz', 'venous', 'venozkan', 'arteriyel', 'arterial', 'arteriyelkan', 's', 'p', 'sp', 'inorganik', 'inorganic', 'kantitatif', 'quantitative', 'nefelometrik', 'turbidimetrik']);
+const BRACKETED = new Set(['total', 'toplam', 'abs', 'mutlak', 'absolute', '#', '25oh']);
+const FLAG = /^(\(?(h|l|hh|ll|h\*|l\*)\)?|\*{1,2}|!{1,2}|↑{1,2}|↓{1,2})$/i;
+const DATE_TIME = /^(\d{1,2}[./]\d{1,2}[./]\d{2,4}|\d{4}-\d{2}-\d{2}|\d{1,2}:\d{2}(:\d{2})?)$/;
+const VALUE = /^(\d+(?:[.,]\d+)?)(?:\*{1,2}|!{1,2}|↑|↓|h|l)?$/i;
+const RANGE = /^(\(?\d+(?:[.,]\d+)?[-–]\d+(?:[.,]\d+)?\)?|[<>≤≥]=?\d+(?:[.,]\d+)?)$/;
+const DASH = /^[-–—]/;
+const MAX_TEXT_ROWS = 300;
+const MAX_TEXT_LINES = 20000;
+const textDate = (t) => {
+  const m = /^(\d{1,2})[./](\d{1,2})[./](\d{4})$/.exec(t);
+  return isoDate(m ? `${m[1].padStart(2, '0')}.${m[2].padStart(2, '0')}.${m[3]}` : /^\d{4}-\d{2}-\d{2}$/.test(t) ? t : '') || '';
+};
+const COMPARATOR = /[<>≤≥=]/;
+// Urea names that report BUN (urea nitrogen): a name mixing both ("Üre (BUN)") is not read, since BUN is converted.
+const BUN_NAMES = new Set(['bun', 'kanureazotu']);
+// A specimen word, bare (letters only) or in brackets; in brackets also "(total)", "(#)", "(25-OH)" or the test's own
+// short name with the same basis. A token with a comparator is never a qualifier ("(serum)<" ends the line).
+function qualifier(tok, key, bunName) {
+  if (COMPARATOR.test(tok)) return false;
+  const m = /^\(([^()]*)\)$/.exec(tok);
+  if (!m && !/^\p{L}+$/u.test(tok)) return false;
+  const inner = nameKey(m ? m[1] : tok);
+  if (SPECIMEN.has(inner)) return true;
+  if (!m) return false;
+  return BRACKETED.has(inner) || (ALIASES.get(inner) === key && BUN_NAMES.has(inner) === bunName);
+}
+// The test a name stands for ({ key, test: the name as matched }), or null. Bracketed parts must be qualifiers
+// ("Kreatinin (idrar)" is not creatinine); they are left out of the matched name.
+function testName(name) {
+  // A percentage ("NEU%", "Lenfosit %") is not the count; unbalanced brackets or a comparator are not a name.
+  if (name.includes('%') || COMPARATOR.test(name) || (name.match(/\(/g) ?? []).length !== (name.match(/\)/g) ?? []).length) return null;
+  const whole = nameKey(name);
+  if (whole.length >= 3 && ALIASES.has(whole)) return { key: ALIASES.get(whole), test: name };
+  const bare = name.replace(/\([^()]*\)/g, ' ').replace(/\s+/g, ' ').trim();
+  const bareKey = nameKey(bare);
+  const key = bareKey.length >= 3 ? ALIASES.get(bareKey) : undefined;
+  if (!key) return null;
+  return [...name.matchAll(/\([^()]*\)/g)].every((m) => qualifier(m[0], key, BUN_NAMES.has(bareKey))) ? { key, test: bare } : null;
+}
+const nameToken = (t) => !COMPARATOR.test(t) && (/\p{L}/u.test(t) || t === '#');
+function segmentAt(tokens, start) {
+  for (let k = Math.min(6, tokens.length - start - 1); k >= 1; k -= 1) {
+    const words = tokens.slice(start, start + k);
+    if (!words.every(nameToken)) continue;
+    const hit = testName(words.join(' '));
+    if (hit) return resultAfter(tokens, start + k, hit.key, hit.test); // the longest known name wins; no shorter retry
+  }
+  return null;
+}
+function resultAfter(tokens, from, key, name) {
+  const bunName = BUN_NAMES.has(nameKey(name));
+  const units = UNIT_MAP[key];
+  const unitAt = (p) => {
+    for (let n = 1; n <= 3 && p + n <= tokens.length; n += 1) {
+      const u = tokens.slice(p, p + n).join('');
+      if (units[unitText(u)]) return { unit: u, next: p + n };
+    }
+    return null;
+  };
+  let date = '';
+  // Flags, dates and times, and specimen words may stand around the value.
+  const noise = (t) => {
+    if (DATE_TIME.test(t)) { date ||= textDate(t); return true; }
+    return FLAG.test(t) || qualifier(t, key, bunName);
+  };
+  let j = from;
+  let before = null;
+  while (j < tokens.length) {
+    if (noise(tokens[j])) { j += 1; continue; }
+    const u = before ? null : unitAt(j);
+    if (!u) break;
+    before = u;
+    j = u.next;
+  }
+  const m = VALUE.exec(tokens[j] ?? '');
+  if (!m || DASH.test(tokens[j + 1] ?? '')) return null; // no result here, or the start of a reference range
+  let p = j + 1;
+  let unit = before?.unit ?? '';
+  if (!before) {
+    while (p < tokens.length && noise(tokens[p])) p += 1;
+    const u = unitAt(p);
+    if (u) { unit = u.unit; p = u.next; } else if (p < tokens.length) { unit = tokens[p]; p += 1; } // shown with an error
+  }
+  if (DASH.test(tokens[p] ?? '')) return null; // "3,5 mmol/L - 5,1 mmol/L" is a reference range
+  return { key, name, value: m[1], unit, date, end: p };
+}
+// The end of a part of a line that is not one of our tests ("Hemoglobin 12,1 g/dL" in a two-column report), or -1.
+// Nothing in it is imported; it is only passed over so that a test of ours right after it can still be read.
+const UNIT_LIKE = (t) => !VALUE.test(t) && (/[/%]/.test(t) || /^[a-zµμ]{1,4}$/i.test(t));
+function otherEnd(tokens, start) {
+  let j = start;
+  while (j < tokens.length && j - start < 6 && nameToken(tokens[j]) && !VALUE.test(tokens[j])) j += 1;
+  if (j === start || !VALUE.test(tokens[j] ?? '')) return -1;
+  let p = j + 1;
+  while (p < tokens.length && FLAG.test(tokens[p])) p += 1;
+  if (p < tokens.length && UNIT_LIKE(tokens[p])) p += 1;
+  return p;
+}
+// text: the whole text, or one text per page (rows then carry their page number). Returns { rows, truncated } where
+// truncated is false, 'rows' (more than 300 results) or 'lines' (more than 20 000 lines); an incomplete text
+// preselects nothing.
+export function rowsFromText(text) {
+  const pages = Array.isArray(text) ? text : [text];
+  const found = [];
+  let lines = 0;
+  let truncated = false;
+  reading: for (let pi = 0; pi < pages.length; pi += 1) {
+    for (const raw of String(pages[pi] ?? '').split(/\r?\n/)) {
+      const line = raw.replace(/\s+/g, ' ').trim();
+      if (!line) continue;
+      lines += 1;
+      if (lines > MAX_TEXT_LINES) { truncated = 'lines'; break reading; }
+      const tokens = line.split(' ');
+      const dates = [...new Set(tokens.filter((t) => DATE_TIME.test(t)).map(textDate).filter(Boolean))];
+      let i = 0;
+      while (i < tokens.length && DATE_TIME.test(tokens[i])) i += 1; // a date or time opening the row
+      let first = true;
+      while (i < tokens.length) {
+        const seg = segmentAt(tokens, i);
+        let p = seg ? seg.end : otherEnd(tokens, i);
+        if (p < 0) break;
+        while (p < tokens.length && FLAG.test(tokens[p])) p += 1;
+        if (RANGE.test(tokens[p] ?? '')) p += 1;
+        else if (VALUE.test(tokens[p] ?? '') && /^[-–—]$/.test(tokens[p + 1] ?? '') && VALUE.test(tokens[p + 2] ?? '')) p += 3;
+        if (seg) {
+          // The report text behind the row: the whole line when short, otherwise this test's own part of it.
+          const from = first ? 0 : i;
+          const source = line.length <= 160 ? line : `${from > 0 ? '… ' : ''}${tokens.slice(from, p).join(' ').slice(0, 200)}${p < tokens.length ? ' …' : ''}`;
+          found.push({ ...seg, date: seg.date || (dates.length === 1 ? dates[0] : ''), line: source, page: Array.isArray(text) ? pi + 1 : null });
+        }
+        while (p < tokens.length && (FLAG.test(tokens[p]) || DATE_TIME.test(tokens[p]))) p += 1;
+        if (p <= i) break;
+        i = p;
+        first = false;
+      }
+    }
+  }
+  if (!truncated && found.length > MAX_TEXT_ROWS) truncated = 'rows';
+  const rows = found.slice(0, MAX_TEXT_ROWS).map((r, i) => ({ i, ...importRow({ test: r.name, value: r.value, unit: r.unit, date: r.date }), line: r.line, page: r.page }));
+  return { rows: preselect(rows, { none: Boolean(truncated) }), truncated };
 }

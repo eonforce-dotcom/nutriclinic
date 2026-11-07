@@ -209,6 +209,11 @@ summary { cursor: pointer; font-weight: 700; }
   .seg:not(.stack) button { flex: 1 1 0; min-width: 0; }
 }
 .print-only { display: none; }
+.unit-select.ev-kind { max-width: none; width: 100%; border-left: 0; }
+.linkish { background: none; border: 0; padding: 0; color: var(--brand); text-decoration: underline; cursor: pointer; font: inherit; }
+details.ev, details.topic { border-top: 1px solid var(--line); padding: 8px 0; margin: 0; }
+details.ev > summary, details.topic > summary { font-weight: 600; }
+details.ev p, details.topic p { margin: 6px 0; font-size: .92rem; }
 .file-note { font-size: .8rem; margin: 6px 0 0; text-align: right; }
 @media print {
   .print-only { display: block; }

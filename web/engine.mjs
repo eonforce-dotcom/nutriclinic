@@ -13,7 +13,7 @@ import { LAB_KEYS, readLab, labIndices, phosphateDrop, labFlags, sofa2, inverted
 const IDDSI_NAMES = { food: IDDSI_FOOD, drink: IDDSI_DRINK };
 
 export { B };
-export const ENGINE_VERSION = '1.5.0';
+export const ENGINE_VERSION = '1.6.1';
 export const RULES_DATE = '2026-11-07';
 export const INTENDED_USE = B('NutriClinic klinik kararı destekler, yerine geçmez. Her öneri hasta başında, girdileri ve kaynaklarıyla birlikte değerlendirilir.', 'NutriClinic supports clinical decisions and does not replace them. Every recommendation is reviewed at the bedside with its inputs and sources.');
 
@@ -76,6 +76,9 @@ const toNumber = (v) => {
   return null;
 };
 const empty = (v) => v === undefined || v === null || v === '' || v === 'unknown';
+// "1.800" or "2,000": a thousands separator would be read as a decimal point (a value a thousand times too small),
+// so it is refused in fields that accept values of 1000 or more.
+const grouped = (v) => typeof v === 'string' && /^[+-]?\d{1,3}[.,]\d{3}$/.test(v.trim());
 
 // Allowed numeric ranges. The interface uses the same table to show an error next to the field.
 export const FIELD_LIMITS = Object.freeze({
@@ -115,10 +118,11 @@ export const FIELD_LIMITS = Object.freeze({
   sofaEpi: { min: 0, max: 10 },
   saps2: { min: 0, max: 163, integer: 'strict' },
 });
-// null when the value is empty or valid; otherwise { code: 'nan' | 'integer' | 'range', min, max }.
+// null when the value is empty or valid; otherwise { code: 'nan' | 'integer' | 'range' | 'grouping', min, max }.
 export function checkNumber(key, value) {
   const lim = FIELD_LIMITS[key];
   if (!lim || empty(value)) return null;
+  if (lim.max >= 1000 && grouped(value)) return { code: 'grouping', ...lim };
   const x = toNumber(value);
   if (x === null) return { code: 'nan', ...lim };
   if (lim.integer === 'strict' && !Number.isInteger(x)) return { code: 'integer', ...lim };
@@ -223,6 +227,7 @@ export const PRODUCT_LIMITS = Object.freeze({
 export function checkProduct(path, value) {
   const max = PRODUCT_LIMITS[path];
   if (max === undefined || empty(value)) return null;
+  if (max >= 1000 && grouped(value)) return { code: 'grouping', min: 0, max };
   const x = toNumber(value);
   if (x === null) return { code: 'nan', min: 0, max };
   if (x <= 0 || x > max) return { code: 'range', value: x, min: 0, max, exclusiveMin: true };

@@ -17,9 +17,9 @@ her parça teste ve bağımsız denetime girer.
 | Parça | İçerik | Durum |
 |---|---|---|
 | 1. Ölçekler | NRS 2002, GLIM, ESPEN 2015, AND/ASPEN, EWGSOP2 (sarkopeni), EAT-10, FOIS, IDDSI, yutma güvenliği; alan yanı hata mesajları | 7 Kasım 2026'da yayınlandı (sürüm 1.1.0); 66 test; bağımsız denetimde 8 bulgu, 6'sı düzeltildi, 2'si gerekçeyle reddedildi |
-| 2. Laboratuvar | 2a: değerler, birim seçimi, fosforla refeeding hipofosfatemisi, NLR, PNI, üre/kreatinin oranı. 2b: içe aktarma, referans aralıkları, SOFA-2, SAPS II | 2a 7 Kasım 2026'da yayınlandı (sürüm 1.2.0). 2b 7 Kasım 2026'da yayınlandı (sürüm 1.3.0, 78 test; Codex denetiminde 5 bulgu, hepsi düzeltildi): CSV/JSON/TXT içe aktarma, 11 test için yerel referans aralıkları, CRP oranı, SOFA-2, SAPS II; PDF kullanıcı kararını bekliyor |
-| 3. Kayıtlı hastalar | Mevcut kayıt hizmetiyle kayıt; sunucu yapılandırması ve gizlilik metni değişir | sırada |
-| 4. Kanıt ve izlem | 4a: yazdırılabilir rapor (tarih, sürüm, girilen bilgiler), vakayı JSON dosyasına kaydetme ve açma, tablo CSV. 4b: verilen beslenme izlemi. 4c: kanıt kütüphanesi ve hekim seçimiyle karşılaştırma | 4a yayınlandı (sürüm 1.4.0). 4b 7 Kasım 2026'da yayınlandı (sürüm 1.5.0, 81 test; Codex denetiminde bir ifade bulgusu, düzeltildi): günlük verilen enerji/protein, o günün hedefi, yüzde, birikmiş fark, erken fazda aşırı beslenme işareti, vaka dosyasında saklanır. 4c sırada |
+| 2. Laboratuvar | 2a: değerler, birim seçimi, fosforla refeeding hipofosfatemisi, NLR, PNI, üre/kreatinin oranı. 2b: içe aktarma, referans aralıkları, SOFA-2, SAPS II | 2a 7 Kasım 2026'da yayınlandı (sürüm 1.2.0). 2b 7 Kasım 2026'da yayınlandı (sürüm 1.3.0, 78 test; Codex denetiminde 5 bulgu, hepsi düzeltildi): CSV/JSON/TXT içe aktarma, 11 test için yerel referans aralıkları, CRP oranı, SOFA-2, SAPS II. PDF okuma kullanıcı onayıyla 1.6.0'da eklendi |
+| 3. Kayıtlı hastalar | Cihazda saklama; isteğe bağlı olarak sitede saklama (mevcut kayıt hizmeti; sunucu yapılandırması ve gizlilik metni değişir) | Kullanıcı kararı (7 Kasım gece): cihazda saklama olsun, isteyen sitede de saklasın (işaretlenen ek seçenek). Yapılıyor |
+| 4. Kanıt ve izlem | 4a: yazdırılabilir rapor (tarih, sürüm, girilen bilgiler), vakayı JSON dosyasına kaydetme ve açma, tablo CSV. 4b: verilen beslenme izlemi. 4c: kanıt kütüphanesi ve hekim seçimiyle karşılaştırma | 4a yayınlandı (sürüm 1.4.0). 4b 7 Kasım 2026'da yayınlandı (sürüm 1.5.0, 81 test; Codex denetiminde bir ifade bulgusu, düzeltildi): günlük verilen enerji/protein, o günün hedefi, yüzde, birikmiş fark, erken fazda aşırı beslenme işareti, vaka dosyasında saklanır. 4c (kanıt kütüphanesi, karar konuları) ve PDF okuma 1.6.0 olarak yüklendi ve sahnoroloji'de denendi (kullanıcı isteği: yerel önizleme yok). Codex denetiminde 15 bulgu, ikinci denetimde 13 bulgu daha; hepsi sürüm 1.6.1'de düzeltildi (86 test): sınır değerler (<, >) ve referans aralıkları değer sayılmaz, binlik ayırıcı reddedilir, nitelikli testler (direkt bilirubin, idrar kreatinini) ve üre/BUN karışık adlar okunmaz, birden çok sonuçta hekim seçer, karar konuları vaka dosyasında korunur, PDF okumada süre ve boyut sınırı var |
 
 ## Parça 1: ölçekler öneriyi nasıl değiştirir
 
@@ -56,10 +56,11 @@ kaynağı zaten notla kaydediliyor; serviste protein hedefi zaten 1,2 g/kg (1,2�
 
 ## Açık kararlar (kullanıcıya soruldu)
 
-- PDF'ten değer okuma: eski sürümdeki PDF.js kütüphanesi yeni sürüme eklensin mi? Eklenmeden önce onay gerekir
-  (bağımlılık değişikliği).
-- Parça 3, kayıtlı hastalar: yeni sayfa mevcut kayıt hizmetine bağlanırsa "girilen bilgiler bu sayfadan çıkmaz"
-  ifadesi değişir; sunucu yapılandırması ve içerik güvenlik politikası değişir. Onay gerekir.
+- PDF'ten değer okuma: kullanıcı onayladı (7 Kasım): incelenmiş PDF.js 6.2.108 eklendi. Daha yeni 6.5.438 var
+  (1 Kasım); geçiş ayrı inceleme ister.
+- Parça 3, kayıtlı hastalar: kullanıcı önce "şimdilik sunucuya eklenmesin" dedi (7 Kasım), sonra (7 Kasım gece)
+  "cihazda saklama olsun. veriler istenirse sitede de saklanabilsin öyle bir extra seçenek de koy, isteyen onu
+  işaretler" dedi.
 - Onay beklenirken parça 4'ün sunucu gerektirmeyen kısımları (kanıt kütüphanesi, izlem, dışa aktarma, yazdırılabilir
   rapor) yapılabilir.
 
@@ -86,6 +87,6 @@ oranı, SOFA-2 ve SAPS II.
 **2b — içe aktarma ve skorlar**
 - CSV/JSON (test, value, unit, date) ve TXT içe aktarma: önizleme, seçerek aktarma, cihazda okunur.
 - PDF metni okuma eski sürümde PDF.js ile yapılıyordu. Yeni sürüme eklemek bağımlılık değişikliği: önce
-  kullanıcıya sorulur.
+  kullanıcıya sorulur (onaylandı; incelenmiş PDF.js 6.2.108, sürüm 1.6.0).
 - Yerel referans aralıkları (oturum boyunca).
 - SOFA-2 (Ranzani 2025, PMID 41159833) bileşenleri ve SAPS II kaydedilmiş toplamı (Le Gall 1993, PMID 8254858).

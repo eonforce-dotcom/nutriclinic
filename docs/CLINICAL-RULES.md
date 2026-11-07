@@ -1,6 +1,6 @@
 # NutriClinic staged recommender — clinical rules
 
-Version 1.5.0 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
+Version 1.6.1 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
 
 NutriClinic supports clinical decisions and does not replace them. Every recommendation is reviewed at the bedside
 together with its inputs and sources.
@@ -315,6 +315,41 @@ energy more than 10% above the day's target is marked, with the ESPEN-ICU-2023 e
 estimate; not above 70% of measured expenditure for the first 3 days). Missing values are never zero; nothing
 changes a dose. Rows are saved in the case file. Part 4b was audited by Codex (GPT-6.1 Sol, high): one wording
 finding, fixed.
+
+## Evidence library and decision topics
+
+The previous workspace's focused evidence library (65 sources, literature cut-off 26 October 2026; not a systematic
+review) and its four decision topics (ICU protein, refeeding approaches, glutamine, leucine/BCAA/HMB) open from the
+page footer. Each topic compares guideline references with what the trials actually tested; the physician's choice
+is saved in the case file and listed in the report. A choice that is not offered for the current care setting (for
+example a ward-only approach after the setting is changed to ICU) is marked in the report for reassessment and is
+not saved; a choice can be cleared; choices in a case file that this version does not know are not taken, and the
+user is told. Nothing in the library is an executable dose rule.
+
+## PDF laboratory reports
+
+A laboratory PDF is read on the device with PDF.js 6.2.108 (the copy reviewed for the previous version: registry
+signature and SHA-512 verified, patched for GHSA-hq66-cqwq-w95j, no OSV advisory on 7 November 2026; no scripting or
+network). Reading stops at 50 pages, 400 000 characters of text, 200 000 text pieces or 60 seconds, and when another
+file or case is opened. Each line is read from the left as "<test> <value> <unit>"; the unit may also stand just
+before the value, and a second test may follow right after the first one's unit and reference range. Test names need
+three or more letters. Only result flags (H, L, *, ↑, ↓), dates and times, and specimen words (serum, plazma, kan …)
+may stand between the name, the value and the unit; any other word ends the line, so a qualified test such as
+"Bilirubin direkt", "Kreatinin (idrar)" or "Kreatinin kinaz" is never read as the plain test, and a censored result
+("<0,5", "≥ 200") or a reference range is never taken as a value. Every row shows its report line and page and goes
+through the same unit and range checks as a CSV row. A name that mixes urea and BUN ("Üre (BUN)") is not read, because
+BUN is converted (× 2.144). A part of a line that is not one of these tests (the left column of a two-column report) is
+passed over without importing anything, so a test right after it can still be read. One row per test is preselected
+only when it is unambiguous (a single result, identical results, or a single latest-dated result) and the test has no
+recognised but unusable row; when the text has more than 300 results or 20 000 lines nothing is preselected. Otherwise
+the clinician chooses, and only one value per test can be imported. A comparator in a CSV row's test name or value
+("CRP <", "<0,5") is reported as a censored value and not imported. A scanned PDF without text cannot be read.
+
+## Number entry
+
+A thousands separator is not read, because it would be taken as a decimal point and give a value a thousand times too
+small. In fields that accept values of 1000 or more, "1.800" or "2,000" is refused with a request to write 1800; counts
+per µL are whole numbers and take no separator at all ("250.000 /µL" → 250000).
 
 ## Notes shown when relevant
 

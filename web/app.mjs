@@ -3,13 +3,13 @@
 // Copyright (C) 2026 Gökay Duman
 import { recommend, normalize, checkNumber, checkProduct, ENGINE_VERSION, RULES_DATE, PRODUCT_DEFAULTS } from './engine.mjs';
 import { swallowStatus, FOIS_TEXT, IDDSI_FOOD, IDDSI_DRINK } from './scales.mjs';
-import { LABS, LAB_KEYS, LIMIT_KEYS, checkLab, defaultUnit, unitKey, importText } from './labs.mjs';
+import { LABS, LAB_KEYS, LIMIT_KEYS, checkLab, defaultUnit, unitKey, importText, rowsFromText } from './labs.mjs';
 import { followupSummary, checkFollowupValue, FOLLOWUP_FIELDS, MAX_FOLLOWUP_ROWS } from './followup.mjs';
 import { SOURCES } from './sources.mjs';
 import { getInitialLocale, LANGUAGE_STORAGE_KEY } from './initial-locale.mjs';
 
 let lang = getInitialLocale();
-const state = { step: 1, values: { setting: 'icu' }, product: {}, followup: [], view: 'cards', openDetails: new Set(), openMore: new Set() };
+const state = { step: 1, values: { setting: 'icu' }, product: {}, followup: [], decisions: {}, view: 'cards', prevView: 'cards', evidenceQuery: '', evidenceKind: '', openDetails: new Set(), openMore: new Set() };
 
 // ---------------------------------------------------------------------------------------------
 // Text
@@ -88,6 +88,7 @@ const T = {
   inputs: ['Girilen bilgiler', 'Entered data'],
   fileNote: ['Kaydedilen dosya yalnız bu cihaza iner ve hasta bilgisi içerir: kurum kurallarına göre saklayın.', 'The saved file is downloaded to this device only and contains patient data: keep it according to local rules.'],
   caseError: ['Bu dosya bir NutriClinic vaka dosyası değil.', 'This file is not a NutriClinic case file.'],
+  decisionsDropped: ['Vaka dosyasındaki bazı karar seçimleri bu sürümde tanınmadı ve alınmadı.', 'Some decision choices in the case file are not known to this version and were not taken.'],
 };
 const L = (x) => (Array.isArray(x) ? x[lang === 'tr' ? 0 : 1] : x && typeof x === 'object' && 'tr' in x ? x[lang] : x ?? '');
 const t = (key) => L(T[key]);
@@ -275,9 +276,9 @@ const STEPS = [
       { key: 'more-limits', type: 'more', label: ['Laboratuvarınızın referans aralıkları', 'Your laboratory’s reference intervals'], lead: ['Raporunuzdaki alt ve üst sınırlar, değerle aynı birimde. Hazır bir değer konmaz.', 'The lower and upper limits on your report, in the same unit as the value. No default is assumed.'],
         unlock: ['K, P ve Mg alt sınırlarını girerseniz beslenme öncesi düşüklüğü (NICE) ben belirlerim; diğer sınırlar sonuçta düşük/yüksek işareti ve CRP oranı verir.', 'Enter the K, P and Mg lower limits and I decide whether the pre-feeding level is low (NICE); the other limits give low/high marks and the CRP ratio in the result.'],
         fields: [{ key: 'limits-table', type: 'limits', rows: LIMIT_KEYS }] },
-      { key: 'more-import', type: 'more', label: ['Dosyadan aktar (CSV, JSON, TXT)', 'Import from a file (CSV, JSON, TXT)'],
+      { key: 'more-import', type: 'more', label: ['Dosyadan aktar (CSV, JSON, PDF, TXT)', 'Import from a file (CSV, JSON, PDF, TXT)'],
         unlock: ['Laboratuvar dökümünü CSV ya da JSON olarak verirseniz değerleri önizleyip seçerek aktarırım.', 'Give a laboratory export as CSV or JSON and I preview the values and import the ones you choose.'],
-        fields: [{ key: 'import', type: 'import', label: ['Dosya seçin', 'Choose a file'], hint: ['Dosya bu cihazda okunur, hiçbir yere gönderilmez. CSV/JSON sütunları: test, value (değer) ve unit (birim) gerekli; date (tarih) isteğe bağlı. TXT dosyası okunması için gösterilir.', 'The file is read on this device and sent nowhere. CSV/JSON columns: test, value and unit are required; date is optional. A TXT file is shown for reading.'] }] },
+        fields: [{ key: 'import', type: 'import', label: ['Dosya seçin', 'Choose a file'], hint: ['Dosya bu cihazda okunur, hiçbir yere gönderilmez. CSV/JSON sütunları: test, value (değer) ve unit (birim) gerekli; date (tarih) isteğe bağlı. PDF’te laboratuvar satırları tanınmaya çalışılır; TXT okunması için gösterilir.', 'The file is read on this device and sent nowhere. CSV/JSON columns: test, value and unit are required; date is optional. In a PDF, laboratory lines are recognised where possible; a TXT file is shown for reading.'] }] },
       { key: 'crp', type: 'lab', label: ['CRP', 'CRP'], unlock: v.setting === 'ward' ? ['CRP’yi girerseniz yüksek inflamasyonda (>100 mg/L) beslenme desteğine beklenen yanıtı belirtirim.', 'Enter CRP to flag the expected response to nutrition support with high inflammation (>100 mg/L).'] : ['CRP’yi girerseniz inflamasyon bağlamını sonuçta gösteririm.', 'Enter CRP to show the inflammatory context in the result.'] },
       { key: 'albumin', type: 'lab', label: ['Albümin', 'Albumin'], hint: ['Malnütrisyon ölçütü değildir; PNI için', 'Not a malnutrition criterion; used for PNI'] },
       { key: 'lymphocytes', type: 'lab', label: ['Lenfosit (mutlak sayı)', 'Lymphocytes (absolute count)'], unlock: ['Albümin ve lenfositle PNI’yi, nötrofille NLR’yi hesaplarım (yalnız bilgi; doz değişmez).', 'With albumin and lymphocytes I calculate PNI, with neutrophils NLR (context only; no dose change).'] },
@@ -404,6 +405,8 @@ const IMPORT_ERRORS = {
   test: ['Test tanınmadı', 'Unknown test'], unit: ['Birim tanınmadı', 'Unknown unit'], value: ['Sayı değil', 'Not a number'],
   range: ['Kabul aralığı dışında', 'Outside the accepted range'], date: ['Tarih tanınmadı', 'Unknown date'], row: ['Satır okunamadı', 'Row not readable'],
   'unit-missing': ['Birim yok', 'No unit'], wide: ['Satırda başlıktan fazla sütun var', 'More cells than header columns'],
+  grouping: ['Belirsiz sayı (binlik ayırıcı ya da üç ondalık): elle girin', 'Ambiguous number (thousands separator or three decimals): enter it by hand'],
+  censored: ['Sınır değer (<, >): aktarılmaz', 'Censored value (<, >): not imported'],
 };
 const FILE_ERRORS = {
   quote: ['CSV tırnakları eşleşmiyor.', 'CSV quotes do not match.'],
@@ -412,27 +415,65 @@ const FILE_ERRORS = {
   json: ['JSON dosyası bir satır listesi olmalı.', 'The JSON file must be a list of rows.'],
   size: ['En çok 300 satır aktarılabilir.', 'At most 300 rows can be imported.'],
   big: ['Dosya 10 MB sınırını aşıyor.', 'The file exceeds 10 MB.'],
-  pdf: ['PDF şu an okunmuyor: değerleri elle girin ya da laboratuvar dökümünü CSV olarak alın.', 'PDF is not read for now: enter the values by hand or export the laboratory results as CSV.'],
-  type: ['Desteklenen dosyalar: CSV, JSON, TXT.', 'Supported files: CSV, JSON, TXT.'],
+  pages: ['Bu sürüm en çok 50 sayfalık PDF okur.', 'This version reads PDFs of at most 50 pages.'],
+  'pdf-empty': ['PDF’te okunabilir metin yok (taranmış görüntü olabilir): değerleri elle girin.', 'The PDF has no readable text (it may be a scanned image): enter the values by hand.'],
+  'pdf-error': ['PDF açılamadı.', 'The PDF could not be opened.'],
+  read: ['Dosya okunamadı.', 'The file could not be read.'],
+  'pdf-big': ['PDF çok büyük ya da karmaşık (en çok 400.000 karakter metin okunur): ilgili sayfaları ayrı bir PDF olarak deneyin ya da değerleri elle girin.', 'The PDF is too large or complex (at most 400,000 characters of text are read): try the relevant pages as a separate PDF or enter the values by hand.'],
+  'pdf-time': ['PDF 60 saniyede okunamadı: ilgili sayfaları ayrı bir PDF olarak deneyin ya da değerleri elle girin.', 'The PDF could not be read within 60 seconds: try the relevant pages as a separate PDF or enter the values by hand.'],
+  type: ['Desteklenen dosyalar: CSV, JSON, TXT, PDF.', 'Supported files: CSV, JSON, TXT, PDF.'],
 };
+// A text read only in part preselects nothing; the notice says why.
+const truncatedText = (kind) => (kind === 'lines' ? L(['Metin 20.000 satırdan uzun: yalnız ilk 20.000 satır incelendi ve hiçbir sonuç önceden seçilmedi.', 'The text is longer than 20,000 lines: only the first 20,000 were examined and no result is preselected.'])
+  : kind ? L(['Dosyada 300’den fazla sonuç var: ilk 300’ü gösteriliyor ve hiçbiri önceden seçilmedi; aktarmak istediklerinizi seçin.', 'The file has more than 300 results: the first 300 are shown and none is preselected; choose the ones to import.']) : '');
 function importHtml(f) {
   const imp = state.import;
   let body = '';
-  if (imp?.error) body = `<p class="field-error">${esc(L(FILE_ERRORS[imp.error] ?? FILE_ERRORS.type))}</p>`;
+  if (imp?.loading) body = `<p class="hint">${esc(L(['Dosya okunuyor…', 'Reading the file…']))}</p>`;
+  else if (imp?.error) body = `<p class="field-error">${esc(L(FILE_ERRORS[imp.error] ?? FILE_ERRORS.type))}</p>`;
   else if (imp?.done !== undefined) body = `<p class="hint">${esc(L([`${imp.done} değer aktarıldı; kartlardaki alanlara yazıldı.`, `${imp.done} values imported into the fields.`]))}</p>`;
-  else if (imp?.text !== undefined) body = `<p class="hint">${esc(L(['Metindeki değerleri ilgili alanlara elle girin.', 'Enter the values from the text into the fields by hand.']))}</p><pre class="import-text">${esc(imp.text.slice(0, 100000))}</pre>`;
   else if (imp?.rows) {
-    const rows = imp.rows.map((r) => `<tr><td>${r.error ? '' : `<input type="checkbox" data-import-row="${r.i}" ${r.selected ? 'checked' : ''} aria-label="${esc(r.test)}">`}</td><td class="l">${esc(r.test)}${r.key ? ` → ${esc(L(LAB_NAMES[r.key]))}` : ''}</td><td class="l">${esc(r.value ?? r.rawValue)} ${esc(r.unit ?? r.rawUnit)}</td><td class="l">${esc(r.date ?? '')}</td><td class="l">${r.error ? `<span class="chip high">${esc(L(IMPORT_ERRORS[r.error]))}</span>` : ''}</td></tr>`).join('');
-    const n = imp.rows.filter((r) => r.selected).length;
-    body = `<div class="table-wrap"><table><thead><tr><th></th><th class="l">Test</th><th class="l">${esc(L(['Değer', 'Value']))}</th><th class="l">${esc(L(['Tarih', 'Date']))}</th><th class="l"></th></tr></thead><tbody>${rows}</tbody></table></div>
-      <div class="actions"><button type="button" class="btn" data-act="import-clear">${esc(L(['Vazgeç', 'Cancel']))}</button><button type="button" class="btn primary" data-act="import-apply" ${n ? '' : 'disabled'}>${esc(L([`Seçilenleri aktar (${n})`, `Import selected (${n})`]))}</button></div>`;
+    // Each PDF row shows its report line (and page) so the value can be checked where it was read.
+    const source = (r) => (r.line ? `<br><span class="muted">${r.page ? `${esc(L(['s.', 'p.']))} ${r.page}: ` : ''}${esc(r.line)}</span>` : '');
+    const status = (r) => (r.error ? `<span class="chip high">${esc(L(IMPORT_ERRORS[r.error] ?? IMPORT_ERRORS.row))}</span>`
+      : r.choose ? `<span class="chip medium">${esc(L(['Birden çok sonuç: birini seçin', 'Several results: choose one']))}</span>` : '');
+    const rows = imp.rows.map((r) => `<tr><td>${r.error ? '' : `<input type="checkbox" data-import-row="${r.i}" ${r.selected ? 'checked' : ''} aria-label="${esc(r.test)}">`}</td><td class="l">${esc(r.test)}${r.key ? ` → ${esc(L(LAB_NAMES[r.key]))}` : ''}${source(r)}</td><td class="l">${esc(r.value ?? r.rawValue)} ${esc(r.unit ?? r.rawUnit)}</td><td class="l">${esc(r.date ?? '')}</td><td class="l">${status(r)}</td></tr>`).join('');
+    const n = imp.rows.filter((r) => r.selected && !r.error).length;
+    const notes = [
+      imp.pdf ? L(['PDF’ten tanınan satırlar: her değeri altındaki rapor satırıyla karşılaştırıp seçin. Bir test için yalnız bir değer seçilebilir. Tanınmayanlar için metin aşağıda.', 'Lines recognised in the PDF: compare each value with the report line under it before choosing it. Only one value can be chosen per test. The text is below for anything not recognised.']) : '',
+      truncatedText(imp.truncated),
+    ].filter(Boolean).map((x) => `<p class="hint">${esc(x)}</p>`).join('');
+    body = notes + `<div class="table-wrap"><table><thead><tr><th></th><th class="l">Test</th><th class="l">${esc(L(['Değer', 'Value']))}</th><th class="l">${esc(L(['Tarih', 'Date']))}</th><th class="l"></th></tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="actions"><button type="button" class="btn" data-act="import-clear">${esc(L(['Vazgeç', 'Cancel']))}</button><button type="button" class="btn primary" data-act="import-apply" ${n ? '' : 'disabled'}>${esc(L([`Seçilenleri aktar (${n})`, `Import selected (${n})`]))}</button></div>`
+      + (imp.pdf && imp.text ? `<details class="ev"><summary>${esc(L(['PDF metni', 'PDF text']))}</summary><pre class="import-text">${esc(imp.text)}</pre></details>` : '');
+  } else if (imp?.text !== undefined) {
+    const cut = !imp.pdf && imp.text.length > 100000;
+    const hint = imp.pdf ? ['PDF’te tanınan laboratuvar satırı yok: değerleri metinden ilgili alanlara elle girin.', 'No laboratory line was recognised in the PDF: enter the values from the text into the fields by hand.']
+      : ['Metindeki değerleri ilgili alanlara elle girin.', 'Enter the values from the text into the fields by hand.'];
+    body = `<p class="hint">${esc(L(hint))}${cut ? esc(L([' Metnin ilk 100.000 karakteri gösteriliyor.', ' The first 100,000 characters of the text are shown.'])) : ''}</p>${imp.truncated ? `<p class="hint">${esc(truncatedText(imp.truncated))}</p>` : ''}<pre class="import-text">${esc(cut ? imp.text.slice(0, 100000) : imp.text)}</pre>`;
   }
   return `<div class="field wide"><label for="f-import">${esc(L(f.label))}</label><input type="file" id="f-import" data-import="1" accept=".csv,.json,.txt,.pdf,text/csv,application/json,text/plain"><p class="hint">${esc(L(f.hint))}</p>${body}</div>`;
 }
-async function readImport(file) {
+// Each import gets a number; a result that arrives after another import started, or after the case changed, is
+// dropped (a slow PDF never fills a newer case or replaces a newer file).
+let importSeq = 0;
+// The same for opening a case file: a file still being read when another case is started or opened is dropped.
+let caseSeq = 0;
+// Starts a new, empty case with the given values (new case, example, opened case file).
+function resetCase(values) {
+  caseSeq += 1;
+  state.values = values;
+  state.product = {};
+  state.followup = [];
+  state.decisions = {};
+  state.import = null;
+  importSeq += 1;
+  state.openDetails.clear();
+}
+async function readImport(file, seq) {
   const ext = file.name.toLowerCase().split('.').pop();
   if (file.size > 10 * 1024 * 1024) return { error: 'big' };
-  if (ext === 'pdf') return { error: 'pdf' };
+  if (ext === 'pdf') return readPdf(file, seq);
   if (!['csv', 'json', 'txt'].includes(ext)) return { error: 'type' };
   const text = await file.text();
   if (ext === 'txt') return { text };
@@ -440,7 +481,66 @@ async function readImport(file) {
 }
 // When the laboratory's limits are already entered for a test, the imported value is converted into the unit of
 // those limits (so they keep their meaning); otherwise the value keeps its own unit.
-const decimal = (x) => String(Number(x.toPrecision(4))).replace('.', lang === 'tr' ? ',' : '.');
+const decimal = (x) => {
+  let s = String(Number(x.toPrecision(4)));
+  if (/^\d{1,3}\.\d{3}$/.test(s)) s = String(Number(x.toFixed(2))); // "6.006" would be refused as a thousands separator
+  return s.replace('.', lang === 'tr' ? ',' : '.');
+};
+// PDF text with the reviewed PDF.js copy (6.2.108, vendor/dependencies.json): the file is read on this device, no
+// scripting, no network. At most 50 pages, 400 000 characters, 200 000 text pieces and 60 seconds; the text is read in
+// chunks and reading stops (the worker is closed) at a limit or when another file or case is opened.
+const PDF_LIMITS = { pages: 50, chars: 400000, items: 200000, ms: 60000 };
+async function readPdf(file, seq) {
+  let task = null;
+  let timer = null;
+  const expired = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('pdf-time')), PDF_LIMITS.ms); });
+  expired.catch(() => {});
+  const timed = (promise) => Promise.race([promise, expired]);
+  const current = () => { if (seq !== importSeq) throw new Error('stale'); };
+  try {
+    const pdfjs = await import('./vendor/pdf.mjs');
+    pdfjs.GlobalWorkerOptions.workerSrc = new URL('./vendor/pdf.worker.mjs', import.meta.url).href;
+    task = pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()), useWorkerFetch: false, disableAutoFetch: true, disableStream: true, isEvalSupported: false, enableXfa: false });
+    const pdf = await timed(task.promise);
+    if (pdf.numPages > PDF_LIMITS.pages) return { error: 'pages' };
+    const pages = [];
+    let chars = 0;
+    let items = 0;
+    for (let n = 1; n <= pdf.numPages; n += 1) {
+      current();
+      const page = await timed(pdf.getPage(n));
+      const reader = page.streamTextContent().getReader();
+      const parts = [];
+      try {
+        for (;;) {
+          current();
+          const { value, done } = await timed(reader.read());
+          if (done) break;
+          for (const it of value?.items ?? []) {
+            const str = typeof it.str === 'string' ? it.str : '';
+            parts.push(str, it.hasEOL ? '\n' : ' ');
+            chars += str.length + 1;
+          }
+          items += value?.items?.length ?? 0;
+          if (chars > PDF_LIMITS.chars || items > PDF_LIMITS.items) throw new Error('pdf-big');
+        }
+      } finally {
+        reader.cancel().catch(() => {});
+      }
+      pages.push(parts.join(''));
+    }
+    const text = pages.join('\n');
+    if (!text.trim()) return { error: 'pdf-empty' };
+    const { rows, truncated } = rowsFromText(pages);
+    return rows.length ? { rows, truncated, text, pdf: true } : { text, truncated, pdf: true };
+  } catch (err) {
+    if (err?.message === 'stale') return { stale: true };
+    return { error: ['pdf-big', 'pdf-time'].includes(err?.message) ? err.message : 'pdf-error' };
+  } finally {
+    clearTimeout(timer);
+    try { await task?.destroy(); } catch { /* already closed */ }
+  }
+}
 function applyImport() {
   const chosen = (state.import?.rows ?? []).filter((r) => r.selected && !r.error).sort((x, y) => (x.date || '').localeCompare(y.date || ''));
   for (const r of chosen) {
@@ -465,7 +565,7 @@ function redrawCards() {
 
 // ---------------------------------------------------------------------------------------------
 // Field errors: shown under the field itself, saying what is wrong and what is accepted.
-const nfa = (x) => Number(x).toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-GB', { maximumFractionDigits: 2 });
+const nfa = (x) => Number(x).toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-GB', { maximumFractionDigits: 2, useGrouping: false });
 function rangeText(min, max, unit) {
   const u = unit && !/^\d+–\d+$/.test(unit) ? unit : '';
   if (u.startsWith('%')) {
@@ -478,6 +578,8 @@ function errorText(err, unit, raw) {
   const shown = String(raw ?? '').trim() || nfa(err.value);
   if (err.code === 'unit') return L(['Bu birim tanınmıyor: listeden birim seçin.', 'Unknown unit: choose a unit from the list.']);
   if (err.code === 'nan') return L(['Sayı girin (örnek: 72,5).', 'Enter a number (for example 72.5).']);
+  if (err.code === 'grouping') return err.perUl ? L(['µL başına sayı ayırıcısız tam sayı olarak yazılır (örnek: 250000).', 'Counts per µL are written as whole numbers without separators (for example 250000).'])
+    : L(['Belirsiz yazım: binlik ayırıcı okunmaz. Bin ve üzerini ayırıcısız (örnek: 1800), ondalığı daha az basamakla (örnek: 12,5) yazın.', 'Ambiguous: thousands separators are not read. Write 1000 or more without a separator (for example 1800) and decimals with fewer digits (for example 12.5).']);
   if (err.code === 'integer') return L([`Tam sayı girin (${nfa(err.min)}–${nfa(err.max)}).`, `Enter a whole number (${nfa(err.min)}–${nfa(err.max)}).`]);
   const u = unit && !/^\d+–\d+$/.test(unit) ? ` ${unit}` : '';
   if (err.exclusiveMin) return L([`0’dan büyük, en çok ${nfa(err.max)}${u} olmalı; girilen ${shown}.`, `Must be above 0 and at most ${nfa(err.max)}${u}; entered ${shown}.`]);
@@ -1012,6 +1114,15 @@ function inputsHtml() {
   const label = Object.entries(LABEL_NAMES).filter(([path]) => { const [g, k] = path.split('.'); return String(state.product[g]?.[k] ?? '').trim() !== ''; })
     .map(([path, [tr, en, unit]]) => { const [g, k] = path.split('.'); return [L([tr, en]), `${String(state.product[g][k]).trim()} ${g === 'ons' && k === 'serving' ? state.product.ons?.unit ?? '' : unit}`.trim()]; });
   if (state.product.form === 'powder') label.unshift([L(['Ürün formu', 'Product form']), t('powder')]);
+  const decided = Object.entries(state.decisions);
+  if (decided.length) {
+    if (!evidenceModule) loadEvidence().then(() => { if (state.view === 'result') renderResult(); });
+    rows.push(`<tr><th colspan="2" class="l">${esc(L(['Karar konuları: hekim seçimi', 'Decision topics: physician choice']))}</th></tr>` + decided.map(([id, ch]) => {
+      const [k, val] = DECISION_WORD(id, ch);
+      const note = evidenceModule && decisionStatus(id, ch) === 'setting' ? L([' (bu bakım ortamında sunulmuyor: karar konusunda yeniden seçin)', ' (not offered for this care setting: choose again in the decision topic)']) : '';
+      return `<tr><td class="l">${esc(k)}</td><td class="l">${esc(val + note)}</td></tr>`;
+    }).join(''));
+  }
   if (label.length) rows.push(`<tr><th colspan="2" class="l">${esc(L(['Ürün etiketi', 'Product label']))}</th></tr>` + label.map(([k, val]) => `<tr><td class="l">${esc(k)}</td><td class="l">${esc(val)}</td></tr>`).join(''));
   if (!rows.length) return '';
   const open = state.openDetails.has('inputs') ? ' open' : '';
@@ -1037,9 +1148,11 @@ function download(name, text, type) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 const stamp = () => new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
+// Only choices offered for the current care setting are saved; others stay in the report, marked for reassessment.
+const savedDecisions = () => Object.fromEntries(Object.entries(state.decisions).filter(([id, ch]) => !evidenceModule || decisionStatus(id, ch) === 'ok'));
 function saveCase(r) {
   const summary = r && !r.blocked ? { route: r.route?.kind ?? null, productClass: r.product?.cls ?? null, todayKcal: (() => { const k = r.plan?.today?.kcalTarget ?? r.plan?.oral?.kcalTarget; return Number.isFinite(k) ? Math.round(k) : null; })(), supplements: (r.supplements ?? []).map((s) => s.id) } : null;
-  const data = { format: CASE_FORMAT, formatVersion: 1, app: ENGINE_VERSION, rulesDate: RULES_DATE, savedAt: new Date().toISOString(), values: state.values, product: state.product, followup: state.followup, summary };
+  const data = { format: CASE_FORMAT, formatVersion: 1, app: ENGINE_VERSION, rulesDate: RULES_DATE, savedAt: new Date().toISOString(), values: state.values, product: state.product, followup: state.followup, decisions: savedDecisions(), summary };
   download(`nutriclinic-vaka-${stamp()}.json`, `${JSON.stringify(data, null, 2)}\n`, 'application/json');
 }
 function saveTableCsv(r) {
@@ -1055,6 +1168,8 @@ function saveTableCsv(r) {
 // Only plain values with simple keys are taken from a case file.
 const cleanObject = (o) => (o && typeof o === 'object' && !Array.isArray(o) ? Object.fromEntries(Object.entries(o).filter(([k, x]) => /^[A-Za-z][A-Za-z0-9]{0,40}$/.test(k) && ['string', 'number', 'boolean'].includes(typeof x)).map(([k, x]) => [k, typeof x === 'string' ? x.slice(0, 200) : x])) : {});
 async function openCase(file) {
+  const seq = ++caseSeq;
+  let dropped = 0;
   try {
     if (file.size > 1024 * 1024) throw new Error('size');
     const data = JSON.parse(await file.text());
@@ -1062,14 +1177,25 @@ async function openCase(file) {
     const values = cleanObject(data.values);
     const product = Object.fromEntries(['en', 'ons', 'module', 'powder'].filter((g) => data.product?.[g]).map((g) => [g, cleanObject(data.product[g])]));
     if (data.product?.form === 'powder') product.form = 'powder';
-    state.values = { ...values, setting: values.setting === 'ward' ? 'ward' : 'icu' };
+    // Decisions keep the topic and choice ids of evidence-data.mjs; pairs this version does not know are not taken.
+    const raw = data.decisions && typeof data.decisions === 'object' && !Array.isArray(data.decisions) ? Object.entries(data.decisions) : [];
+    let decisions = {};
+    if (raw.length) {
+      try { await loadEvidence(); } catch { /* library unavailable: the choices cannot be checked and are not taken */ }
+      decisions = Object.fromEntries(raw.filter(([id, ch]) => typeof ch === 'string' && evidenceModule && decisionStatus(id, ch) !== 'unknown'));
+      dropped = raw.length - Object.keys(decisions).length;
+    }
+    if (seq !== caseSeq) return; // another case was started or opened meanwhile
+    resetCase({ ...values, setting: values.setting === 'ward' ? 'ward' : 'icu' });
     state.product = product;
     state.followup = (Array.isArray(data.followup) ? data.followup.slice(0, MAX_FOLLOWUP_ROWS) : []).map((row) => { const c = cleanObject(row); return { day: String(c.day ?? ''), kcal: String(c.kcal ?? ''), protein: String(c.protein ?? '') }; });
-    state.import = null;
+    state.decisions = decisions;
     go('result');
   } catch {
-    window.alert(t('caseError'));
+    if (seq === caseSeq) window.alert(t('caseError'));
+    return;
   }
+  if (dropped) window.alert(t('decisionsDropped'));
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1126,6 +1252,64 @@ function addFollowupRow() {
   const day = Number.isInteger(lastDay) && lastDay > 0 ? lastDay + 1 : state.values.setting !== 'ward' && Number.isInteger(icuDay) && icuDay > 1 ? icuDay - 1 : 1;
   state.followup.push({ day: String(Math.min(365, day)), kcal: '', protein: '' });
 }
+
+// ---------------------------------------------------------------------------------------------
+// Evidence library and decision topics (loaded only when opened; context, never a dose rule).
+let evidenceModule = null;
+const loadEvidence = () => (evidenceModule ? Promise.resolve(evidenceModule) : import('./evidence-data.mjs').then((m) => { evidenceModule = m; return m; }));
+const EV_FIELDS = [['application', ['Uygulama', 'Application']], ['limitations', ['Sınırlılıklar', 'Limitations']], ['design', ['Tasarım', 'Design']], ['population', ['Popülasyon', 'Population']], ['primaryOutcome', ['Birincil sonlanım', 'Primary outcome']], ['sampleNote', ['Örneklem', 'Sample']], ['qualityHold', ['Kalite notu', 'Quality note']], ['access', ['Erişim', 'Access']], ['accessNote', ['Erişim notu', 'Access note']]];
+const lc = (s) => String(s ?? '').toLocaleLowerCase(lang === 'tr' ? 'tr-TR' : 'en-GB');
+// The type filter keeps a language-independent value (the English label), so it survives a language change.
+const kindId = (r) => (r.kind && typeof r.kind === 'object' ? String(r.kind.en ?? '') : String(r.kind ?? ''));
+// 'ok' | 'setting' (the choice is not offered for the current care setting) | 'unknown' (no such topic or choice).
+// A 'setting' choice stays in the report with a note to choose again and is not saved in the case file.
+function decisionStatus(id, choice) {
+  const tp = evidenceModule?.DECISION_TOPICS.find((x) => x.id === id);
+  const ch = tp?.choices.find((x) => x.id === choice);
+  if (!tp || !ch) return 'unknown';
+  return !ch.contexts || ch.contexts.includes(state.values.setting === 'ward' ? 'ward' : 'icu') ? 'ok' : 'setting';
+}
+function renderEvidence() {
+  const box = $('#evidence');
+  if (!evidenceModule) {
+    box.innerHTML = `<section class="card"><p>${esc(L(['Kanıt kütüphanesi yükleniyor…', 'Loading the evidence library…']))}</p></section>`;
+    loadEvidence().then(() => { if (state.view === 'evidence') renderEvidence(); });
+    return;
+  }
+  const { EVIDENCE, EVIDENCE_META, DECISION_TOPICS } = evidenceModule;
+  const setting = state.values.setting === 'ward' ? 'ward' : 'icu';
+  const topics = DECISION_TOPICS.map((tp) => {
+    const studies = tp.studies.map((s) => `<div class="supp"><h3>${esc(s.short)} <span class="chip low">${esc(L(s.badge))}</span></h3><p class="why"><strong>${esc(L(['Popülasyon', 'Population']))}:</strong> ${esc(L(s.population))}</p><p class="why"><strong>${esc(L(['Müdahale', 'Intervention']))}:</strong> ${esc(L(s.intervention))}</p><p class="why"><strong>${esc(L(['Sonuç', 'Outcome']))}:</strong> ${esc(L(s.outcome))}</p></div>`).join('');
+    const chosen = state.decisions[tp.id];
+    const choices = tp.choices.filter((ch) => !ch.contexts || ch.contexts.includes(setting)).map((ch) => `<label class="check"><input type="radio" name="dec-${esc(tp.id)}" data-decision="${esc(tp.id)}" value="${esc(ch.id)}" ${chosen === ch.id ? 'checked' : ''}><span><strong>${esc(L(ch.label))}</strong><br><span class="muted">${esc(L(ch.detail))}</span></span></label>`).join('');
+    const stale = chosen && decisionStatus(tp.id, chosen) === 'setting' ? `<p class="field-error">${esc(L(['Kayıtlı seçim bu bakım ortamında sunulmuyor: yeniden seçin.', 'The saved choice is not offered for this care setting: choose again.']))}</p>` : '';
+    const clear = chosen ? `<p><button type="button" class="linkish" data-act="decision-clear" data-topic="${esc(tp.id)}">${esc(L(['Seçimi kaldır', 'Clear the choice']))}</button></p>` : '';
+    const open = state.openDetails.has(`topic-${tp.id}`) ? ' open' : '';
+    return `<details class="topic" data-details="topic-${esc(tp.id)}"${open}><summary>${esc(tp.number)} · ${esc(L(tp.label))}: ${esc(L(tp.title))}</summary><p class="lead">${esc(L(tp.question))}</p>${studies}<p><strong>${esc(L(['Sentez', 'Synthesis']))}:</strong> ${esc(L(tp.synthesis))}</p>${choices ? `<span class="label">${esc(L(['Hekim seçimi (vaka dosyasına ve rapora girer)', 'Physician choice (saved in the case file and the report)']))}</span><div class="checks">${choices}</div>` : ''}${stale}${clear}</details>`;
+  }).join('');
+  const kinds = [...new Map(EVIDENCE.map((r) => [kindId(r), L(r.kind)])).entries()].sort((x, y) => x[1].localeCompare(y[1], lang === 'tr' ? 'tr' : 'en'));
+  const q = lc(state.evidenceQuery.trim());
+  const shown = EVIDENCE.filter((r) => (!state.evidenceKind || kindId(r) === state.evidenceKind) && (!q || [r.title, L(r.summary), L(r.application), L(r.kind), String(r.year)].some((x) => lc(x).includes(q))))
+    .sort((x, y) => (y.year ?? 0) - (x.year ?? 0));
+  const items = shown.map((r) => {
+    const rows = EV_FIELDS.filter(([k]) => r[k]).map(([k, name]) => `<p><strong>${esc(L(name))}:</strong> ${esc(L(r[k]))}</p>`).join('');
+    const links = [r.url && /^https:\/\//.test(r.url) ? `<a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(L(['Kaynak', 'Source']))}</a>` : '', r.doi ? `<a href="https://doi.org/${esc(r.doi)}" target="_blank" rel="noopener noreferrer">DOI ${esc(r.doi)}</a>` : ''].filter(Boolean).join(' · ');
+    return `<details class="ev"><summary>${esc(String(r.year ?? ''))} · ${esc(L(r.kind))} — ${esc(r.title)}</summary>${r.summary ? `<p>${esc(L(r.summary))}</p>` : ''}${rows}${r.sampleSize !== undefined ? `<p><strong>n:</strong> ${esc(String(r.sampleSize))}</p>` : ''}${links ? `<p>${links}</p>` : ''}</details>`;
+  }).join('');
+  box.innerHTML = `<section class="card"><h2>${esc(L(['Kanıt kütüphanesi', 'Evidence library']))}</h2>
+      <p class="lead">${esc(L([`Odaklı, kaynağa bağlı seçki; sistematik derleme değildir. Literatür kesiti: ${EVIDENCE_META.cutoff}. Hiçbiri otomatik doz kuralı değildir; öneriler kural belgesindeki kaynaklara dayanır.`, `A focused, source-linked selection, not a systematic review. Literature cut-off: ${EVIDENCE_META.cutoff}. None of it is an automatic dose rule; recommendations rest on the sources in the rules document.`]))}</p>
+      <div class="actions"><button type="button" class="btn" data-act="evidence-back">${esc(t('back'))}</button></div></section>
+    <section class="card"><h2>${esc(L(['Karar konuları', 'Decision topics']))}</h2><p class="muted">${esc(L(['Kılavuz referansı ile büyük çalışmaların gerçekte test ettiğini karşılaştırır; hekim seçimini kaydeder.', 'Compares guideline references with what large trials actually tested; records the physician’s choice.']))}</p>${topics}</section>
+    <section class="card"><h2>${esc(L(['Kaynaklar', 'Sources']))} (${shown.length}/${EVIDENCE.length})</h2>
+      <div class="fields"><div class="field"><label for="ev-q">${esc(L(['Ara', 'Search']))}</label><div class="input-wrap"><input id="ev-q" data-ev="q" autocomplete="off" value="${esc(state.evidenceQuery)}"></div></div>
+      <div class="field"><label for="ev-kind">${esc(L(['Tür', 'Type']))}</label><div class="input-wrap"><select id="ev-kind" data-ev="kind" class="unit-select ev-kind"><option value="">${esc(L(['Hepsi', 'All']))}</option>${kinds.map(([id, label]) => `<option value="${esc(id)}"${id === state.evidenceKind ? ' selected' : ''}>${esc(label)}</option>`).join('')}</select></div></div></div>
+      ${items || `<p class="muted">${esc(L(['Eşleşen kaynak yok.', 'No matching source.']))}</p>`}</section>`;
+}
+const DECISION_WORD = (id, choice) => {
+  const tp = evidenceModule?.DECISION_TOPICS.find((x) => x.id === id);
+  const ch = tp?.choices.find((x) => x.id === choice);
+  return tp && ch ? [L(tp.label), L(ch.label)] : [id, choice];
+};
 
 // ICU severity scores (context only).
 const ORGANS = { brain: ['Beyin', 'Brain'], respiratory: ['Solunum', 'Respiratory'], cardiovascular: ['Kardiyovasküler', 'Cardiovascular'], liver: ['Karaciğer', 'Liver'], kidney: ['Böbrek', 'Kidney'], hemostasis: ['Hemostaz', 'Haemostasis'] };
@@ -1210,7 +1394,7 @@ function renderResult() {
 function renderFooter() {
   $('#foot').innerHTML = `<p><strong>${esc(t('intended'))}</strong></p><p>${esc(t('privacy'))}</p>
     <p class="no-print">NutriClinic ${esc(ENGINE_VERSION)} · ${esc(L(['Kurallar', 'Rules']))} ${esc(RULES_DATE)} · Dr. Gökay Duman · <a href="LICENSE.txt">${esc(t('license').split('·')[0].trim())}</a> · <a href="source-code.zip">${esc(t('license').split('·')[1].trim())}</a></p>
-    <p class="no-print"><a href="../nutriclinic2/">${esc(t('oldVersion'))}</a></p>`;
+    <p class="no-print"><button type="button" class="linkish" data-act="evidence">${esc(L(['Kanıt kütüphanesi ve karar konuları', 'Evidence library and decision topics']))}</button> · <a href="../nutriclinic2/">${esc(t('oldVersion'))}</a></p>`;
 }
 
 function render() {
@@ -1221,8 +1405,13 @@ function render() {
   renderProgress();
   const cards = $('#cards');
   const result = $('#result');
-  if (state.view === 'result') { cards.hidden = true; result.hidden = false; renderResult(); }
-  else { result.hidden = true; cards.hidden = false; renderCards(); }
+  const evidence = $('#evidence');
+  cards.hidden = state.view !== 'cards';
+  result.hidden = state.view !== 'result';
+  evidence.hidden = state.view !== 'evidence';
+  if (state.view === 'result') renderResult();
+  else if (state.view === 'evidence') renderEvidence();
+  else renderCards();
   renderFooter();
 }
 
@@ -1255,8 +1444,7 @@ document.addEventListener('click', (e) => {
   }
   if (el.id === 'open-case') { document.getElementById('case-file')?.click(); return; }
   if (el.id === 'example') {
-    state.values = { setting: 'icu', age: 67, sex: 'male', heightCm: 172, weightKg: 78, icuDay: 3, swallow: 'unsafe', gi: 'ok', shock: 'none', feeding: 'ongoing', kidney: 'normal', bowel: 'normal', stroke: true, usualWeightKg: 81, lossMonths: '3', lowIntakeDays: 2, nrsDisease: '3', lowElectrolytes: 'no', alcohol: 'no', riskDrugs: 'no', propofolMlH: 8 };
-    state.product = {};
+    resetCase({ setting: 'icu', age: 67, sex: 'male', heightCm: 172, weightKg: 78, icuDay: 3, swallow: 'unsafe', gi: 'ok', shock: 'none', feeding: 'ongoing', kidney: 'normal', bowel: 'normal', stroke: true, usualWeightKg: 81, lossMonths: '3', lowIntakeDays: 2, nrsDisease: '3', lowElectrolytes: 'no', alcohol: 'no', riskDrugs: 'no', propofolMlH: 8 });
     go('result');
     return;
   }
@@ -1291,6 +1479,9 @@ document.addEventListener('click', (e) => {
     if (act === 'fu-add') document.getElementById(`fu-${state.followup.length - 1}-kcal`)?.focus();
     return;
   }
+  if (act === 'evidence') { state.prevView = state.view === 'evidence' ? state.prevView : state.view; state.view = 'evidence'; render(); window.scrollTo({ top: 0 }); return; }
+  if (act === 'decision-clear') { delete state.decisions[el.dataset.topic]; const y = window.scrollY; renderEvidence(); window.scrollTo({ top: y }); return; }
+  if (act === 'evidence-back') { state.view = state.prevView === 'evidence' ? 'cards' : state.prevView; render(); window.scrollTo({ top: 0 }); return; }
   if (act === 'save-case') { saveCase(recommend(engineInput())); return; }
   if (act === 'save-csv') { saveTableCsv(recommend(engineInput())); return; }
   if (act === 'import-apply') { applyImport(); redrawCards(); return; }
@@ -1304,7 +1495,7 @@ document.addEventListener('click', (e) => {
   else if (act === 'show') go('result');
   else if (act === 'edit') go(state.step);
   else if (act === 'print') window.print();
-  else if (act === 'new') { state.values = { setting: state.values.setting ?? 'icu' }; state.product = {}; state.followup = []; state.import = null; state.openDetails.clear(); go(1); }
+  else if (act === 'new') { resetCase({ setting: state.values.setting ?? 'icu' }); go(1); }
 });
 
 document.addEventListener('change', (e) => {
@@ -1317,14 +1508,33 @@ document.addEventListener('change', (e) => {
   const fileInput = e.target.closest('input[data-import]');
   if (fileInput) {
     const file = fileInput.files?.[0];
-    if (file) readImport(file).then((imp) => { state.import = imp; state.openMore.add('more-import'); redrawCards(); });
+    if (file) {
+      const seq = ++importSeq;
+      state.import = { loading: true };
+      state.openMore.add('more-import');
+      redrawCards();
+      readImport(file, seq).then((imp) => { if (seq !== importSeq || imp?.stale) return; state.import = imp; redrawCards(); })
+        .catch(() => { if (seq === importSeq) { state.import = { error: 'read' }; redrawCards(); } });
+    }
     return;
   }
   const importRow = e.target.closest('input[data-import-row]');
   if (importRow) {
     const row = state.import?.rows?.[Number(importRow.dataset.importRow)];
-    if (row) row.selected = importRow.checked;
+    if (row) {
+      row.selected = importRow.checked;
+      // One value per test: choosing a row clears the other rows of the same test.
+      if (row.selected) state.import.rows.forEach((x) => { if (x !== row && x.key === row.key) x.selected = false; });
+    }
     redrawCards();
+    return;
+  }
+  if (e.target.dataset?.ev === 'kind') { state.evidenceKind = e.target.value; renderEvidence(); return; }
+  if (e.target.dataset?.decision) {
+    if (decisionStatus(e.target.dataset.decision, e.target.value) === 'ok') state.decisions[e.target.dataset.decision] = e.target.value;
+    const y = window.scrollY;
+    renderEvidence();
+    window.scrollTo({ top: y });
     return;
   }
   const unitSelect = e.target.closest('select[data-unit]');
@@ -1358,6 +1568,14 @@ document.addEventListener('input', (e) => {
     // A shown error disappears as soon as the value is valid; a new error appears when leaving the field.
     const f = currentField(input.dataset.key);
     if (f && !fieldError(f, input.value)) setFieldError(input, null);
+    return;
+  }
+  if (input.dataset.ev === 'q') {
+    state.evidenceQuery = input.value;
+    const pos = input.selectionStart;
+    renderEvidence();
+    const again = document.getElementById('ev-q');
+    if (again) { again.focus(); try { again.setSelectionRange(pos, pos); } catch { /* not a text input */ } }
     return;
   }
   if (input.dataset.fu) {

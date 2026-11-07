@@ -20,10 +20,12 @@ const number = (v) => {
 };
 const empty = (v) => v === undefined || v === null || String(v).trim() === '';
 
-// null when empty or valid; otherwise { code: 'nan' | 'integer' | 'range', min, max }.
+// null when empty or valid; otherwise { code: 'nan' | 'integer' | 'range' | 'grouping', min, max }.
 export function checkFollowupValue(field, value) {
   const lim = FOLLOWUP_FIELDS[field];
   if (!lim || empty(value)) return null;
+  // "1.500" kcal: a thousands separator would be read as a decimal point, so it is refused.
+  if (lim.max >= 1000 && typeof value === 'string' && /^[+-]?\d{1,3}[.,]\d{3}$/.test(value.trim())) return { code: 'grouping', ...lim };
   const x = number(value);
   if (x === null) return { code: 'nan', ...lim };
   if (lim.integer && !Number.isInteger(x)) return { code: 'integer', ...lim };

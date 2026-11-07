@@ -9,6 +9,10 @@ test('Follow-up values: ranges, whole days, numbers only; empty is not an error'
   assert.equal(checkFollowupValue('day', '0').code, 'range');
   assert.equal(checkFollowupValue('day', '2.5').code, 'integer');
   assert.equal(checkFollowupValue('kcal', 'abc').code, 'nan');
+  assert.equal(checkFollowupValue('kcal', '1.500').code, 'grouping');
+  assert.equal(checkFollowupValue('kcal', '1500'), null);
+  assert.equal(checkFollowupValue('kcal', '+1.500').code, 'grouping');
+  assert.equal(checkFollowupValue('protein', '1.5'), null);
   assert.equal(checkFollowupValue('protein', '600').code, 'range');
   assert.equal(checkFollowupValue('kcal', ''), null);
   assert.equal(checkFollowupValue('kcal', '1250,5'), null);
