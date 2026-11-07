@@ -1,23 +1,24 @@
 cff-version: 1.2.0
 message: "If you use NutriClinic in research or teaching, please cite it as below. Citation is requested; it is not an additional condition of the AGPL-3.0-only license."
 type: software
-title: "NutriClinic: clinical nutrition workspace"
-abstract: "Clinician-supervised workspace for adult ICU and ward nutrition assessment: anthropometry, GLIM/ESPEN/NRS 2002 support, sarcopenia (EWGSOP2) and dysphagia records, laboratory import and clinic reference intervals, energy-protein planning, daily intake follow-up and a source-traceable evidence library. Research version that supports clinical decisions and does not replace them."
+title: "NutriClinic: staged nutrition recommendation"
+abstract: "Staged, guideline-based nutrition recommendation for adult ICU and ward patients: feeding route, formula class by content, amount, rate or feeds, protein module, and indicated supplements with calculated doses. Missing data are listed with their effect; the recommendation becomes patient-specific as data are completed. Supports clinical decisions and does not replace them."
 authors:
   - family-names: Duman
     given-names: "Gökay"
     affiliation: "Neurology"
     orcid: "https://orcid.org/0000-0003-3782-1665"
-version: "0.3.23"
-date-released: "2026-11-04"
+version: "1.0.0"
+date-released: "2026-11-07"
 license: AGPL-3.0-only
 url: "https://sahnoroloji.org/nutriclinic/"
+repository-code: "https://github.com/eonforce-dotcom/nutriclinic"
 repository-artifact: "https://sahnoroloji.org/nutriclinic/source-code.zip"
 keywords:
   - clinical nutrition
-  - malnutrition
-  - GLIM
-  - sarcopenia
-  - dysphagia
   - intensive care
-  - energy and protein targets
+  - enteral nutrition
+  - oral nutritional supplements
+  - refeeding syndrome
+  - thiamine
+  - clinical decision support

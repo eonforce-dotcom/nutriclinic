@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Yoğun bakım ve serviste erişkin hasta için kademeli beslenme önerisi: mama türü, miktar, sıklık ve gerekli takviyeler.">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <title>NutriClinic · Beslenme önerisi</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f766e'/%3E%3Cpath d='M9 22V10l14 12V10' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="app.css">
+  <script type="module" src="app.mjs"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Ana içeriğe geç</a>
+  <header class="top">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">N</span>
+      <div>
+        <strong>NutriClinic</strong>
+        <span class="tagline" data-i18n="tagline">Kademeli beslenme önerisi</span>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button type="button" class="ghost" id="example" data-i18n="example">Örnek olgu</button>
+      <div class="lang" role="group" aria-label="Dil / Language">
+        <button type="button" data-lang="tr" aria-pressed="true">TR</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </div>
+  </header>
+  <main id="main">
+    <nav class="progress" aria-label="Adımlar" id="progress"></nav>
+    <div id="cards"></div>
+    <section id="result" class="result" hidden aria-live="polite"></section>
+    <noscript><p class="card">Bu uygulama JavaScript gerektirir. / This application requires JavaScript.</p></noscript>
+  </main>
+  <footer class="foot" id="foot"></footer>
+</body>
+</html>
