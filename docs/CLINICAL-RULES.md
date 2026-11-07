@@ -1,6 +1,6 @@
 # NutriClinic staged recommender — clinical rules
 
-Version 1.4.0 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
+Version 1.5.0 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
 
 NutriClinic supports clinical decisions and does not replace them. Every recommendation is reviewed at the bedside
 together with its inputs and sources.
@@ -304,6 +304,17 @@ an exact 0.16 mmol/L fall not counted as more than 0.16, an unknown unit message
 - Both are severity context and never change a nutrition dose.
 - Part 2b was audited by an independent model (Codex, GPT-6.1 Sol, high reasoning) while the Gemini and Antigravity
   Claude quotas were exhausted: 5 findings, all fixed.
+
+## Follow-up: delivered nutrition
+
+On the result page the clinician enters, per day, the total energy and protein delivered (formula, ONS, oral intake,
+PN, propofol and dextrose included). Each complete row is compared with that day's target: for an ICU day the engine
+recalculates the target with the current inputs and feeding taken as running; on the ward the full target is used.
+The table gives the percentage achieved and the cumulative energy and protein difference. In the first ICU week
+energy more than 10% above the day's target is marked, with the ESPEN-ICU-2023 early-phase limit (below 70% of the
+estimate; not above 70% of measured expenditure for the first 3 days). Missing values are never zero; nothing
+changes a dose. Rows are saved in the case file. Part 4b was audited by Codex (GPT-6.1 Sol, high): one wording
+finding, fixed.
 
 ## Notes shown when relevant
 

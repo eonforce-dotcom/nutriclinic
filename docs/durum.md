@@ -19,7 +19,7 @@ her parça teste ve bağımsız denetime girer.
 | 1. Ölçekler | NRS 2002, GLIM, ESPEN 2015, AND/ASPEN, EWGSOP2 (sarkopeni), EAT-10, FOIS, IDDSI, yutma güvenliği; alan yanı hata mesajları | 7 Kasım 2026'da yayınlandı (sürüm 1.1.0); 66 test; bağımsız denetimde 8 bulgu, 6'sı düzeltildi, 2'si gerekçeyle reddedildi |
 | 2. Laboratuvar | 2a: değerler, birim seçimi, fosforla refeeding hipofosfatemisi, NLR, PNI, üre/kreatinin oranı. 2b: içe aktarma, referans aralıkları, SOFA-2, SAPS II | 2a 7 Kasım 2026'da yayınlandı (sürüm 1.2.0). 2b 7 Kasım 2026'da yayınlandı (sürüm 1.3.0, 78 test; Codex denetiminde 5 bulgu, hepsi düzeltildi): CSV/JSON/TXT içe aktarma, 11 test için yerel referans aralıkları, CRP oranı, SOFA-2, SAPS II; PDF kullanıcı kararını bekliyor |
 | 3. Kayıtlı hastalar | Mevcut kayıt hizmetiyle kayıt; sunucu yapılandırması ve gizlilik metni değişir | sırada |
-| 4. Kanıt ve izlem | 4a: yazdırılabilir rapor (tarih, sürüm, girilen bilgiler), vakayı JSON dosyasına kaydetme ve açma, tablo CSV. 4b: verilen beslenme izlemi. 4c: kanıt kütüphanesi ve hekim seçimiyle karşılaştırma | 4a 7 Kasım 2026'da yayınlandı (sürüm 1.4.0; Codex denetiminde 7 bulgu, hepsi düzeltildi); 4b ve 4c sırada |
+| 4. Kanıt ve izlem | 4a: yazdırılabilir rapor (tarih, sürüm, girilen bilgiler), vakayı JSON dosyasına kaydetme ve açma, tablo CSV. 4b: verilen beslenme izlemi. 4c: kanıt kütüphanesi ve hekim seçimiyle karşılaştırma | 4a yayınlandı (sürüm 1.4.0). 4b 7 Kasım 2026'da yayınlandı (sürüm 1.5.0, 81 test; Codex denetiminde bir ifade bulgusu, düzeltildi): günlük verilen enerji/protein, o günün hedefi, yüzde, birikmiş fark, erken fazda aşırı beslenme işareti, vaka dosyasında saklanır. 4c sırada |
 
 ## Parça 1: ölçekler öneriyi nasıl değiştirir
 

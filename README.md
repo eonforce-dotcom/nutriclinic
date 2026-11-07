@@ -30,21 +30,22 @@ and a recorded SAPS II total are shown for ICU patients.
 - Live service: <https://sahnoroloji.org/nutriclinic/>
 - Previous workspace (saved patients, detailed assessment): <https://sahnoroloji.org/nutriclinic2/>; its source is in
   [`nutriclinic2/`](nutriclinic2/)
-- Version: 1.4.0 (7 November 2026); clinical rules and sources: [`docs/CLINICAL-RULES.md`](docs/CLINICAL-RULES.md)
+- Version: 1.5.0 (7 November 2026); clinical rules and sources: [`docs/CLINICAL-RULES.md`](docs/CLINICAL-RULES.md)
 
 ## Privacy
 
 The application is a static page. It has no server component, stores nothing and sends nothing. Its Content Security
 Policy blocks all network requests from the page. A case can be saved as a JSON file and opened again, and the
 day-by-day table downloaded as CSV; these files are created on the device only and contain patient data, so they are
-kept according to local rules. The printed report starts with the date, version and intended use and ends with a
+kept according to local rules. A follow-up table compares the energy and protein delivered each day with that
+day's target and gives the cumulative difference. The printed report starts with the date, version and intended use and ends with a
 summary of every entered value.
 
 ## Repository layout
 
 | Path | Contents |
 |---|---|
-| `web/` | The application: `index.html`, `app.css`, `app.mjs` (staged interface), `engine.mjs` (rule engine, pure functions), `scales.mjs` (screening and assessment scales), `labs.mjs` (laboratory units and indices), `text.mjs`, `sources.mjs` (sources with PMIDs), `initial-locale.mjs`. |
+| `web/` | The application: `index.html`, `app.css`, `app.mjs` (staged interface), `engine.mjs` (rule engine, pure functions), `scales.mjs` (screening and assessment scales), `labs.mjs` (laboratory units and indices), `followup.mjs` (delivered nutrition), `text.mjs`, `sources.mjs` (sources with PMIDs), `initial-locale.mjs`. |
 | `tests/` | Engine and scale tests with hand-calculated clinical cases (Node's built-in test runner). |
 | `docs/` | Clinical rules with recommendation numbers and sources; `durum.md`: migration plan and status (Turkish). |
 | `tools/` | `build_source_zip.py`: builds the corresponding-source archive served with the application (AGPL). |
@@ -63,7 +64,7 @@ Then open <http://127.0.0.1:4230/>. Use synthetic data only.
 ## Tests
 
 ```sh
-node --test tests/engine.test.mjs tests/scales.test.mjs tests/labs.test.mjs
+node --test tests/engine.test.mjs tests/scales.test.mjs tests/labs.test.mjs tests/followup.test.mjs
 ```
 
 No npm packages are needed (Node.js 24 or later).

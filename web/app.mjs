@@ -4,11 +4,12 @@
 import { recommend, normalize, checkNumber, checkProduct, ENGINE_VERSION, RULES_DATE, PRODUCT_DEFAULTS } from './engine.mjs';
 import { swallowStatus, FOIS_TEXT, IDDSI_FOOD, IDDSI_DRINK } from './scales.mjs';
 import { LABS, LAB_KEYS, LIMIT_KEYS, checkLab, defaultUnit, unitKey, importText } from './labs.mjs';
+import { followupSummary, checkFollowupValue, FOLLOWUP_FIELDS, MAX_FOLLOWUP_ROWS } from './followup.mjs';
 import { SOURCES } from './sources.mjs';
 import { getInitialLocale, LANGUAGE_STORAGE_KEY } from './initial-locale.mjs';
 
 let lang = getInitialLocale();
-const state = { step: 1, values: { setting: 'icu' }, product: {}, view: 'cards', openDetails: new Set(), openMore: new Set() };
+const state = { step: 1, values: { setting: 'icu' }, product: {}, followup: [], view: 'cards', openDetails: new Set(), openMore: new Set() };
 
 // ---------------------------------------------------------------------------------------------
 // Text
@@ -1038,7 +1039,7 @@ function download(name, text, type) {
 const stamp = () => new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
 function saveCase(r) {
   const summary = r && !r.blocked ? { route: r.route?.kind ?? null, productClass: r.product?.cls ?? null, todayKcal: (() => { const k = r.plan?.today?.kcalTarget ?? r.plan?.oral?.kcalTarget; return Number.isFinite(k) ? Math.round(k) : null; })(), supplements: (r.supplements ?? []).map((s) => s.id) } : null;
-  const data = { format: CASE_FORMAT, formatVersion: 1, app: ENGINE_VERSION, rulesDate: RULES_DATE, savedAt: new Date().toISOString(), values: state.values, product: state.product, summary };
+  const data = { format: CASE_FORMAT, formatVersion: 1, app: ENGINE_VERSION, rulesDate: RULES_DATE, savedAt: new Date().toISOString(), values: state.values, product: state.product, followup: state.followup, summary };
   download(`nutriclinic-vaka-${stamp()}.json`, `${JSON.stringify(data, null, 2)}\n`, 'application/json');
 }
 function saveTableCsv(r) {
@@ -1063,11 +1064,67 @@ async function openCase(file) {
     if (data.product?.form === 'powder') product.form = 'powder';
     state.values = { ...values, setting: values.setting === 'ward' ? 'ward' : 'icu' };
     state.product = product;
+    state.followup = (Array.isArray(data.followup) ? data.followup.slice(0, MAX_FOLLOWUP_ROWS) : []).map((row) => { const c = cleanObject(row); return { day: String(c.day ?? ''), kcal: String(c.kcal ?? ''), protein: String(c.protein ?? '') }; });
     state.import = null;
     go('result');
   } catch {
     window.alert(t('caseError'));
   }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Follow-up: delivered energy and protein against the day's target (context only; nothing is stored).
+// The target of a past ICU day is recalculated with the current inputs, feeding taken as running.
+function followupTargets(r) {
+  const cache = new Map();
+  const pick = (row) => (row ? { kcal: row.kcalTarget ?? row.kcal, protein: row.proteinTarget ?? row.protein } : null);
+  const icu = r.input.setting === 'icu';
+  return (day) => {
+    if (cache.has(day)) return cache.get(day);
+    let target = null;
+    if (icu) {
+      const q = recommend({ ...engineInput(), icuDay: String(day), feeding: 'ongoing' });
+      target = q.blocked || !q.plan ? null : pick(q.plan.today) ?? (q.plan.oral ? { kcal: q.plan.oral.kcalTarget, protein: q.plan.oral.proteinTarget } : null);
+    } else {
+      const rows = r.plan?.rows ?? [];
+      target = pick(rows[rows.length - 1]);
+    }
+    cache.set(day, target);
+    return target;
+  };
+}
+function followupHtml(r) {
+  if (!r.plan) return '';
+  const icu = r.input.setting === 'icu';
+  const sum = followupSummary(state.followup, followupTargets(r), { icu });
+  const cell = (i, field, unit) => {
+    const val = state.followup[i]?.[field] ?? '';
+    const err = checkFollowupValue(field, val);
+    const id = `fu-${i}-${field}`;
+    const name = L({ day: icu ? ['YB günü', 'ICU day'] : ['Beslenme günü', 'Feeding day'], kcal: ['Verilen enerji', 'Delivered energy'], protein: ['Verilen protein', 'Delivered protein'] }[field]);
+    return `<td><div class="input-wrap${err ? ' invalid' : ''}"><input id="${id}" data-fu="${i}:${field}" inputmode="decimal" autocomplete="off" value="${esc(val)}" aria-label="${esc(name)} (${esc(unit)})"${err ? ' aria-invalid="true"' : ''}></div>${err ? `<p class="field-error">${esc(errorText(err, unit, val))}</p>` : ''}</td>`;
+  };
+  const rows = sum.rows.map((x, i) => `<tr>${cell(i, 'day', icu ? L(['gün', 'day']) : L(['gün', 'day']))}${cell(i, 'kcal', 'kcal')}${cell(i, 'protein', 'g')}
+    <td>${x.target ? `${nf(r10(x.target.kcal))} kcal · ${nf(Math.round(x.target.protein))} g` : '–'}</td>
+    <td>${x.pctKcal !== undefined ? `${nf(Math.round(x.pctKcal))}% · ${nf(Math.round(x.pctProtein))}%${x.over ? ' <span class="chip high">↑</span>' : ''}` : '–'}</td>
+    <td><button type="button" class="btn" data-act="fu-del" data-i="${i}" aria-label="${esc(L(['Satırı sil', 'Remove row']))}">×</button></td></tr>`).join('');
+  const over = sum.rows.some((x) => x.over);
+  const summary = sum.counted ? L([`${sum.counted} günde birikmiş fark: enerji ${sum.energyBalance >= 0 ? '+' : ''}${nf(r10(sum.energyBalance))} kcal, protein ${sum.proteinBalance >= 0 ? '+' : ''}${nf(Math.round(sum.proteinBalance))} g.`, `Cumulative difference over ${sum.counted} days: energy ${sum.energyBalance >= 0 ? '+' : ''}${nf(r10(sum.energyBalance))} kcal, protein ${sum.proteinBalance >= 0 ? '+' : ''}${nf(Math.round(sum.proteinBalance))} g.`]) : '';
+  const open = state.openDetails.has('followup') || state.followup.length ? ' open' : '';
+  return `<section class="card"><details data-details="followup"${open}><summary>${esc(L(['İzlem: verilen beslenme', 'Follow-up: delivered nutrition']))}</summary>
+    <p class="hint">${esc(L(['Her gün verilen toplam enerji ve proteini (mama, ONS, ağızdan, PN, propofol ve dekstroz dahil) girin. Hedef o gün için şimdiki girdilerle hesaplanır; beslenme sürüyor kabul edilir.', 'Enter the total energy and protein delivered each day (formula, ONS, oral, PN, propofol and dextrose included). The target is calculated for that day with the current inputs, feeding taken as running.']))}</p>
+    ${state.followup.length ? `<div class="table-wrap"><table class="limits"><thead><tr><th>${esc(icu ? t('icuDayCol') : t('feedDayCol'))}</th><th>${esc(L(['Enerji (kcal)', 'Energy (kcal)']))}</th><th>${esc(L(['Protein (g)', 'Protein (g)']))}</th><th>${esc(L(['Hedef', 'Target']))}</th><th>${esc(L(['Karşılanan', 'Achieved']))}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>` : ''}
+    ${summary ? `<p><strong>${esc(summary)}</strong></p>` : ''}
+    ${over ? `<div class="note">${esc(L(['Erken fazda günün hedefinin %10’undan fazla üzerinde enerji verildi: ilk haftada enerji tahmini gereksinimin %70’inin altında tutulur (kalorimetriyle ilk 3 gün ölçülen harcamanın %70’ini aşmaz).', 'In the early phase energy exceeded the day’s target by more than 10%: in the first week energy is kept below 70% of the estimated needs (with calorimetry, not above 70% of measured expenditure for the first 3 days).']))}<div>${srcChip('espen-icu-2023')}</div></div>` : ''}
+    <div class="actions">${state.followup.length < MAX_FOLLOWUP_ROWS ? `<button type="button" class="btn" data-act="fu-add">${esc(L(['Gün ekle', 'Add a day']))}</button>` : ''}</div>
+  </details></section>`;
+}
+function addFollowupRow() {
+  const last = state.followup[state.followup.length - 1];
+  const lastDay = Number(String(last?.day ?? '').replace(',', '.'));
+  const icuDay = Number(String(state.values.icuDay ?? '').replace(',', '.'));
+  const day = Number.isInteger(lastDay) && lastDay > 0 ? lastDay + 1 : state.values.setting !== 'ward' && Number.isInteger(icuDay) && icuDay > 1 ? icuDay - 1 : 1;
+  state.followup.push({ day: String(Math.min(365, day)), kcal: '', protein: '' });
 }
 
 // ICU severity scores (context only).
@@ -1147,7 +1204,7 @@ function renderResult() {
     box.innerHTML = printHeaderHtml() + `<section class="card summary"><span class="route">${esc(L(ROUTE_TEXT[r.route.kind] ?? ['', '']))}</span><h2>${esc(t('todayPlan'))}</h2><p class="big">${esc(L(['Miktar hesaplamak için kilo ya da boy gerekli.', 'Weight or height is needed to calculate amounts.']))}</p></section>${missingHtml(r)}${scalesHtml(r)}` + inputsHtml() + actions;
     return;
   }
-  box.innerHTML = printHeaderHtml() + summaryHtml(r) + suppHtml(r) + tableHtml(r) + missingHtml(r) + scalesHtml(r) + labsHtml(r) + icuScoresHtml(r) + notesHtml(r) + detailsHtml(r) + inputsHtml() + sourcesHtml(r) + actions;
+  box.innerHTML = printHeaderHtml() + summaryHtml(r) + suppHtml(r) + tableHtml(r) + followupHtml(r) + missingHtml(r) + scalesHtml(r) + labsHtml(r) + icuScoresHtml(r) + notesHtml(r) + detailsHtml(r) + inputsHtml() + sourcesHtml(r) + actions;
 }
 
 function renderFooter() {
@@ -1225,6 +1282,15 @@ document.addEventListener('click', (e) => {
     return;
   }
   const act = el.dataset.act;
+  if (act === 'fu-add' || act === 'fu-del') {
+    if (act === 'fu-add') addFollowupRow(); else state.followup.splice(Number(el.dataset.i), 1);
+    state.openDetails.add('followup');
+    const scroll = window.scrollY;
+    renderResult();
+    window.scrollTo({ top: scroll });
+    if (act === 'fu-add') document.getElementById(`fu-${state.followup.length - 1}-kcal`)?.focus();
+    return;
+  }
   if (act === 'save-case') { saveCase(recommend(engineInput())); return; }
   if (act === 'save-csv') { saveTableCsv(recommend(engineInput())); return; }
   if (act === 'import-apply') { applyImport(); redrawCards(); return; }
@@ -1238,7 +1304,7 @@ document.addEventListener('click', (e) => {
   else if (act === 'show') go('result');
   else if (act === 'edit') go(state.step);
   else if (act === 'print') window.print();
-  else if (act === 'new') { state.values = { setting: state.values.setting ?? 'icu' }; state.product = {}; state.import = null; state.openDetails.clear(); go(1); }
+  else if (act === 'new') { state.values = { setting: state.values.setting ?? 'icu' }; state.product = {}; state.followup = []; state.import = null; state.openDetails.clear(); go(1); }
 });
 
 document.addEventListener('change', (e) => {
@@ -1292,6 +1358,18 @@ document.addEventListener('input', (e) => {
     // A shown error disappears as soon as the value is valid; a new error appears when leaving the field.
     const f = currentField(input.dataset.key);
     if (f && !fieldError(f, input.value)) setFieldError(input, null);
+    return;
+  }
+  if (input.dataset.fu) {
+    const [i, field] = input.dataset.fu.split(':');
+    if (state.followup[Number(i)] && field in FOLLOWUP_FIELDS) state.followup[Number(i)][field] = input.value;
+    const id = input.id;
+    const pos = input.selectionStart;
+    const scroll = window.scrollY;
+    renderResult();
+    window.scrollTo({ top: scroll });
+    const again = document.getElementById(id);
+    if (again) { again.focus(); try { again.setSelectionRange(pos, pos); } catch { /* not a text input */ } }
     return;
   }
   if (input.dataset.label) {
