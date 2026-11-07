@@ -35,7 +35,10 @@ except ImportError:  # not on Linux: only for running the tests elsewhere; the s
 ACCOUNT = re.compile(r'^[0-9a-f]{32}$')
 CASE = re.compile(r'^c-[0-9a-f]{16}$')
 AUTH = re.compile(r'^[A-Za-z0-9_-]{43}$')
-ISO = re.compile(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$')
+ISO = re.compile(r'^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{3})?Z$')
+# Every pattern is used with fullmatch: in Python `$` also matches before a final newline, and `\d` any Unicode digit.
+MARK_DAYS = 90  # deletion marks count against an account's entries for this long
+EMPTY_SECONDS = 86400  # an account without any case stops counting against the account limit after a day
 B64 = re.compile(r'^[A-Za-z0-9+/]+={0,2}$')
 MAX_BODY = 160 * 1024
 
@@ -58,7 +61,7 @@ def _reject_constant(name):
 
 
 def _b64_bytes(text, limit):
-    if not isinstance(text, str) or not text or len(text) > limit or not B64.match(text):
+    if not isinstance(text, str) or not text or len(text) > limit or not B64.fullmatch(text):
         return None
     try:
         return base64.b64decode(text, validate=True)
@@ -88,7 +91,7 @@ def _read_json(path):
 
 
 class Vault:
-    def __init__(self, root, max_accounts=1000, max_cases=200, max_payload=64 * 1024, max_account_bytes=2 * 1024 * 1024, min_free_bytes=5 * 1024 ** 3, now=_now, free_bytes=None):
+    def __init__(self, root, max_accounts=5000, max_cases=200, max_payload=64 * 1024, max_account_bytes=2 * 1024 * 1024, min_free_bytes=5 * 1024 ** 3, now=_now, free_bytes=None):
         self.root = os.path.join(root, 'vault')
         os.makedirs(self.root, mode=0o700, exist_ok=True)
         self.max_accounts = max_accounts
@@ -112,7 +115,7 @@ class Vault:
             raise VaultError(507, 'disk')
 
     def _dir(self, account):
-        if not ACCOUNT.match(account or ''):
+        if not ACCOUNT.fullmatch(account or ''):
             raise VaultError(404, 'not-found')
         return os.path.join(self.root, account)
 
@@ -127,7 +130,7 @@ class Vault:
         meta = os.path.join(directory, 'meta.json')
         if not os.path.isfile(meta):
             raise VaultError(404, 'no-account')
-        if not AUTH.match(auth or ''):
+        if not AUTH.fullmatch(auth or ''):
             raise VaultError(401, 'auth')
         stored = _read_json(meta).get('authHash', '')
         if not hmac.compare_digest(stored, hashlib.sha256(auth.encode('ascii')).hexdigest()):
@@ -136,11 +139,11 @@ class Vault:
 
     def create(self, account, auth):
         directory = self._dir(account)
-        if not AUTH.match(auth or ''):
+        if not AUTH.fullmatch(auth or ''):
             raise VaultError(401, 'auth')
         if os.path.exists(directory):
             raise VaultError(409, 'exists')
-        accounts = sum(1 for name in os.listdir(self.root) if ACCOUNT.match(name))
+        accounts = sum(1 for name in os.listdir(self.root) if ACCOUNT.fullmatch(name) and self._counts(name))
         if accounts >= self.max_accounts:
             raise VaultError(507, 'capacity')
         self._room()
@@ -149,11 +152,29 @@ class Vault:
         _write_json(os.path.join(directory, 'meta.json'), {'authHash': hashlib.sha256(auth.encode('ascii')).hexdigest(), 'createdAt': self.now()})
         return {}
 
+    def _age_seconds(self, stamp):
+        try:
+            then = datetime.strptime(str(stamp), '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=timezone.utc)
+            now = datetime.strptime(self.now(), '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=timezone.utc)
+        except ValueError:
+            return 0
+        return (now - then).total_seconds()
+
+    def _counts(self, name):
+        # An account counts against the limit when it holds a case, or was created within the last day.
+        directory = os.path.join(self.root, name)
+        try:
+            if any(n.endswith('.json') for n in os.listdir(os.path.join(directory, 'cases'))):
+                return True
+            return self._age_seconds(_read_json(os.path.join(directory, 'meta.json')).get('createdAt')) < EMPTY_SECONDS
+        except (OSError, ValueError):
+            return True
+
     def _cases(self, directory):
         folder = os.path.join(directory, 'cases')
         out = []
         for name in sorted(os.listdir(folder)):
-            if name.endswith('.json') and CASE.match(name[:-5]):
+            if name.endswith('.json') and CASE.fullmatch(name[:-5]):
                 out.append((os.path.join(folder, name), _read_json(os.path.join(folder, name))))
         return out
 
@@ -165,7 +186,7 @@ class Vault:
     def get(self, account, auth, case):
         directory = self._check(account, auth)
         path = os.path.join(directory, 'cases', case + '.json')
-        if not CASE.match(case) or not os.path.isfile(path):
+        if not CASE.fullmatch(case) or not os.path.isfile(path):
             raise VaultError(404, 'not-found')
         rec = _read_json(path)
         out = {'id': rec['id'], 'revision': rec['revision'], 'updatedAt': rec['updatedAt']}
@@ -184,7 +205,7 @@ class Vault:
         base = body['baseRevision']
         if base is not None and (isinstance(base, bool) or not isinstance(base, int) or base < 1):
             raise VaultError(400, 'revision')
-        if not isinstance(body['updatedAt'], str) or not ISO.match(body['updatedAt']):
+        if not isinstance(body['updatedAt'], str) or not ISO.fullmatch(body['updatedAt']):
             raise VaultError(400, 'updated-at')
         if 'deleted' in body:
             if body['deleted'] is not True:
@@ -203,7 +224,7 @@ class Vault:
 
     def put(self, account, auth, case, body):
         directory = self._check(account, auth)
-        if not CASE.match(case or ''):
+        if not CASE.fullmatch(case or ''):
             raise VaultError(404, 'not-found')
         payload = self._valid_body(body)
         self._room()
@@ -219,7 +240,11 @@ class Vault:
                 live = sum(1 for _, rec in cases if not rec.get('deleted'))
                 if live >= self.max_cases:
                     raise VaultError(507, 'case-limit')
-            if len(cases) >= self.max_cases * 2 and current is None:
+            # Deletion marks tell the clinician's other devices to remove their copy; after 90 days they no longer
+            # count, so an account can keep creating cases for good.
+            marks = sum(1 for _, rec in cases if rec.get('deleted') and self._age_seconds(rec.get('savedAt')) < MARK_DAYS * 86400)
+            live = sum(1 for _, rec in cases if not rec.get('deleted'))
+            if current is None and live + marks >= self.max_cases * 2:
                 raise VaultError(507, 'case-limit')
             size = sum(os.path.getsize(p) for p, _ in cases if p != path)
             record = {'id': case, 'revision': (current['revision'] + 1) if current else 1, 'updatedAt': body['updatedAt'], 'savedAt': self.now()}
@@ -311,7 +336,7 @@ class App:
 
 def create_app(env=os.environ):
     numbers = lambda name, default: int(env.get(name, default))
-    vault = Vault(env.get('NUTRICLINIC_VAULT_DATA', '/data'), max_accounts=numbers('NUTRICLINIC_VAULT_ACCOUNTS', 1000),
+    vault = Vault(env.get('NUTRICLINIC_VAULT_DATA', '/data'), max_accounts=numbers('NUTRICLINIC_VAULT_ACCOUNTS', 5000),
                   max_cases=numbers('NUTRICLINIC_VAULT_CASES', 200), max_account_bytes=numbers('NUTRICLINIC_VAULT_ACCOUNT_MB', 2) * 1024 * 1024,
                   min_free_bytes=numbers('NUTRICLINIC_VAULT_MIN_FREE_GB', 5) * 1024 ** 3)
     return App(vault, prefix=env.get('NUTRICLINIC_VAULT_PREFIX', '/nutriclinic/api/vault'),

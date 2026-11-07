@@ -30,7 +30,7 @@ and a recorded SAPS II total are shown for ICU patients.
 - Live service: <https://sahnoroloji.org/nutriclinic/>
 - Previous workspace (saved patients, detailed assessment): <https://sahnoroloji.org/nutriclinic2/>; its source is in
   [`nutriclinic2/`](nutriclinic2/)
-- Version: 1.8.0 (7 November 2026); clinical rules and sources: [`docs/CLINICAL-RULES.md`](docs/CLINICAL-RULES.md)
+- Version: 1.8.1 (7 November 2026); clinical rules and sources: [`docs/CLINICAL-RULES.md`](docs/CLINICAL-RULES.md)
 
 ## Privacy
 
@@ -42,7 +42,9 @@ on the site" are cases sent: each case is encrypted in the browser (WebCrypto: H
 additional data) with a key derived from a personal code of 160 random bits, and `server/nutriclinic_vault.py` (Python
 standard library) keeps only the encrypted text, under an account identifier and an access token also derived from the
 code (only the token's SHA-256 is stored). The server and its administrator cannot read the cases; the same code opens
-them on another device; a lost code cannot be recovered. The page's Content Security Policy allows network requests to
+them on another device; a lost code cannot be recovered. The code itself is shown once, when it is created, and kept
+nowhere: the browser keeps the derived identifiers and the encryption key in IndexedDB, the key as a CryptoKey that
+cannot be read back out. The page's Content Security Policy allows network requests to
 that service only. Its Content Security
 Policy blocks all network requests from the page. A case can be saved as a JSON file and opened again, and the
 day-by-day table downloaded as CSV; these files are created on the device only and contain patient data, so they are

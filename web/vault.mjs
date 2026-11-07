@@ -78,11 +78,12 @@ export async function unseal(key, id, payload, subtle = globalThis.crypto.subtle
   }
 }
 
-// HTTP calls; { status, data }. Credentials are never sent (the access token is the only identity).
-export function vaultApi({ fetch, base, account, auth }) {
+// HTTP calls; { status, data }. Credentials are never sent (the access token is the only identity); `signal` stops
+// every call when site storage is turned off on this device.
+export function vaultApi({ fetch, base, account, auth, signal }) {
   const call = async (method, path, body) => {
     const res = await fetch(`${base}${account}/${path}`, {
-      method, credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer',
+      method, credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer', ...(signal ? { signal } : {}),
       headers: { 'X-Vault-Auth': auth, ...(body ? { 'Content-Type': 'application/json' } : {}) },
       ...(body ? { body: JSON.stringify(body) } : {}),
     });
@@ -93,31 +94,36 @@ export function vaultApi({ fetch, base, account, auth }) {
   return { create: () => call('POST', ''), list: () => call('GET', ''), get: (id) => call('GET', id), put: (id, body) => call('PUT', id, body) };
 }
 
-// Two-way sync of this device's cases with the site. The newer change wins (last change time of each case); a case
-// deleted on one device is deleted on the others unless it was changed after the deletion. local: { list(), get(id),
-// store(record) -> boolean, remove(id) }; pending: deletions made on this device and not yet on the site (changed in
-// place). Throws { status } when the list cannot be read.
-export async function syncVault({ api, key, local, pending, subtle }) {
-  const out = { uploaded: 0, downloaded: 0, removed: 0, failed: 0, full: false, remote: 0 };
+// Two-way sync of this device's cases with the site. The later change of a case wins (its last change time); a case
+// deleted on one device is deleted on the others unless it was changed after the deletion.
+// local: { list(), get(id), store(record) -> boolean, remove(id), pending(id) -> boolean (a deletion made here and not
+// yet settled, read at the moment of asking) }. pending: the deletions made here when the sync starts; it is not
+// changed: `done` in the result lists the ones settled (sent, or no longer needed). Every download checks that the case
+// did not change, and was not deleted, here meanwhile. Throws { status } when the list cannot be read.
+export async function syncVault({ api, key, local, pending = [], subtle }) {
+  const out = { uploaded: 0, downloaded: 0, removed: 0, failed: 0, full: false, limit: false, remote: 0, done: [] };
   const listed = await api.list();
   if (listed.status !== 200 || !Array.isArray(listed.data?.cases)) throw Object.assign(new Error('list'), { status: listed.status });
   const remote = new Map(listed.data.cases.filter((c) => CASE_ID.test(c?.id) && Number.isInteger(c.revision) && ISO.test(String(c.updatedAt))).map((c) => [c.id, c]));
   const live = new Set([...remote.values()].filter((r) => !r.deleted).map((r) => r.id)); // cases on the site after the sync
+  const waiting = new Set(); // deletions that could not be sent: these cases are neither downloaded nor uploaded now
+  const refused = (res) => { out.failed += 1; if (res.status === 507) out.limit = true; };
   const upload = async (record, r) => {
     const res = await api.put(record.id, { baseRevision: r ? r.revision : null, updatedAt: record.updatedAt, payload: await seal(key, record, subtle) });
-    if (res.status === 200) { out.uploaded += 1; live.add(record.id); } else out.failed += 1;
+    if (res.status === 200) { out.uploaded += 1; live.add(record.id); } else refused(res);
   };
-  for (const d of [...pending]) {
+  for (const d of pending) {
     const r = remote.get(d.id);
-    if (!r || !r.deleted) {
-      const res = await api.put(d.id, { baseRevision: r ? r.revision : null, updatedAt: d.updatedAt, deleted: true });
-      if (res.status !== 200) { out.failed += 1; continue; }
-      remote.set(d.id, { id: d.id, revision: res.data.revision, updatedAt: d.updatedAt, deleted: true });
-    }
+    // Nothing to delete on the site, or the case was changed elsewhere after this deletion (then it is kept).
+    if (!r || r.deleted || r.updatedAt > d.updatedAt) { out.done.push(d.id); continue; }
+    const res = await api.put(d.id, { baseRevision: r.revision, updatedAt: d.updatedAt, deleted: true });
+    if (res.status !== 200) { refused(res); waiting.add(d.id); continue; }
+    remote.set(d.id, { id: d.id, revision: res.data.revision, updatedAt: d.updatedAt, deleted: true });
     live.delete(d.id);
-    pending.splice(pending.indexOf(d), 1);
+    out.done.push(d.id);
   }
   for (const r of remote.values()) {
+    if (waiting.has(r.id) || local.pending(r.id)) continue;
     const mine = local.get(r.id);
     if (r.deleted) {
       if (!mine) continue;
@@ -130,9 +136,11 @@ export async function syncVault({ api, key, local, pending, subtle }) {
     const got = await api.get(r.id);
     const record = got.status === 200 && got.data?.payload ? await unseal(key, r.id, got.data.payload, subtle) : null;
     if (!record) { out.failed += 1; continue; }
+    // Changed or deleted here during the download: the newer state of this device is kept (and sent next time).
+    if ((local.get(r.id)?.updatedAt ?? null) !== (mine?.updatedAt ?? null) || local.pending(r.id)) continue;
     if (local.store(record)) out.downloaded += 1; else out.full = true;
   }
-  for (const mine of local.list()) if (!remote.has(mine.id)) await upload(mine, null);
+  for (const mine of local.list()) if (!remote.has(mine.id) && !waiting.has(mine.id)) await upload(mine, null);
   out.remote = live.size;
   return out;
 }

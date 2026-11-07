@@ -7,6 +7,7 @@ import os
 import sys
 import tempfile
 import unittest
+from datetime import datetime, timedelta, timezone
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 from nutriclinic_vault import App, Vault  # noqa: E402
@@ -97,6 +98,33 @@ class VaultTest(unittest.TestCase):
         for i in range(2):
             self.assertEqual(self.call('POST', f'/nutriclinic/api/vault/{i:032x}/')[0], 201)
         self.assertEqual(self.call('POST', f'/nutriclinic/api/vault/{9:032x}/'), (507, {'error': 'capacity'}))
+
+    def test_review_ids_marks_and_empty_accounts(self):
+        # Whole-string checks: a trailing newline or non-ASCII digits are refused.
+        self.assertEqual(self.call('POST', f'/nutriclinic/api/vault/{ACC}\n/')[0], 404)
+        self.assertFalse(os.path.exists(os.path.join(self.tmp.name, 'vault', ACC + '\n')))
+        base = f'/nutriclinic/api/vault/{ACC}/'
+        self.assertEqual(self.call('POST', base)[0], 201)
+        self.assertEqual(self.call('GET', base, auth=AUTH + '\n')[0], 401)
+        self.assertEqual(self.put({'baseRevision': None, 'updatedAt': '２０２６-11-07T19:00:00.000Z', 'payload': PAYLOAD})[0], 400)
+        self.assertEqual(self.call('GET', base + CASE + '\n')[0], 404)
+        # Deletion marks count for 90 days only (max_cases=2 here: 4 entries in all).
+        clock = {'now': datetime(2026, 11, 7, 20, 0, tzinfo=timezone.utc)}
+        self.vault.now = lambda: clock['now'].strftime('%Y-%m-%dT%H:%M:%S.000Z')
+        ok = {'baseRevision': None, 'updatedAt': '2026-11-07T19:00:00.000Z', 'payload': PAYLOAD}
+        for i in range(4):
+            case = 'c-%016x' % i
+            self.assertEqual(self.put(ok, case=case)[0], 200)
+            self.assertEqual(self.put({'baseRevision': 1, 'updatedAt': '2026-11-07T19:01:00.000Z', 'deleted': True}, case=case)[0], 200)
+        self.assertEqual(self.put(ok, case='c-00000000000000ff'), (507, {'error': 'case-limit'}))
+        clock['now'] += timedelta(days=91)
+        self.assertEqual(self.put(ok, case='c-00000000000000ff')[0], 200)
+        # Accounts without any case stop counting after a day (max_accounts=3 here).
+        self.assertEqual(self.call('POST', f'/nutriclinic/api/vault/{1:032x}/')[0], 201)
+        self.assertEqual(self.call('POST', f'/nutriclinic/api/vault/{2:032x}/')[0], 201)
+        self.assertEqual(self.call('POST', f'/nutriclinic/api/vault/{3:032x}/'), (507, {'error': 'capacity'}))
+        clock['now'] += timedelta(days=2)
+        self.assertEqual(self.call('POST', f'/nutriclinic/api/vault/{3:032x}/')[0], 201)
 
     def test_disk_floor_stops_writes(self):
         base = f'/nutriclinic/api/vault/{ACC}/'

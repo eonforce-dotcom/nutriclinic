@@ -1,6 +1,6 @@
 # NutriClinic staged recommender — clinical rules
 
-Version 1.8.0 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
+Version 1.8.1 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
 
 NutriClinic supports clinical decisions and does not replace them. Every recommendation is reviewed at the bedside
 together with its inputs and sources.
@@ -377,10 +377,15 @@ characters, 160 random bits) or takes an existing one. Each case is encrypted on
 code (AES-GCM 256; the case id is bound to the encrypted text) and sent to the site, which keeps only the encrypted text
 under an account identifier and an access token also derived from the code; neither the server nor its administrator
 can read a case. The same code opens the cases on another device; changes are synchronised (the later change of a case
-wins; a case deleted on one device is deleted on the others unless it was changed after the deletion). A lost code
-cannot be recovered, so the page shows the new code at once and offers to copy it or save it to a file. Turning site
-storage off on a device forgets the code there; the cases on the site stay. At most 200 cases (2 MB) per code and 1000 codes;
-writing stops while the server has less than 5 GB free.
+wins; a case deleted on one device is deleted on the others unless it was changed after the deletion; an edit made
+during a download is never overwritten; a deletion that could not be sent is sent later, and before site storage is
+turned off on a device the page sends it or asks). The code is shown once, when it is created, with buttons to copy it
+or save it to a file, and is kept nowhere: the browser keeps only the derived identifiers and the encryption key (in
+IndexedDB, as a key that cannot be read back out), so the next user of a shared browser cannot take the code away.
+A lost code cannot be recovered. Joining with a code on a device that already holds cases asks before those cases are
+added to it. Turning site storage off on a device removes the keys there; the cases on the site stay. At most 200 cases
+(2 MB) per code and 5000 codes; deletion marks count for 90 days, and a code without any case stops counting after a
+day; requests and new codes are rate-limited per client; writing stops while the server has less than 5 GB free.
 
 ## Notes shown when relevant
 

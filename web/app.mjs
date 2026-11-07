@@ -12,7 +12,7 @@ import { newCaseId, isCaseId, deviceStorageOn, setDeviceStorage, listCases, getC
 import { CODE_KEY, PENDING_KEY, newCode, normalizeCode, formatCode, vaultKeys, vaultApi, syncVault } from './vault.mjs';
 
 let lang = getInitialLocale();
-const state = { step: 1, values: { setting: 'icu' }, product: {}, followup: [], decisions: {}, view: 'cards', prevView: 'cards', evidenceQuery: '', evidenceKind: '', openDetails: new Set(), openMore: new Set(), caseId: null, caseLabel: '', example: false, reopened: null, vaultSetup: null, vaultShowCode: false, vaultMsg: null, vaultInput: '' };
+const state = { step: 1, values: { setting: 'icu' }, product: {}, followup: [], decisions: {}, view: 'cards', prevView: 'cards', evidenceQuery: '', evidenceKind: '', openDetails: new Set(), openMore: new Set(), caseId: null, caseLabel: '', example: false, reopened: null, vaultSetup: null, newCode: null, vaultMsg: null, vaultInput: '' };
 
 // ---------------------------------------------------------------------------------------------
 // Text
@@ -1620,17 +1620,7 @@ document.addEventListener('click', (e) => {
     render();
     return;
   }
-  if (act === 'cases-clear') {
-    const n = listCases(deviceStore).length;
-    const question = vault ? [`Bu cihazdaki ${n} vakanın hepsi silinsin ve sitede saklama bu cihazda kapansın mı? Sitedeki vakalar kalır ve kişisel kodla yeniden açılabilir.`, `Delete all ${n} cases from this device and stop keeping cases on the site here? The cases on the site stay and can be opened again with the personal code.`]
-      : [`Bu cihazdaki ${n} vakanın hepsi silinsin mi? Geri alınamaz.`, `Delete all ${n} cases from this device? This cannot be undone.`];
-    if (!window.confirm(L(question))) return;
-    clearCases(deviceStore);
-    forgetVault();
-    resetCase({ setting: state.values.setting ?? 'icu' });
-    render();
-    return;
-  }
+  if (act === 'cases-clear') { clearDevice(); return; }
   if (act?.startsWith('vault-')) { vaultAction(act); return; }
   if (act === 'decision-clear') { delete state.decisions[el.dataset.topic]; const y = window.scrollY; renderEvidence(); window.scrollTo({ top: y }); return; }
   if (act === 'evidence-back') { state.view = state.prevView === 'evidence' ? 'cards' : state.prevView; render(); window.scrollTo({ top: 0 }); return; }
@@ -1682,27 +1672,15 @@ document.addEventListener('change', (e) => {
     return;
   }
   if (e.target.dataset?.device === 'toggle') {
-    if (!e.target.checked) {
-      const n = listCases(deviceStore).length;
-      const question = vault ? [`Cihazda saklama kapatılsın mı? Bu cihazdaki ${n} vaka silinir ve sitede saklama da bu cihazda kapanır; sitedeki vakalar kalır.`, `Turn device storage off? The ${n} cases on this device will be deleted and keeping cases on the site stops here; the cases on the site stay.`]
-        : [`Cihazda saklama kapatılsın mı? Bu cihazdaki ${n} vaka silinir.`, `Turn device storage off? The ${n} cases on this device will be deleted.`];
-      if ((n || vault) && !window.confirm(L(question))) { e.target.checked = true; return; }
-      clearCases(deviceStore);
-      forgetVault();
-      setDeviceStorage(deviceStore, false);
-      state.caseId = null;
-      lastSaved = '';
-    } else {
-      setDeviceStorage(deviceStore, true);
-      saveToDevice();
-    }
+    if (!e.target.checked) { deviceOff(e.target); return; }
+    setDeviceStorage(deviceStore, true);
+    saveToDevice();
     render();
     return;
   }
   if (e.target.dataset?.vault === 'toggle') {
     if (e.target.checked) { state.vaultSetup = 'choose'; state.vaultMsg = null; renderCases(); return; }
-    if (vault && !window.confirm(L(VAULT_OFF))) { e.target.checked = true; return; }
-    forgetVault();
+    if (vault) { e.target.checked = true; vaultAction('vault-off'); return; }
     state.vaultSetup = null;
     state.vaultMsg = null;
     renderCases();
@@ -1807,15 +1785,19 @@ document.addEventListener('keydown', (e) => {
 
 // ---------------------------------------------------------------------------------------------
 // Cases on the site (vault.mjs), only when the clinician turns it on: encrypted on this device with a key derived from
-// the personal code; the site stores the encrypted text and never sees the code, the key or a clinical value.
+// the personal code; the site stores the encrypted text and never sees the code, the key or a clinical value. The code
+// itself is not kept: it is shown once, when it is created. This browser keeps the derived account, access token and
+// encryption key in IndexedDB; the key is stored as a CryptoKey that cannot be read back out of the browser.
 const VAULT_BASE = new URL('api/vault/', document.baseURI).href;
 let vault = null;
+let vaultGen = 0; // changes whenever site storage is turned off here: a sync still running then changes nothing here
 let syncing = false;
 let syncAgain = false;
+let currentSync = null;
 let syncTimer = null;
 let lastSync = null;
 let vaultError = null;
-const VAULT_OFF = ['Sitede saklama bu cihazda kapatılsın mı? Kişisel kod bu cihazdan silinir; sitedeki vakalar kalır ve kodla yeniden açılabilir. Kodu kaydettiniz mi?', 'Stop keeping cases on the site on this device? The personal code is removed from this device; the cases on the site stay and can be opened again with the code. Have you saved the code?'];
+const VAULT_OFF = ['Sitede saklama bu cihazda kapatılsın mı? Sitedeki vakalar kalır; onları burada ya da başka bir cihazda açmak için kaydettiğiniz kişisel kod gerekir.', 'Stop keeping cases on the site on this device? The cases on the site stay; to open them here or on another device you need the personal code you saved.'];
 const VAULT_TEXT = {
   'code-format': ['Kişisel kod 32 karakterdir (harf ve rakam; tireler isteğe bağlı).', 'The personal code has 32 characters (letters and digits; dashes optional).'],
   'no-account': ['Bu kodla sitede kayıt yok: kodu kontrol edin.', 'There is nothing on the site for this code: check the code.'],
@@ -1823,77 +1805,172 @@ const VAULT_TEXT = {
   offline: ['Siteye ulaşılamadı; vakalar bu cihazda duruyor, sonra yeniden denenecek.', 'The site could not be reached; the cases stay on this device and it will be tried again.'],
   partial: ['Bazı vakalar eşitlenemedi; sonra yeniden denenecek.', 'Some cases could not be synchronised; it will be tried again.'],
   full: [`Bu cihazda en çok ${MAX_CASES} vaka saklanır: sitedeki bazı vakalar indirilmedi.`, `At most ${MAX_CASES} cases are kept on this device: some cases on the site were not downloaded.`],
+  limit: ['Sitede bu kod için yer kalmadı (en çok 200 vaka): eski vakaları silin; yeni vakalar şimdilik yalnız bu cihazda.', 'No room left on the site for this code (at most 200 cases): delete old cases; new cases stay on this device for now.'],
+  capacity: ['Site şu anda yeni kişisel kod kabul etmiyor; vakalar bu cihazda duruyor. Sonra yeniden deneyin.', 'The site does not accept new personal codes at the moment; the cases stay on this device. Try again later.'],
+  idb: ['Bu tarayıcı anahtarı saklayamıyor (gizli pencere ya da engellenmiş site verisi): sitede saklama açılamadı.', 'This browser cannot keep the key (private window or blocked site data): site storage could not be turned on.'],
   copied: ['Kod panoya kopyalandı.', 'The code was copied.'],
+  'copy-failed': ['Kopyalanamadı: kodu elle yazın ya da dosyaya kaydedin.', 'Could not copy: write the code down or save it to a file.'],
   failed: ['Kod oluşturulamadı; yeniden deneyin.', 'The code could not be created; try again.'],
 };
 const readPending = () => {
   try { const x = JSON.parse(deviceStore.getItem(PENDING_KEY) ?? '[]'); return Array.isArray(x) ? x.filter((d) => isCaseId(d?.id) && typeof d.updatedAt === 'string') : []; } catch { return []; }
 };
 const writePending = (list) => { try { deviceStore.setItem(PENDING_KEY, JSON.stringify(list)); } catch { /* storage unavailable */ } };
-async function startVault(code) {
-  const keys = await vaultKeys(code);
-  return { code, keys, api: vaultApi({ fetch: (...args) => window.fetch(...args), base: VAULT_BASE, account: keys.account, auth: keys.auth }) };
+// IndexedDB holds the derived keys (a CryptoKey can be stored there, not in localStorage).
+function vaultStore(mode, act) {
+  return new Promise((resolve, reject) => {
+    let open;
+    try { open = indexedDB.open('nc-staged', 1); } catch (err) { reject(err); return; }
+    open.onupgradeneeded = () => open.result.createObjectStore('vault');
+    open.onerror = () => reject(open.error);
+    open.onsuccess = () => {
+      const db = open.result;
+      try {
+        const tx = db.transaction('vault', mode);
+        const req = act(tx.objectStore('vault'));
+        tx.oncomplete = () => { db.close(); resolve(req?.result); };
+        tx.onerror = () => { db.close(); reject(tx.error); };
+        tx.onabort = () => { db.close(); reject(tx.error); };
+      } catch (err) { db.close(); reject(err); }
+    };
+  });
+}
+const saveKeys = (k) => vaultStore('readwrite', (s) => s.put({ account: k.account, auth: k.auth, key: k.key }, 'current'));
+const loadKeys = () => vaultStore('readonly', (s) => s.get('current'));
+const dropKeys = () => vaultStore('readwrite', (s) => s.delete('current'));
+function connect(keys) {
+  const abort = new AbortController();
+  return { keys, abort, api: vaultApi({ fetch: (...args) => window.fetch(...args), base: VAULT_BASE, account: keys.account, auth: keys.auth, signal: abort.signal }) };
 }
 function forgetVault() {
+  vaultGen += 1;
+  vault?.abort.abort();
   vault = null;
   lastSync = null;
   vaultError = null;
-  state.vaultShowCode = false;
-  try { deviceStore?.removeItem(CODE_KEY); deviceStore?.removeItem(PENDING_KEY); } catch { /* storage unavailable */ }
+  state.newCode = null;
+  try { deviceStore?.removeItem(PENDING_KEY); deviceStore?.removeItem(CODE_KEY); } catch { /* storage unavailable */ }
+  dropKeys().catch(() => { /* nothing kept */ });
 }
-const deviceCases = () => ({ list: () => listCases(deviceStore), get: (id) => getCase(deviceStore, id), store: (r) => storeCase(deviceStore, r), remove: (id) => deleteCase(deviceStore, id) });
-async function syncNow() {
+// One sync at a time; a request during a sync runs one more afterwards.
+function syncNow() {
   clearTimeout(syncTimer);
-  if (!vault || !deviceOn()) return;
-  if (syncing) { syncAgain = true; return; }
+  if (!vault || !deviceOn()) return Promise.resolve();
+  if (currentSync) { syncAgain = true; return currentSync; }
+  currentSync = runSync().finally(() => {
+    currentSync = null;
+    if (syncAgain) { syncAgain = false; syncNow(); }
+  });
+  return currentSync;
+}
+async function runSync() {
+  const gen = vaultGen;
+  const v = vault;
+  const alive = () => gen === vaultGen && vault === v && deviceOn();
+  // Every change to this device checks that site storage is still on here: a cleared shared computer stays clear.
+  const local = {
+    list: () => (alive() ? listCases(deviceStore) : []),
+    get: (id) => (alive() ? getCase(deviceStore, id) : null),
+    store: (r) => alive() && storeCase(deviceStore, r),
+    remove: (id) => { if (alive()) deleteCase(deviceStore, id); },
+    pending: (id) => !alive() || readPending().some((d) => d.id === id),
+  };
   syncing = true;
+  if (state.view === 'cases') renderCases();
   try {
-    const pending = readPending();
-    const res = await syncVault({ api: vault.api, key: vault.keys.key, local: deviceCases(), pending });
-    writePending(pending);
+    const res = await syncVault({ api: v.api, key: v.keys.key, local, pending: readPending() });
+    if (!alive()) return;
+    // Deletions made during the sync stay in the list; only the settled ones leave it.
+    writePending(readPending().filter((d) => !res.done.includes(d.id)));
     lastSync = { at: new Date().toISOString(), ...res };
-    vaultError = res.full ? 'full' : res.failed ? 'partial' : null;
+    vaultError = res.full ? 'full' : res.limit ? 'limit' : res.failed ? 'partial' : null;
     // The open case changed on another device and has no unsaved change here: show the newer version.
     const rec = state.caseId ? getCase(deviceStore, state.caseId) : null;
     if (rec && JSON.stringify([state.caseLabel, caseData()]) === lastSaved && JSON.stringify([rec.label, rec.data]) !== lastSaved) await openDeviceCase(rec, { keepView: true });
   } catch (err) {
-    vaultError = err?.status === 404 ? 'no-account' : err?.status === 401 ? 'auth' : 'offline';
+    if (alive()) vaultError = err?.status === 404 ? 'no-account' : err?.status === 401 ? 'auth' : 'offline';
   } finally {
     syncing = false;
   }
+  if (!alive()) return;
   renderCasesButton();
   if (state.view === 'cases') renderCases();
-  if (syncAgain) { syncAgain = false; syncNow(); }
 }
 const scheduleSync = () => { if (vault) { clearTimeout(syncTimer); syncTimer = setTimeout(syncNow, 4000); } };
+// Deletions made here and not yet on the site are sent before site storage is turned off here; when that is not
+// possible the clinician decides (true = go on).
+async function settleDeletes() {
+  if (!vault || !readPending().length) return true;
+  await syncNow();
+  if (readPending().length) await syncNow();
+  const n = readPending().length;
+  return !n || window.confirm(L([`${n} silme henüz siteye gönderilemedi. Yine de devam edilsin mi? O vakalar sitede kalır.`, `${n} deletions could not be sent to the site yet. Go on anyway? Those cases stay on the site.`]));
+}
+async function clearDevice() {
+  const n = listCases(deviceStore).length;
+  const question = vault ? [`Bu cihazdaki ${n} vakanın hepsi silinsin ve sitede saklama bu cihazda kapansın mı? Sitedeki vakalar kalır ve kişisel kodla yeniden açılabilir.`, `Delete all ${n} cases from this device and stop keeping cases on the site here? The cases on the site stay and can be opened again with the personal code.`]
+    : [`Bu cihazdaki ${n} vakanın hepsi silinsin mi? Geri alınamaz.`, `Delete all ${n} cases from this device? This cannot be undone.`];
+  if (!window.confirm(L(question))) return;
+  if (!(await settleDeletes())) return;
+  clearCases(deviceStore);
+  forgetVault();
+  resetCase({ setting: state.values.setting ?? 'icu' });
+  render();
+}
+async function deviceOff(box) {
+  const n = listCases(deviceStore).length;
+  const question = vault ? [`Cihazda saklama kapatılsın mı? Bu cihazdaki ${n} vaka silinir ve sitede saklama da bu cihazda kapanır; sitedeki vakalar kalır.`, `Turn device storage off? The ${n} cases on this device will be deleted and keeping cases on the site stops here; the cases on the site stay.`]
+    : [`Cihazda saklama kapatılsın mı? Bu cihazdaki ${n} vaka silinir.`, `Turn device storage off? The ${n} cases on this device will be deleted.`];
+  if ((n || vault) && !window.confirm(L(question))) { box.checked = true; return; }
+  if (!(await settleDeletes())) { render(); return; }
+  clearCases(deviceStore);
+  forgetVault();
+  setDeviceStorage(deviceStore, false);
+  state.caseId = null;
+  lastSaved = '';
+  render();
+}
 async function vaultAction(act) {
   state.vaultMsg = null;
   if (act === 'vault-enter') { state.vaultSetup = 'enter'; renderCases(); document.getElementById('vault-code')?.focus(); return; }
-  if (act === 'vault-show' || act === 'vault-hide') { state.vaultShowCode = act === 'vault-show'; renderCases(); return; }
+  if (act === 'vault-hide') { state.newCode = null; renderCases(); return; }
   if (act === 'vault-sync') { await syncNow(); return; }
-  if (act === 'vault-off') { if (!window.confirm(L(VAULT_OFF))) return; forgetVault(); state.vaultSetup = null; renderCases(); return; }
+  if (act === 'vault-off') {
+    if (!window.confirm(L(VAULT_OFF))) return;
+    if (!(await settleDeletes())) return;
+    forgetVault();
+    state.vaultSetup = null;
+    renderCases();
+    return;
+  }
   if (act === 'vault-copy') {
-    try { await navigator.clipboard.writeText(formatCode(vault.code)); state.vaultMsg = 'copied'; } catch { state.vaultShowCode = true; }
+    try { await navigator.clipboard.writeText(formatCode(state.newCode)); state.vaultMsg = 'copied'; } catch { state.vaultMsg = 'copy-failed'; }
     renderCases();
     return;
   }
   if (act === 'vault-save') {
-    download('nutriclinic-kisisel-kod.txt', `NutriClinic\r\n${formatCode(vault.code)}\r\n\r\n${L(['Bu kişisel kodla vakalarınız sahnoroloji.org/nutriclinic/ adresinde başka bir cihazda da açılır. Kodu kimseyle paylaşmayın; kaybolursa sitedeki vakalar açılamaz.', 'With this personal code your cases open on another device at sahnoroloji.org/nutriclinic/. Do not share it; if it is lost, the cases on the site cannot be opened.'])}\r\n`, 'text/plain');
+    if (state.newCode) download('nutriclinic-kisisel-kod.txt', `NutriClinic\r\n${formatCode(state.newCode)}\r\n\r\n${L(['Bu kişisel kodla vakalarınız sahnoroloji.org/nutriclinic/ adresinde başka bir cihazda da açılır. Kodu kimseyle paylaşmayın; kaybolursa sitedeki vakalar açılamaz.', 'With this personal code your cases open on another device at sahnoroloji.org/nutriclinic/. Do not share it; if it is lost, the cases on the site cannot be opened.'])}\r\n`, 'text/plain');
     return;
   }
   if (act === 'vault-new' || act === 'vault-join') {
     const code = act === 'vault-new' ? newCode() : normalizeCode(state.vaultInput);
     if (!code) { state.vaultMsg = 'code-format'; renderCases(); return; }
+    // The cases already on this device go to that code's account too: asked first (a shared computer may hold
+    // someone else's cases).
+    const n = listCases(deviceStore).length;
+    if (n && !window.confirm(L([`Bu cihazdaki ${n} vaka da bu kişisel koda eklenecek ve şifrelenip siteye gönderilecek. Devam edilsin mi?`, `The ${n} cases on this device will also be added to this personal code and sent, encrypted, to the site. Go on?`]))) return;
     try {
-      const next = await startVault(code);
+      const keys = await vaultKeys(code);
+      const next = connect(keys);
       const res = act === 'vault-new' ? await next.api.create() : await next.api.list();
-      if (act === 'vault-new' && res.status !== 201) { state.vaultMsg = 'failed'; renderCases(); return; }
+      if (act === 'vault-new' && res.status !== 201) { state.vaultMsg = res.status === 507 ? 'capacity' : 'failed'; renderCases(); return; }
       if (act === 'vault-join' && res.status !== 200) { state.vaultMsg = res.status === 404 ? 'no-account' : res.status === 401 ? 'auth' : 'offline'; renderCases(); return; }
+      try { await saveKeys(keys); } catch { state.vaultMsg = 'idb'; renderCases(); return; }
+      vaultGen += 1;
       vault = next;
-      deviceStore.setItem(CODE_KEY, code);
       state.vaultSetup = null;
       state.vaultInput = '';
-      state.vaultShowCode = act === 'vault-new'; // a new code is shown at once, to be saved
+      state.newCode = act === 'vault-new' ? code : null; // shown now only: the code itself is not kept
       renderCases();
       await syncNow();
     } catch {
@@ -1905,7 +1982,7 @@ async function vaultAction(act) {
 function vaultHtml() {
   if (!deviceOn()) return '';
   const title = L(['Sitede de sakla (kişisel kodla şifreli)', 'Also keep on the site (encrypted with a personal code)']);
-  const about = L(['Vakalar bu cihazda kişisel kodunuzla şifrelenir ve şifreli olarak sahnoroloji.org’a gönderilir; sunucu ve yönetici içeriği okuyamaz. Aynı kodla başka bir bilgisayarda da açılır ve değişiklikler eşitlenir. Kod kaybolursa sitedeki vakalar açılamaz: kodu kaydedin, kimseyle paylaşmayın.', 'Cases are encrypted on this device with your personal code and sent to sahnoroloji.org in encrypted form; the server and its administrator cannot read them. The same code opens them on another computer, and changes are synchronised. If the code is lost, the cases on the site cannot be opened: save it and share it with no one.']);
+  const about = L(['Vakalar bu cihazda kişisel kodunuzla şifrelenir ve şifreli olarak sahnoroloji.org’a gönderilir; sunucu ve yönetici içeriği okuyamaz. Aynı kodla başka bir bilgisayarda da açılır ve değişiklikler eşitlenir. Kod yalnız oluşturulduğu anda gösterilir ve hiçbir yerde saklanmaz: kaybolursa sitedeki vakalar açılamaz.', 'Cases are encrypted on this device with your personal code and sent to sahnoroloji.org in encrypted form; the server and its administrator cannot read them. The same code opens them on another computer, and changes are synchronised. The code is shown only when it is created and is kept nowhere: if it is lost, the cases on the site cannot be opened.']);
   const msg = state.vaultMsg ? `<p class="${state.vaultMsg === 'copied' ? 'hint' : 'field-error'}">${esc(L(VAULT_TEXT[state.vaultMsg]))}</p>` : '';
   const toggle = (on) => `<label class="check"><input type="checkbox" data-vault="toggle"${on ? ' checked' : ''}><span>${esc(L(['Vakaları sitede de sakla', 'Also keep cases on the site']))}</span></label>`;
   if (!vault) {
@@ -1913,14 +1990,33 @@ function vaultHtml() {
     const choose = state.vaultSetup ? `<div class="actions"><button type="button" class="btn primary" data-act="vault-new">${esc(L(['Yeni kişisel kod oluştur', 'Create a new personal code']))}</button><button type="button" class="btn" data-act="vault-enter">${esc(L(['Kodum var', 'I have a code']))}</button></div>${enter}` : '';
     return `<section class="card"><h2>${esc(title)}</h2><p class="lead">${esc(about)}</p>${toggle(Boolean(state.vaultSetup))}${choose}${msg}</section>`;
   }
-  const code = state.vaultShowCode
-    ? `<p class="vault-code">${esc(formatCode(vault.code))}</p><p class="hint">${esc(L(['Bu kodu kaydedin (kopyalayın ya da dosyaya kaydedin) ve kimseyle paylaşmayın.', 'Save this code (copy it or save it to a file) and share it with no one.']))}</p><div class="actions"><button type="button" class="btn" data-act="vault-copy">${esc(L(['Kopyala', 'Copy']))}</button><button type="button" class="btn" data-act="vault-save">${esc(L(['Dosyaya kaydet', 'Save to a file']))}</button><button type="button" class="btn" data-act="vault-hide">${esc(L(['Gizle', 'Hide']))}</button></div>`
-    : `<p><button type="button" class="linkish" data-act="vault-show">${esc(L(['Kişisel kodu göster', 'Show the personal code']))}</button></p>`;
+  const code = state.newCode
+    ? `<p class="hint"><strong>${esc(L(['Kişisel kodunuz (yalnız şimdi gösterilir):', 'Your personal code (shown only now):']))}</strong></p><p class="vault-code">${esc(formatCode(state.newCode))}</p><p class="hint">${esc(L(['Kodu şimdi kaydedin (kopyalayın ya da dosyaya kaydedin) ve kimseyle paylaşmayın: başka bir cihazda vakalarınızı yalnız bu kodla açabilirsiniz.', 'Save the code now (copy it or save it to a file) and share it with no one: only this code opens your cases on another device.']))}</p><div class="actions"><button type="button" class="btn" data-act="vault-copy">${esc(L(['Kopyala', 'Copy']))}</button><button type="button" class="btn" data-act="vault-save">${esc(L(['Dosyaya kaydet', 'Save to a file']))}</button><button type="button" class="btn primary" data-act="vault-hide">${esc(L(['Kaydettim', 'I saved it']))}</button></div>`
+    : `<p class="hint">${esc(L(['Bu cihaz sitedeki vakalarınıza bağlı. Kişisel kod burada saklanmaz; başka bir cihazda kaydettiğiniz kodu girin.', 'This device is linked to your cases on the site. The personal code is not kept here; on another device enter the code you saved.']))}</p>`;
   const status = syncing ? L(['Eşitleniyor…', 'Synchronising…']) : lastSync
     ? L([`Son eşitleme ${when(lastSync.at)}: sitede ${lastSync.remote} vaka; ${lastSync.uploaded} gönderildi, ${lastSync.downloaded} alındı, ${lastSync.removed} silindi.`, `Last sync ${when(lastSync.at)}: ${lastSync.remote} cases on the site; ${lastSync.uploaded} sent, ${lastSync.downloaded} received, ${lastSync.removed} deleted.`])
     : L(['Henüz eşitlenmedi.', 'Not synchronised yet.']);
   return `<section class="card"><h2>${esc(title)}</h2><p class="lead">${esc(about)}</p>${toggle(true)}${code}<p class="muted">${esc(status)}</p>${vaultError ? `<p class="field-error">${esc(L(VAULT_TEXT[vaultError]))}</p>` : ''}${msg}
     <div class="actions"><button type="button" class="btn" data-act="vault-sync">${esc(L(['Şimdi eşitle', 'Sync now']))}</button><button type="button" class="btn" data-act="vault-off">${esc(L(['Bu cihazda kapat', 'Turn off on this device']))}</button></div></section>`;
+}
+// Site storage after a reload: the keys kept in this browser. Version 1.8.0 kept the code itself; it is replaced by
+// the keys here and removed.
+async function loadVault() {
+  if (!deviceOn() || vault) return;
+  let keys = null;
+  let old = null;
+  try { old = normalizeCode(deviceStore.getItem(CODE_KEY)); } catch { old = null; }
+  if (old) {
+    keys = await vaultKeys(old);
+    try { await saveKeys(keys); deviceStore.removeItem(CODE_KEY); } catch { /* kept as it was */ }
+  } else {
+    try { keys = await loadKeys(); } catch { keys = null; }
+  }
+  if (!keys?.key || !/^[0-9a-f]{32}$/.test(String(keys.account)) || !/^[A-Za-z0-9_-]{43}$/.test(String(keys.auth)) || vault || !deviceOn()) return;
+  vaultGen += 1;
+  vault = connect(keys);
+  renderCasesButton();
+  await syncNow();
 }
 
 // Every change of the open case is saved on this device shortly after it happens, and at once when the page is left.
@@ -1931,8 +2027,5 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 render();
 {
   const c = deviceOn() ? caseToReopen(deviceStore) : null;
-  const opening = c ? openDeviceCase(c, { reopened: true }) : Promise.resolve();
-  let code = null;
-  try { code = deviceOn() ? normalizeCode(deviceStore.getItem(CODE_KEY)) : null; } catch { code = null; }
-  if (code) opening.then(() => startVault(code)).then((v) => { vault = v; return syncNow(); }).catch(() => { vaultError = 'offline'; });
+  (c ? openDeviceCase(c, { reopened: true }) : Promise.resolve()).then(loadVault).catch(() => { /* site storage stays off */ });
 }
