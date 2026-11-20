@@ -8,6 +8,7 @@
 // Copyright (C) 2026 Gökay Duman
 import { LABS, unitKey } from './labs.mjs';
 import { PRODUCT_LIMITS } from './engine.mjs';
+import { cleanCatalogConfig } from './formula-workspace.mjs';
 
 export const TOKEN_KEY = 'nc-staged.site.v1'; // this device's owner token (the site keeps only its SHA-256)
 export const PENDING_KEY = 'nc-staged.sitedel.v1'; // case codes whose copies are still to be deleted on the site
@@ -95,6 +96,8 @@ export function anonymize(data, engine, schema = new Map()) {
     if (DECIMAL.test(s)) (product[group] ??= {})[key] = s;
   }
   if (product.ons && ['mL', 'g'].includes(data?.product?.ons?.unit)) product.ons.unit = data.product.ons.unit;
+  const catalog=cleanCatalogConfig(data?.product?.catalog);
+  if (Object.keys(catalog).length) product.catalog=catalog;
   if (data?.product?.form === 'powder') product.form = 'powder';
   const followup = (Array.isArray(data?.followup) ? data.followup.slice(0, 31) : [])
     .map((r) => Object.fromEntries(['day', 'kcal', 'protein'].map((k) => [k, text(r?.[k])]).filter(([, s]) => DECIMAL.test(s))))

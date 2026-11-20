@@ -13,8 +13,8 @@ import { LAB_KEYS, readLab, labIndices, phosphateDrop, labFlags, sofa2, inverted
 const IDDSI_NAMES = { food: IDDSI_FOOD, drink: IDDSI_DRINK };
 
 export { B };
-export const ENGINE_VERSION = '1.10.0';
-export const RULES_DATE = '2026-11-07';
+export const ENGINE_VERSION = '1.11.0';
+export const RULES_DATE = '2026-11-20';
 export const INTENDED_USE = B('NutriClinic klinik kararı destekler, yerine geçmez. Her öneri hasta başında, girdileri ve kaynaklarıyla birlikte değerlendirilir.', 'NutriClinic supports clinical decisions and does not replace them. Every recommendation is reviewed at the bedside with its inputs and sources.');
 
 // ---------------------------------------------------------------------------------------------
@@ -97,6 +97,15 @@ export const FIELD_LIMITS = Object.freeze({
   uunProtein: { min: 0, max: 400 },
   propofolMlH: { min: 0, max: 100 },
   dextroseG: { min: 0, max: 1500 },
+  otherFluidsMlDay: { min: 0, max: 50000 },
+  oralFluidMlDay: { min: 0, max: 20000 },
+  ivFluidMlDay: { min: 0, max: 20000 },
+  pnFluidMlDay: { min: 0, max: 20000 },
+  flushFluidMlDay: { min: 0, max: 20000 },
+  otherFluidMlDay: { min: 0, max: 20000 },
+  fluidLimitMlDay: { min: 0, max: 50000 },
+  formulaVolumeLimitMlDay: { min: 0, max: 10000 },
+  feedingDays: { min: 1, max: 365, integer: 'strict' },
   lossMonths: { min: 0.5, max: 120 },
   ffmKg: { min: 10, max: 150 },
   gripKg: { min: 0, max: 100 },
@@ -158,6 +167,7 @@ export function normalize(raw = {}) {
     weightKg: num('weightKg'),
     icuDay: num('icuDay'),
     feeding: pick('feeding', ['none', 'ongoing']),
+    feedingDays: num('feedingDays'),
     swallow: pick('swallow', ['safe', 'modified', 'unsafe']),
     oralIntakePct: num('oralIntakePct'),
     gi: pick('gi', ['ok', 'contraindicated']),
@@ -168,6 +178,12 @@ export function normalize(raw = {}) {
     feedingMode: pick('feedingMode', ['continuous', 'intermittent']),
     kidney: pick('kidney', ['normal', 'aki', 'ihd', 'crrt']),
     fluidRestriction: flag('fluidRestriction'), diabetes: flag('diabetes'),
+    otherFluidsMlDay: num('otherFluidsMlDay'),
+    oralFluidMlDay: num('oralFluidMlDay'), ivFluidMlDay: num('ivFluidMlDay'),
+    pnFluidMlDay: num('pnFluidMlDay'), flushFluidMlDay: num('flushFluidMlDay'), otherFluidMlDay: num('otherFluidMlDay'),
+    fluidLimitMlDay: num('fluidLimitMlDay'), fluidIntakeReconciled: flag('fluidIntakeReconciled'),
+    formulaVolumeLimitMlDay: num('formulaVolumeLimitMlDay'),
+    severeMalnutritionConfirmed: flag('severeMalnutritionConfirmed'),
     bowel: pick('bowel', ['normal', 'diarrhea', 'constipation']),
     burnsTbsa: num('burnsTbsa'), trauma: flag('trauma'), pressureUlcer: flag('pressureUlcer'),
     stroke: flag('stroke'), pregnant: flag('pregnant'),
@@ -209,6 +225,12 @@ export function normalize(raw = {}) {
   p.vitD = p.labs.vitD;
   p.crp = p.labs.crp;
   p.product = normalizeProduct(raw.product, invalid);
+  const fluidParts = ['oralFluidMlDay','ivFluidMlDay','pnFluidMlDay','flushFluidMlDay','otherFluidMlDay'];
+  const enteredFluidParts = fluidParts.filter(key => p[key] !== null);
+  if (p.otherFluidsMlDay !== null && enteredFluidParts.length) {
+    const partSum = enteredFluidParts.reduce((sum,key) => sum+p[key],0);
+    if (partSum > p.otherFluidsMlDay+0.01 || (enteredFluidParts.length === fluidParts.length && Math.abs(partSum-p.otherFluidsMlDay)>0.01)) invalid.push('otherFluidsMlDay.totalMismatch');
+  }
   return { p, invalid };
 }
 
@@ -217,6 +239,9 @@ export const PRODUCT_LIMITS = Object.freeze({
   'en.kcalPerMl': 3,
   'en.proteinPer100': 20,
   'en.waterPer100': 100,
+  'en.waterUnknown': 1,
+  'en.dailyVolumeLimit': 10000,
+  'en.limitFirstDay': 1,
   'ons.serving': 1000,
   'ons.kcal': 1500,
   'ons.protein': 100,
@@ -231,6 +256,7 @@ export function checkProduct(path, value) {
   if (max >= 1000 && grouped(value)) return { code: 'grouping', min: 0, max };
   const x = toNumber(value);
   if (x === null) return { code: 'nan', min: 0, max };
+  if (path === 'en.waterUnknown') return x === 0 || x === 1 ? null : { code: 'range', value: x, min: 0, max: 1 };
   if (x <= 0 || x > max) return { code: 'range', value: x, min: 0, max, exclusiveMin: true };
   return null;
 }
@@ -244,9 +270,18 @@ function normalizeProduct(raw, invalid) {
     if (checkProduct(`${group}.${key}`, v)) { invalid.push(`product.${group}.${key}`); return null; }
     return toNumber(v);
   };
-  const en = { kcalPerMl: read('en', 'kcalPerMl'), proteinPer100: read('en', 'proteinPer100'), waterPer100: read('en', 'waterPer100') };
+  const waterUnknownValue = read('en', 'waterUnknown');
+  const en = { kcalPerMl: read('en', 'kcalPerMl'), proteinPer100: read('en', 'proteinPer100'), waterPer100: read('en', 'waterPer100'), waterUnknown: waterUnknownValue === 1 };
+  if (en.waterUnknown) en.waterPer100 = null;
+  en.dailyVolumeLimit = read('en', 'dailyVolumeLimit');
+  en.limitFirstDay = read('en', 'limitFirstDay') === 1;
+  // Total label energy must at least accommodate its declared protein energy (4kcal/g),
+  // allowing small printed-label rounding. Impossible filled labels are errors, not missing data.
+  const impossibleProteinEnergy = (protein, kcal) => protein !== null && kcal !== null && 4*protein > kcal+Math.max(1,kcal*0.05);
+  if (impossibleProteinEnergy(en.proteinPer100,en.kcalPerMl === null ? null : 100*en.kcalPerMl)) invalid.push('product.en.energyProteinConsistency');
   if (en.kcalPerMl && en.proteinPer100) out.en = en;
   const ons = { serving: read('ons', 'serving'), kcal: read('ons', 'kcal'), protein: read('ons', 'protein'), unit: raw.ons?.unit === 'g' ? 'g' : 'mL' };
+  if (impossibleProteinEnergy(ons.protein,ons.kcal)) invalid.push('product.ons.energyProteinConsistency');
   if (ons.serving && ons.kcal && ons.protein) out.ons = ons;
   const module = read('module', 'proteinPer100g');
   if (module) out.module = { proteinPer100g: module };
@@ -258,6 +293,7 @@ function normalizeProduct(raw, invalid) {
       proteinPer100g: read('powder', 'proteinPer100g') ?? d.proteinPer100g,
       kcalPerMl: read('powder', 'kcalPerMl') ?? d.kcalPerMl,
     };
+    if (impossibleProteinEnergy(out.powder.proteinPer100g,out.powder.kcalPer100g)) invalid.push('product.powder.energyProteinConsistency');
   }
   return out;
 }
@@ -315,7 +351,7 @@ export function bodyMetrics(p) {
 
 // ---------------------------------------------------------------------------------------------
 // Refeeding risk (nice-cg32 Box 1, 1.4.5, 1.4.8) and malnutrition (nice-cg32 1.3.1), tri-state.
-// "Severe" malnutrition for early PN (espen-icu-2023 R7) uses the Box 1 single criteria.
+// Box 1 identifies refeeding risk. It is not an independent severe-malnutrition diagnosis.
 export function refeedingRisk(p, m) {
   // The NICE weight-loss criteria cover the last 3–6 months: a loss over a longer period cannot be placed in it.
   const wl = p.lossMonths !== null && p.lossMonths > 6 ? null : p.weightLossPct;
@@ -331,8 +367,8 @@ export function refeedingRisk(p, m) {
   let level = highKnown ? 'high' : highPossible ? 'unknown' : 'low';
   if (level === 'high' && (lt(m.bmi, 14) === true || gt(days, 15) === true)) level = 'extreme';
   const malnourished = anyOf(bmiBelow(18.5), lossAbove(10), m.bmi !== null && wl !== null ? reliable(m.bmi < 20 && wl > 5) : null);
-  const severe = anyOf(bmiBelow(16), lossAbove(15), gt(days, 10), allOf(bmiBelow(18.5), lossAbove(10)));
-  return { level, reducedStart: gt(days, 5), malnourished, severe };
+  const severeRisk = anyOf(bmiBelow(16), lossAbove(15), gt(days, 10), allOf(bmiBelow(18.5), lossAbove(10)));
+  return { level, reducedStart: gt(days, 5), malnourished, severeRisk, severe: severeRisk, severeIsMalnutritionDiagnosis: false };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -343,7 +379,9 @@ export function nitrogenBalance(p) {
   if (kidneyFailureOf(p)) return { status: 'unknown', reason: 'kidney' };
   const losses = p.uun + 4;
   const nb = p.uunProtein / 6.25 - losses;
-  return { status: nb >= 0 ? 'balanced' : 'catabolic', nb, replacementProtein: losses * 6.25, kidneyUnknown: p.kidney === null, diarrhea: p.bowel === 'diarrhea' };
+  return { status: 'estimate', balance: nb < 0 ? 'negative' : 'nonnegative', nb,
+    estimated: true, raisesProteinTarget: false, kidneyUnknown: p.kidney === null, diarrhea: p.bowel === 'diarrhea',
+    guidance: B('Yaklaşık azot dengesi: toplama süresi/tamlığı, eşleşen protein alımı ve ek kayıplar sonucu etkiler. Kesin katabolik/anabolik tanı değildir; protein hedefi bu hesapla otomatik artırılmaz.', 'Approximate nitrogen balance: collection duration/completeness, matched protein intake and additional losses affect it. This is not a definitive catabolic/anabolic diagnosis; it does not automatically raise the protein target.') };
 }
 
 // Protein target in g/kg for an absolute ICU day (or the ward), before the day ramp.
@@ -366,14 +404,7 @@ function proteinPerKg(p, m, nb, day) {
     else if (p.kidney === 'crrt') { perKg = 1.5; range = [1.5, 1.7]; why.push('kidney-crrt'); }
     else { perKg = WARD_PROTEIN; range = [1.2, 1.5]; why.push('ward-base'); }
   }
-  // Catabolic escalation only with a measured negative balance and known normal kidneys.
-  if (nb.status === 'catabolic' && p.kidney === 'normal' && (!icu || day >= 5) && m.proteinWeight) {
-    const need = nb.replacementProtein / m.proteinWeight;
-    // Ceiling: 1.5 g/kg; 2.0 in major trauma (espen-icu-2023 trauma commentary 1.5–2); obese 2.0 g/kg ideal weight (R52 commentary).
-    const cap = icu ? (m.obese && m.ibw ? (2.0 * m.ibw) / m.proteinWeight : p.trauma === true ? 2.0 : 1.5) : 1.5;
-    const raised = Math.min(Math.max(need, perKg), Math.max(cap, perKg));
-    if (raised > perKg + 0.001) { perKg = raised; why.push(icu && m.obese ? 'catabolic-obese' : 'catabolic'); }
-  }
+  // Approximate nitrogen balance is descriptive; no automatic protein escalation follows it.
   return { perKg, range, why };
 }
 
@@ -392,7 +423,7 @@ function decideRoute(p, rf, severeMalnutrition) {
     return r;
   }
   // Gut unusable (espen-icu-2023 R38 delay list; R6 PN within 3–7 days; R7 early progressive PN if severely
-  // malnourished: NICE Box 1 single criteria or GLIM stage 2).
+  // malnourished: documented clinical severe malnutrition or GLIM stage2, not refeeding risk alone).
   if (gutBlocked) {
     r.reason = p.ischemia ? 'ischemia' : p.acs ? 'acs' : p.fistula ? 'fistula' : 'gut';
     r.kind = !icu || severeMalnutrition || (p.icuDay ?? 1) >= 3 ? 'pn' : 'pn-later';
@@ -459,7 +490,7 @@ function dayTargets(p, m, rf, nb, full, route) {
     const abs = icu ? firstAbs + k : null;
     // Unknown feeding status = not started (cautious). PN that has not started begins at its own day 1.
     const ongoing = p.feeding === 'ongoing' && !laterStart && !pnAfterShock;
-    const idx = ongoing ? (icu ? abs : 5 + k) : k + 1;
+    const idx = ongoing ? (p.feedingDays ?? 1) + k : k + 1;
     const cap = phaseCap(abs);
     let eFrac = icu ? Math.min(rampAt(RAMP_ENERGY, idx), cap) : 1;
     const cautious = { rf: false, lowDose: false };
@@ -490,7 +521,8 @@ function dayTargets(p, m, rf, nb, full, route) {
 }
 
 // Formula class: the most protein-dense class that does not exceed the needed density by more than
-// 10%; the rest of the protein comes from a module (espen-kidney-2024 R25: choose by the calorie/protein ratio).
+// 10% (espen-kidney-2024 R25: choose by calorie/protein ratio). A remaining numerical gap prompts
+// review of a complete formula; it does not prescribe a protein module.
 function chooseEnClass(proteinG, kcal, fluidRestricted) {
   if (!kcal || kcal <= 0) return 'en-standard';
   const need = (proteinG / kcal) * 100;
@@ -506,7 +538,7 @@ function enComposition(cls, product) {
   }
   if (product.en) {
     const d = PRODUCT_DEFAULTS[cls] ?? PRODUCT_DEFAULTS['en-standard'];
-    return { kcalPerMl: product.en.kcalPerMl, proteinPer100: product.en.proteinPer100, waterPer100: product.en.waterPer100 ?? d.waterPer100, fromLabel: true };
+    return { kcalPerMl: product.en.kcalPerMl, proteinPer100: product.en.proteinPer100, waterPer100: product.en.waterUnknown ? null : product.en.waterPer100 ?? d.waterPer100, dailyVolumeLimit:product.en.dailyVolumeLimit, limitFirstDay:product.en.limitFirstDay, fromLabel: true };
   }
   const d = PRODUCT_DEFAULTS[cls];
   return { kcalPerMl: d.kcalPerMl, proteinPer100: d.proteinPer100, waterPer100: d.waterPer100, fromLabel: false };
@@ -518,33 +550,127 @@ function feedsFor(volume) {
   return { n, ml: round(volume / n, 10) };
 }
 
+function proteinGapReview(gap, target, energyCeiling) {
+  return {
+    strategy: gap === null ? 'confirm-intake-first' : gap > 0 ? 'review-complete-formula-first' : 'target-met',
+    proteinGap: gap === null ? null : round(gap, 0.1), proteinTarget: target,
+    energyCeiling, automaticModule: false, keepPhaseAndKidneyTarget: true,
+    moduleOption: 'only-after-separate-clinician-choice',
+    guidance: B(
+      'Önce uygun protein/enerji oranlı tam mamanın etiketini, enerji-sıvı sınırını, toleransı ve böbrek durumunu değerlendirin. Hedefi veya hacmi sırf açığı kapatmak için artırmayın. Modüler protein yalnız ayrıca klinisyen seçimiyle; otomatik toz dozu yoktur.',
+      'First review a complete formula with an appropriate protein-to-energy ratio, its label, calorie/fluid limits, tolerance and kidney status. Do not raise the target or volume merely to close the gap. Modular protein requires a separate clinician choice; no powder dose is automatic.'
+    ),
+  };
+}
+
 function enRow(row, nn, cls, comp, product, mode, otherProtein = 0, otherKcal = 0) {
   const formulaKcalTarget = Math.max(0, row.kcal - nn.total - otherKcal);
-  const exactMl = formulaKcalTarget / comp.kcalPerMl;
+  const requestedMl = formulaKcalTarget / comp.kcalPerMl;
+  const exactMl = Math.min(requestedMl, comp.limitFirstDay && row.k > 0 ? Infinity : comp.dailyVolumeLimit ?? Infinity, comp.patientVolumeLimit ?? Infinity);
   let rate = null;
   let feeds = null;
   let volume;
   if (mode === 'intermittent') {
     feeds = feedsFor(exactMl);
-    if (feeds && row.cautious) feeds.ml = Math.floor(exactMl / feeds.n / 10) * 10; // never above a cautious ceiling
+    if (feeds) feeds.ml = Math.floor(exactMl / feeds.n / 10) * 10; // preserve the daily ceiling
     volume = feeds ? feeds.n * feeds.ml : 0;
   } else {
-    rate = Math.max(0, row.cautious ? Math.floor(exactMl / 24) : Math.round(exactMl / 24));
+    rate = Math.max(0, Math.floor(exactMl / 24));
     volume = rate * 24;
   }
   const kcal = volume * comp.kcalPerMl;
   const protein = (volume * comp.proteinPer100) / 100;
   const gap = Math.max(0, row.protein - protein - otherProtein);
-  const modulePct = product.module?.proteinPer100g ?? PRODUCT_DEFAULTS['protein-module'].proteinPer100g;
-  const showModule = gap >= 5 && gap >= 0.05 * row.protein;
   return {
     cls, kcalTarget: row.kcal, proteinTarget: row.protein, formulaKcal: kcal, formulaProtein: protein,
+    requestedVolume:requestedMl, volumeLimited:exactMl < requestedMl,
+    formulaKcalCeiling: formulaKcalTarget, formulaProteinCeiling: Math.max(0, row.protein - otherProtein),
     rate: mode === 'intermittent' ? null : rate, volume, feeds,
+    targetRate: mode === 'intermittent' ? null : rate,
+    rateMeaning: 'phase-target-not-start', volumeMeaning: 'if-target-maintained-for-scheduled-day',
     water: comp.waterPer100 ? (volume * comp.waterPer100) / 100 : null,
     powderGrams: comp.powder ? round(volume * comp.gramsPerMl) : null,
-    moduleProtein: showModule ? round(gap) : 0, moduleGrams: showModule ? round(gap / (modulePct / 100)) : 0,
+    proteinGap: round(gap, 0.1), proteinReview: proteinGapReview(gap, row.protein, row.kcal),
+    // Retained for older report consumers; zero means no automatic modular prescription.
+    moduleProtein: 0, moduleGrams: 0,
     proteinOver: protein + otherProtein > row.protein * 1.2 ? protein + otherProtein - row.protein : 0,
   };
+}
+
+// The arithmetic rate in enRow is the phase target sustained over a full feeding day. It is not
+// a starting order. A 12-hour review timetable is a LOCAL illustrative protocol, not a universal
+// ESPEN/NICE increment. Existing ICU/refeeding daily caps remain authoritative.
+export function enteralInitiation(p, rf, route, plan) {
+  const today = plan.today;
+  const model = {
+    status: 'review', reason: null, targetRate: today?.rate ?? null,
+    targetVolumePerDay: today?.volume ?? null,
+    reviewEveryHours: 12, automaticAdvancement: false, requiresClinicianReview: true,
+    requiresManualConfirmation: false, recommendedStartRate: null,
+    feedingStatusAssumed: false, assumptions: [],
+    criteria: { feedingStatus: p.feeding, route: route.kind, mode: route.mode, shock: p.shock,
+      gut: p.gi, refeedingLevel: rf.level, prolongedLowIntake: rf.reducedStart,
+      lowElectrolytes: p.lowElectrolytes, refeedingHypophosphataemia: p.hypoPhosphate },
+    protocol: 'local-example-not-guideline-prescription', steps: [], first24Hours: null,
+    dailyCeilings: plan.rows.map((row) => ({ day: row.feedDay, icuDay: row.icuDay, kcal: row.kcalTarget, protein: row.proteinTarget, targetRate: row.rate, targetVolume: row.volume })),
+    checks: ['hemodynamic-perfusion-stability', 'gastrointestinal-tolerance-and-aspiration', 'potassium-phosphate-magnesium', 'all-calorie-and-fluid-sources', 'illness-phase-and-kidney-status'],
+    guidance: null,
+  };
+  if (route.kind === 'delay') {
+    model.status = 'hold'; model.reason = route.reason;
+    model.guidance = B('Beslenme ertelendi: başlangıç veya otomatik artış yok. Erteleme nedeni düzeldikten sonra klinisyen düşük dozla yeniden planlar.', 'Feeding is delayed: no start or automatic increase. After the delaying condition resolves, the clinician reassesses a low-dose restart.');
+  } else if (rf.level !== 'low' || rf.reducedStart === true || p.hypoPhosphate === true || p.lowElectrolytes === true || p.lowLabKeys?.length) {
+    model.status = 'risk-review'; model.reason = p.hypoPhosphate ? 'refeeding-hypophosphataemia' : p.lowElectrolytes || p.lowLabKeys?.length ? 'low-electrolytes' : rf.level === 'low' ? 'prolonged-low-intake' : `refeeding-${rf.level}`;
+    model.guidance = B('Standart 12 saatlik artış şeması uygulanmaz. K, P, Mg ve klinik durumu değerlendirin; aşağıdaki mevcut NICE/ESPEN günlük sınırları içinde kişisel plan yapın. Ciddi elektrolit düşüklüğünde başlama/artış düzeltmeye kadar ertelenir; hedefe 48–72 saatte ulaşmak zorunlu değildir.', 'Do not apply the standard 12-hour increase example. Assess K, P, Mg and the clinical state; individualize within the existing NICE/ESPEN daily ceilings below. Delay starting/increasing with severely low electrolytes until corrected; reaching target in 48–72 hours is not mandatory.');
+  } else if (p.feeding === 'ongoing') {
+    model.status = 'continue'; model.reason = 'already-feeding';
+    model.guidance = B('Beslenme sürüyor: yalnız bu hesap için yeniden düşük hızdan başlamayın. Gerçekte tolere edilen hız ve verilmiş miktarı doğrulayın; değişiklikleri klinisyen planlar.', 'Feeding is already ongoing: do not restart at a low rate solely because of this calculation. Confirm the actual tolerated rate and delivered amount; the clinician plans any change.');
+  } else if (p.shock !== 'none' || p.gi !== 'ok') {
+    model.reason = 'stability-or-gut-review';
+    model.guidance = B('Yeni başlangıç için dolaşım/perfüzyon ve sindirim kanalı uygunluğu doğrulanmalı. Kontrollü şokta dahi düşük doz ve yakın izlemle kişisel plan gerekir; otomatik 12 saatlik artış yoktur.', 'Confirm circulatory/perfusion stability and gastrointestinal suitability before starting. Even controlled shock needs an individualized low-dose plan and close monitoring; there is no automatic 12-hour increase.');
+  } else if (route.mode === 'intermittent') {
+    model.reason = 'intermittent-needs-individual-order';
+    model.guidance = B('Aralıklı beslenmede hedef öğün hacmini ilk öğün olarak vermeyin. Başlangıç öğün hacmi, sıklık ve artış klinisyen tarafından toleransa göre ayrıca belirlenir; sürekli pompa şeması uygulanmaz.', 'Do not give the target intermittent feed volume as the first feed. The clinician separately defines starting volume, frequency and advancement by tolerance; the continuous-pump example does not apply.');
+  } else if (!today || !Number.isFinite(today.rate) || today.rate <= 0) {
+    model.reason = 'no-formula-allocation';
+    model.guidance = B('Bu fazda mama için pozitif enerji payı yok: diğer enerji kaynaklarını ve hedefi klinisyen gözden geçirir; başlangıç/artış hesaplanmadı.', 'No positive formula energy allocation exists for this phase: the clinician reviews other calories and the target; no start or increase is calculated.');
+  } else {
+    model.status = 'example'; model.reason = 'new-continuous-low-risk'; model.targetWindowHours = [48, 72];
+    const fractions = [0.25, 0.40, 0.55, 0.70, 0.85, 1.00];
+    model.steps = fractions.map((fraction, i) => {
+      const fromHour = i * 12;
+      const phase = plan.rows[Math.min(Math.floor(fromHour / 24), plan.rows.length - 1)];
+      // A rounded full-day target rate can lie slightly above its arithmetic calorie/protein
+      // ceiling. The initiation example is always rounded down within both ceilings.
+      const safeRate = Math.max(0, Math.min(phase.rate,
+        Math.floor(phase.formulaKcalCeiling / phase.comp.kcalPerMl / 24),
+        Math.floor(phase.formulaProteinCeiling / (phase.comp.proteinPer100 / 100) / 24)));
+      const rate = Math.floor(safeRate * fraction);
+      const volume = rate * 12;
+      return { fromHour, toHour: fromHour + 12, rate, phaseTargetRate: phase.rate,
+        fractionOfPhaseTarget: fraction, volume, formulaKcal: volume * phase.comp.kcalPerMl,
+        formulaProtein: volume * phase.comp.proteinPer100 / 100, requiresReview: true };
+    });
+    model.first24Hours = model.steps.slice(0, 2).reduce((sum, step) => ({ volume: sum.volume + step.volume, formulaKcal: sum.formulaKcal + step.formulaKcal, formulaProtein: sum.formulaProtein + step.formulaProtein }), { volume: 0, formulaKcal: 0, formulaProtein: 0 });
+    model.recommendedStartRate = model.steps[0].rate;
+    model.guidance = B('Önerilen kademeli başlangıç taslağı (yerel protokol örneği): düşük hızdan başlayın; her 12 saatte tolerans, dolaşım/perfüzyon ve K/P/Mg uygunsa bir sonraki adımı değerlendirin. Otomatik artış değildir. Faz sınırları korunarak yaklaşık 48–72 saat içinde hedefe yaklaşılabilir; servis, YBÜ ve hastanın mevcut alımına göre daha kısa/uzun plan seçilebilir. İlk gün verilen miktar hedef hız × 24 saat değildir.', 'Proposed progressive starting plan (local example): begin below target; at each 12-hour review consider the next step only if tolerance, circulation/perfusion and K/P/Mg permit. No increase is automatic. Approach the target over about 48–72 hours within phase ceilings; ward, ICU and prior intake may need a shorter or longer plan. First-day delivery is not target rate × 24 hours.');
+    if (p.feeding === null) {
+      model.feedingStatusAssumed = true;
+      model.assumptions.push({ field: 'feeding', used: 'new-start-proposal', text: B(
+        'Beslenme durumu girilmedi: mevcut temkinli ilk basamak varsayımıyla yeni başlangıç taslağı gösterildi. Beslenme zaten sürüyor ve tolere ediliyorsa yeniden başlatmayın; süren beslenme seçimini kullanın.',
+        'Feeding status was not entered: the existing cautious first-step assumption is used for a new-start proposal. If feeding is already running and tolerated, do not restart; select ongoing feeding.'
+      ) });
+    }
+  }
+  model.statusText = {
+    example: B('Önerilen kademeli başlangıç planı', 'Proposed progressive starting plan'),
+    'risk-review': B('Risk nedeniyle bireysel plan gerekir', 'Risk requires an individualized plan'),
+    hold: B('Başlangıç/artış ertelendi', 'Start/increase is held'),
+    continue: B('Süren beslenmeyi değerlendirin', 'Review ongoing feeding'),
+    review: B('Başlamadan önce doğrulayın', 'Confirm before starting'),
+  }[model.status];
+  model.reasonText = model.guidance;
+  return model;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -588,8 +714,8 @@ function supplements(p, m, rf, route, plan, scales) {
       list.push({ id: 'electrolytes', name: B('Potasyum, fosfat, magnezyum', 'Potassium, phosphate, magnesium'), dose: B('Böbrek işlevi bozuk ya da bilinmiyor: otomatik doz verilmez; ölçülen düzeylere göre yerine koyun', 'Kidney function impaired or unknown: no automatic dose; replace according to measured levels'), why: [B('Yüksek refeeding riski', 'High refeeding risk')], src: ['nice-cg32', 'espen-icu-2023'] });
     } else {
       list.push({ id: 'electrolytes', name: B('Potasyum, fosfat, magnezyum', 'Potassium, phosphate, magnesium'),
-        dose: B((f) => `Potasyum ${f(2 * w)}–${f(4 * w)} mmol/gün; fosfat ${f(0.3 * w)}–${f(0.6 * w)} mmol/gün; magnezyum ${f(0.2 * w)} mmol/gün IV${noOral ? '' : ` (ağızdan ${f(0.4 * w)} mmol/gün)`}. Beslenme öncesi düzeyler yüksekse verilmez; düşük düzeyi beslenmeden önce düzeltmek gerekmez.`,
-          (f) => `Potassium ${f(2 * w)}–${f(4 * w)} mmol/day; phosphate ${f(0.3 * w)}–${f(0.6 * w)} mmol/day; magnesium ${f(0.2 * w)} mmol/day IV${noOral ? '' : ` (${f(0.4 * w)} mmol/day orally)`}. Not given if pre-feeding levels are high; low levels need not be corrected before feeding.`),
+        dose: B((f) => `Potasyum ${f(2 * w)}–${f(4 * w)} mmol/gün; fosfat ${f(0.3 * w)}–${f(0.6 * w)} mmol/gün; magnezyum ${f(0.2 * w)} mmol/gün IV${noOral ? '' : ` (ağızdan ${f(0.4 * w)} mmol/gün)`}. Beslenme öncesi düzeyler yüksekse verilmez. Bunlar NICE günlük gereksinim aralıklarıdır, tek infüzyon dozu değildir. Ciddi/simptomatik düşüklükte ASPEN yaklaşımı başlangıç/artırmayı düzeltmeye kadar erteler; böbrek ve seri ölçümlerle bireyselleştirilir.`,
+          (f) => `Potassium ${f(2 * w)}–${f(4 * w)} mmol/day; phosphate ${f(0.3 * w)}–${f(0.6 * w)} mmol/day; magnesium ${f(0.2 * w)} mmol/day IV${noOral ? '' : ` (${f(0.4 * w)} mmol/day orally)`}. Do not give if pre-feeding levels are high. These are NICE daily requirement ranges, not single infusion doses. For severe/symptomatic deficits ASPEN delays starting/increasing until corrected; individualize with renal function and serial measurements.`),
         why: [B('Yüksek refeeding riski', 'High refeeding risk')], src: ['nice-cg32'] });
     }
   }
@@ -673,7 +799,7 @@ function missingData(p, m, rf, nb, route, scales) {
   if (route.kind === 'oral' && p.swallow === 'modified' && p.iddsiFluid === null) add('iddsiFluid', 2, 'medium', B('IDDSI sıvı düzeyi girilmedi: kıvamlı (puding ya da koyulaştırılmış) ONS seçildi. Yutma değerlendirmesindeki düzeyi girerseniz ONS türünü ve kıvamını kesinleştiririm.', 'IDDSI drink level not entered: a texture-modified (pudding or thickened) ONS is chosen. Enter the level from the swallowing assessment to confirm the ONS type and thickness.'));
   if (p.stroke === true && route.kind === 'oral' && p.swallowAssessment === null) add('swallowAssessment', 2, 'high', B('İnme: ağızdan beslenmeden önce resmî yutma taraması yapılmalıdır (ESPEN 2018 öneri 52). Yapılan yutma değerlendirmesini girin.', 'Stroke: a formal dysphagia screen is needed before oral intake (ESPEN 2018 recommendation 52). Enter the swallowing assessment that was done.'));
   if (icu && p.measuredEE === null) add('measuredEE', 6, 'medium', B('İndirekt kalorimetri yok: enerji 25 kcal/kg tahminiyle hesaplandı. Ventilatördeki hastada kalorimetri önerilir.', 'No indirect calorimetry: energy uses the 25 kcal/kg estimate. Calorimetry is recommended in ventilated patients.'));
-  if (nb.status === 'unknown') add('uun', 6, 'medium', nb.reason === 'kidney' ? B('Böbrek yetmezliğinde idrar üre azotu azot kaybını yansıtmaz: katabolik durum ölçülemedi; rutin protein hedefi kullanıldı.', 'In kidney failure urinary urea nitrogen does not reflect nitrogen loss: catabolic state not measured; routine protein target used.') : B('24 saatlik idrar üre azotu ve o günkü protein alımı yok: anabolik/katabolik durum belirlenemedi; rutin protein hedefi kullanıldı.', '24-h urine urea nitrogen and that day’s protein intake missing: anabolic/catabolic state undetermined; routine protein target used.'));
+  if (nb.status === 'unknown') add('uun', 6, 'medium', nb.reason === 'kidney' ? B('Böbrek yetmezliğinde idrar üre azotu azot kaybını yansıtmaz: yaklaşık azot dengesi yorumlanmadı; klinik protein hedefi korundu.', 'In kidney failure urinary urea nitrogen does not reflect nitrogen loss: approximate nitrogen balance is not interpreted; the clinical protein target is retained.') : B('24 saatlik idrar üre azotu ve o günkü protein alımı yok: yaklaşık azot dengesi hesaplanmadı; klinik protein hedefi korundu.', '24-h urine urea nitrogen and that day’s protein intake missing: approximate nitrogen balance was not calculated; the clinical protein target is retained.'));
   if (icu && p.propofolMlH === null) add('propofolMlH', 6, 'medium', B('Propofol hızı girilmedi: beslenme dışı kalori sıfır kabul edildi (propofol 1,1 kcal/mL); propofol alıyorsa fazla beslenme olur.', 'Propofol rate not entered: non-nutritional calories assumed zero (propofol 1.1 kcal/mL); if propofol runs, this overfeeds.'));
   if (icu && p.dextroseG === null) add('dextroseG', 6, 'medium', B('IV dekstroz girilmedi: sıfır kabul edildi.', 'IV dextrose not entered: assumed zero.'));
   if (p.vitD === null && ((icu && (p.icuDay ?? 1) >= 7) || rf.malnourished === true || scales.malnutrition || (p.age ?? 0) >= 65)) add('vitD', 7, 'low', B('25(OH)D ölçülmedi: risk taşıyan hastada D vitamini durumu belirlenebilir.', '25(OH)D not measured: vitamin D status can be checked in patients at risk.'));
@@ -703,7 +829,7 @@ function clinicalNotes(p, m, route, plan, scales) {
   const icu = p.setting === 'icu';
   const w = m.energyWeight;
   if (route.kind === 'delay' && route.reason === 'grv' && w) {
-    notes.push({ text: B((f) => `Mide aspiratı >500 mL/6 sa: karında akut bir sorun yoksa prokinetik başlayın. Birinci seçenek IV eritromisin ${f(3 * w)}–${f(7 * w)} mg/gün (3–7 mg/kg/gün); alternatif IV metoklopramid 10 mg × 3/gün ya da ikisi birlikte. Düzelmezse postpilorik tüp.`, (f) => `Gastric aspirate >500 mL/6 h: if the abdomen shows no acute problem, start a prokinetic. First choice IV erythromycin ${f(3 * w)}–${f(7 * w)} mg/day (3–7 mg/kg/day); alternative IV metoclopramide 10 mg three times a day, or both. If not resolved, a post-pyloric tube.`), src: ['espen-icu-2023'] });
+    notes.push({ text: B('Mide aspiratı >500 mL/6 saat: enteral beslenme ertelenir; akut karın/obstrüksiyon dışlandıysa ilk seçenek eritromisin, alternatif metoklopramid değerlendirilir. Eritromisinde QT/etkileşim, metoklopramidde böbrek işlevi, Parkinson/ekstrapiramidal etkiler ve süre kontrol edilir. Böbrek bozukluğu ya da böbrek işlevi bilinmiyorsa standart tekrarlı metoklopramid dozu önerilmez; klirens ve güncel ürün bilgisine göre azaltma gerekir. Kombinasyon otomatik önerilmez; düzelmezse postpilorik tüp seçeneği görünür kalır.', 'Gastric aspirate >500 mL/6 h: delay enteral feeding. After excluding an acute abdomen/obstruction, consider erythromycin first or metoclopramide as an alternative. Check QT/interactions for erythromycin and renal function, Parkinson/extrapyramidal effects and duration for metoclopramide. With renal impairment or unknown renal function, do not use a standard repeated metoclopramide dose; reduction depends on clearance and the current product label. Combination treatment is not automatic; post-pyloric access remains an alternative if unresolved.'), src: ['espen-icu-2023', 'metoclopramide-label-2026'] });
   }
   if (route.kind === 'delay' && route.reason === 'shock') notes.push({ text: route.gutBlocked
     ? B('Kontrolsüz şokta beslenme başlatılmaz. Sindirim kanalı da kullanılamadığı için şok kontrol altına alınınca enteral değil parenteral beslenme planlanır (yoğun bakımda 3–7. günler arasında).', 'No feeding is started in uncontrolled shock. Because the gut is also unusable, once shock is controlled the plan is parenteral, not enteral (between ICU days 3 and 7).')
@@ -786,12 +912,21 @@ function scaleNotes(p, route, scales) {
 
 // Ward tube feeding: total fluid 30–35 mL/kg/day (nice-cg32 1.4.2) unless restricted.
 function wardFluid(p, m, today) {
-  if (p.setting !== 'ward' || p.fluidRestriction === true || kidneyFailureOf(p) || p.kidney === null || !today?.water) return null;
+  if (p.setting !== 'ward' || !today) return null;
   const w = m.energyWeight;
   if (!w) return null;
-  const min = 30 * w;
-  const max = 35 * w;
-  return { min, max, formulaWater: today.water, extraMin: Math.max(0, min - today.water), extraMax: Math.max(0, max - today.water) };
+  const parts = ['oralFluidMlDay','ivFluidMlDay','pnFluidMlDay','flushFluidMlDay','otherFluidMlDay'];
+  const allPartsKnown = parts.every(k => p[k] !== null);
+  const other = p.otherFluidsMlDay ?? (allPartsKnown ? parts.reduce((n,k) => n+p[k],0) : null);
+  const knownRestriction = p.fluidRestriction === false || p.fluidLimitMlDay !== null;
+  const reconciled = other !== null && knownRestriction && (p.kidney === 'normal' || p.fluidLimitMlDay !== null) && today.water !== null;
+  const min = p.fluidLimitMlDay !== null ? p.fluidLimitMlDay : 30*w;
+  const max = p.fluidLimitMlDay !== null ? p.fluidLimitMlDay : 35*w;
+  return { min, max, generalReference: p.fluidLimitMlDay === null, formulaWater: today.water,
+    otherFluids:other, restrictionKnown:knownRestriction, reconciled,
+    extraMin:reconciled ? Math.max(0,min-today.water-other) : null,
+    extraMax:reconciled ? Math.max(0,max-today.water-other) : null,
+    missingReason:reconciled ? null : today.water === null ? 'formula-water-unknown' : other === null ? 'other-fluid-sources-unknown' : !knownRestriction ? 'restriction-unknown' : 'kidney-fluid-target-required' };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -875,8 +1010,19 @@ export function recommend(raw = {}) {
   }
   labSources(result.labs).forEach((id) => src(id));
   const rf = refeedingRisk(p, m);
+  // Numeric red flags are triage thresholds from adult NHS/Queensland guidance,
+  // not individual IV replacement doses or a complete diagnosis of refeeding.
+  const severeElectrolytes = labs.phosphate !== null && labs.phosphate < 0.3
+    || labs.potassium !== null && labs.potassium < 2.5
+    || labs.magnesium !== null && labs.magnesium < 0.4;
   const nb = nitrogenBalance(p);
-  const route = decideRoute(p, rf, rf.severe === true || scales.glim.severe);
+  const route = decideRoute(p, rf, p.severeMalnutritionConfirmed === true || scales.glim.severe);
+  if (severeElectrolytes && ['en','oral','pn'].includes(route.kind)) {
+    route.kind = 'delay'; route.reason = 'electrolytes';
+    route.gutBlocked = p.gi === 'contraindicated' || p.ischemia === true || p.acs === true || p.fistula === true;
+    result.warnings.push(B('Ciddi elektrolit alarmı: P <0,3, K <2,5 veya Mg <0,4 mmol/L. Başlangıç/artış ertelenir; acil klinik değerlendirme, replasman ve seri izlem gerekir. Aşağıdaki miktarlar düzeltme sonrası yeniden değerlendirme içindir. NICE ve ASPEN yaklaşım farkı kaynaklarda belirtilir.', 'Severe electrolyte red flag: P <0.3, K <2.5 or Mg <0.4 mmol/L. Defer starting/increasing, obtain urgent clinical assessment, replacement and serial monitoring. Amounts below are for reassessment after correction. The NICE/ASPEN distinction is stated in the sources.'));
+    src('aspen-refeeding-2020','electrolyte-red-flags');
+  }
   const full = fullEnergy(p, m);
   result.metrics = m; result.refeeding = rf; result.nitrogen = nb; result.route = route; result.fullEnergy = full;
   src(icu ? 'espen-icu-2023' : 'espen-polymorbid-2024');
@@ -945,12 +1091,13 @@ export function recommend(raw = {}) {
     } else {
       const totalProtein = intake === null ? null : intakeProtein + servings * ons.protein;
       const gap = totalProtein === null ? 0 : Math.max(0, row.protein - totalProtein);
-      const modulePct = product.module?.proteinPer100g ?? PRODUCT_DEFAULTS['protein-module'].proteinPer100g;
       plan.oral = {
         cls, ons, servings, intakePct: intake, intakeKcal, intakeProtein,
         onsKcal: servings * ons.kcal, onsProtein: servings * ons.protein,
         totalKcal: intake === null ? null : intakeKcal + servings * ons.kcal + nn.total,
-        totalProtein, moduleProtein: gap >= 5 && !cautious ? round(gap) : 0, moduleGrams: gap >= 5 && !cautious ? round(gap / (modulePct / 100)) : 0,
+        totalProtein, proteinGap: totalProtein === null ? null : round(gap, 0.1),
+        proteinReview: proteinGapReview(totalProtein === null ? null : gap, row.protein, row.kcal),
+        moduleProtein: 0, moduleGrams: 0,
         kcalTarget: row.kcal, proteinTarget: row.protein, share,
         fiber: p.bowel === 'constipation', capped: cautious,
         noRisk, nrsScore: scales.nrs.score, iddsi: { ...scales.iddsi },
@@ -975,6 +1122,11 @@ export function recommend(raw = {}) {
       const otherProtein = Math.min(row.protein, row.proteinPerKgFull * m.proteinWeight * oralShare);
       const cls = product.form === 'powder' ? 'en-powder' : product.en ? 'en-label' : chooseEnClass(row.protein - otherProtein, Math.max(0, row.kcal - nn.total - otherKcal), p.fluidRestriction === true);
       const comp = enComposition(cls, product);
+      const limits=[comp.dailyVolumeLimit,p.formulaVolumeLimitMlDay,
+        p.fluidLimitMlDay===null?null:Math.max(0,p.fluidLimitMlDay-(p.otherFluidsMlDay??0))].filter(v=>v!=null);
+      if (limits.length) comp.dailyVolumeLimit=Math.min(...limits);
+      const patientLimits=[p.formulaVolumeLimitMlDay,p.fluidLimitMlDay===null?null:Math.max(0,p.fluidLimitMlDay-(p.otherFluidsMlDay??0))].filter(v=>v!=null);
+      if (patientLimits.length) comp.patientVolumeLimit=Math.min(...patientLimits);
       plan.rows.push({ ...row, ...enRow(row, nn, cls, comp, product, mode, otherProtein, otherKcal), comp });
     }
     if (route.kind === 'delay') {
@@ -995,6 +1147,7 @@ export function recommend(raw = {}) {
     if (later) result.product.changeFrom = { day: icu ? later.icuDay : later.feedDay, cls: later.cls, label: PRODUCT_LABELS[later.cls] };
     if (plan.today && plan.today.proteinOver > 0) result.warnings.push(B((f) => `Bugün mamadan gelen protein hedefi ${f(plan.today.proteinOver)} g aşıyor: daha düşük proteinli bir ürün seçin ya da kullandığınız ürünün etiketini girin.`, (f) => `Today the formula exceeds the protein target by ${f(plan.today.proteinOver)} g: choose a lower-protein product or enter the label of the product you use.`));
     if (plan.today && nn.total > plan.today.kcalTarget) result.warnings.push(B((f) => `Propofol ve dekstroz (${f(nn.total)} kcal) bugünkü enerji hedefini tek başına aşıyor: mama verilmez; sedasyonu ve dekstrozu gözden geçirin.`, (f) => `Propofol and dextrose (${f(nn.total)} kcal) alone exceed today's energy target: no formula is given; review sedation and dextrose.`));
+    if (plan.today?.volumeLimited) result.warnings.push(B('Mama miktarı girilen hacim/sıvı bütçesinde tutuldu; bu nedenle enerji/protein hedefi karşılanmış sayılmaz. Diğer sıvı kaynakları eksikse bütçe koşulludur; tamamlanınca yeniden hesaplanır.', 'Formula amount was kept within the entered volume/fluid budget; this does not imply that energy/protein goals were met. If other fluid sources are missing the budget is conditional and is recalculated when completed.'));
     if (fiber) src('espen-hen-2022');
     if (fiber && !icu) src('espen-geriatrics-2022');
   }
@@ -1002,13 +1155,19 @@ export function recommend(raw = {}) {
   if (route.kind === 'pn' || route.kind === 'pn-later' || pnAfterShock) {
     plan.rows = rows.map((row) => {
       const kcal = Math.max(0, row.kcal - nn.total);
-      return { ...row, pnKcal: kcal, aminoAcids: row.protein, nonProteinKcal: Math.max(0, kcal - 4 * row.protein),
+      // A gram of amino acids contributes 4kcal to the SAME PN energy budget.
+      // This is a reconciled arithmetic ceiling, not a stand-alone bag prescription.
+      const aminoAcids = Math.min(row.protein, kcal / 4);
+      return { ...row, pnKcal: kcal, aminoAcids, aminoAcidsTarget: row.protein, aminoAcidsKcal: 4 * aminoAcids,
+        proteinLimitedByEnergy: aminoAcids < row.protein, compositionNeedsReview: aminoAcids < row.protein,
+        nonProteinKcal: Math.max(0, kcal - 4 * aminoAcids),
         glucoseMaxG: Math.max(0, GLUCOSE_MAX_G_PER_KG_DAY * m.energyWeight - (p.dextroseG ?? 0)),
         lipidMaxG: Math.max(0, LIPID_MAX_G_PER_KG_DAY * m.energyWeight - nn.propofolLipidG) };
     });
     plan.today = route.kind === 'pn' ? plan.rows[0] : null;
     plan.pnAfterShock = pnAfterShock;
     plan.lipidLow = plan.rows[0].lipidMaxG < 0.5 * m.energyWeight;
+    if (plan.rows[0].proteinLimitedByEnergy) result.warnings.push(B('Diğer kaloriler çıkarılınca PN enerji bütçesi protein hedefini bile karşılamıyor. Gösterilen amino asit miktarı enerjiyle sınırlıdır; dengeli bir PN torbası reçetesi değildir. Önce propofol/dekstroz ve toplam hedefi gözden geçirin.', 'After other calories, the PN energy budget cannot accommodate the protein target. The shown amino-acid amount is limited by energy; it is not a balanced PN bag prescription. First reassess propofol/dextrose and the total target.'));
     result.product = { cls: 'pn', label: B('Parenteral beslenme (amino asit + glukoz + lipit; 3 bölmeli torba ya da eczane karışımı)', 'Parenteral nutrition (amino acids + glucose + lipid; three-chamber bag or pharmacy compounded)') };
   }
 
@@ -1020,6 +1179,16 @@ export function recommend(raw = {}) {
   if (p.stroke) src('espen-neurology-2018');
   if (route.kind === 'en' && route.pegPlanned) src('espen-hen-2022');
   if (route.kind === 'en') plan.fluid = wardFluid(p, m, plan.today);
+  if (p.feeding === 'ongoing' && p.feedingDays === null) result.warnings.push(B('Beslenmenin gerçek süresi girilmedi: YBÜ yatış günü beslenme günü sayılmadı. Sayısal ilerleme hesabında 1. gün varsayıldı; halen tolere edilen beslenmeyi bu varsayımla azaltmayın. Gerçek beslenme gününü girince hedef yeniden hesaplanır.', 'Actual feeding duration was not entered: ICU stay is not treated as feeding duration. The numeric progression conditionally assumes feeding day 1; do not reduce a tolerated existing feed on this assumption. Enter actual feeding duration to recalculate.'));
+  for (const row of plan.rows) {
+    if (row.volume > (p.formulaVolumeLimitMlDay ?? 10000)) {
+      result.blocked = B('Hesaplanan mama hacmi girilen günlük sınırı veya 10.000 mL yazılım sınırını aşıyor. Etiket/birim ve toplam sıvı bütçesini düzeltin; bu uç miktar uygulama önerisi değildir.', 'Calculated formula volume exceeds the entered daily limit or the 10,000 mL software guard. Correct the label/units and total fluid budget; this extreme amount is not an administration recommendation.');
+    }
+  }
+  if (route.kind === 'en' || (route.kind === 'delay' && !pnAfterShock)) {
+    plan.initiation = enteralInitiation(p, rf, route, plan);
+    src('nice-cg32', 'espen-icu-2023');
+  }
   if (plan.fluid) src('nice-cg32');
   result.supplements = supplements(p, m, rf, route, plan, scales);
   result.supplements.forEach((s) => src(...s.src));

@@ -137,12 +137,12 @@ test('EAT-10: ≥3 abnormal, <3 not met, unreliable with impaired alertness; int
 test('Swallowing: FOIS, IDDSI and safety findings; the most cautious finding wins', () => {
   const s = (raw) => swallowStatus(normalize(raw).p);
   assert.equal(s({ fois: 2 }).value, 'unsafe');
-  assert.equal(s({ fois: 5 }).value, 'modified');
+  assert.equal(s({ fois: 5 }).value, null);
   const c = s({ fois: 7, swallow: 'modified' });
   assert.equal(c.value, 'modified');
-  assert.equal(c.conflict, true);
-  assert.equal(s({ iddsiFluid: 2 }).value, 'modified');
-  assert.equal(s({ iddsiFluid: 0, iddsiFood: 7 }).value, 'safe');
+  assert.equal(c.conflict, false);
+  assert.equal(s({ iddsiFluid: 2 }).value, null);
+  assert.equal(s({ iddsiFluid: 0, iddsiFood: 7 }).value, null);
   assert.equal(s({ swallow: 'safe', impairedAlertness: true }).value, 'unsafe');
   assert.equal(s({}).value, null);
 });

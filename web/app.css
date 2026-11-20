@@ -277,7 +277,7 @@ tr.current td { background: var(--brand-soft); }
   .top, .progress, #cards, .actions, .foot .no-print, .missing .btn, .label-toggle, .side, .menu-btn, .side-backdrop { display: none !important; }
   .layout { display: block !important; }
   body { background: #fff; color: #000; }
-  .card { box-shadow: none; break-inside: avoid; }
+  .card { box-shadow: none; break-inside: avoid; animation: none !important; opacity: 1 !important; transform: none !important; }
   main { max-width: none; padding: 0; }
   details { display: block; }
   details > summary { list-style: none; }

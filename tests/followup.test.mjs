@@ -41,8 +41,8 @@ test('Follow-up summary: percentages, early overfeeding mark, cumulative balance
 
 test('Past ICU day targets come from the engine with feeding taken as running', () => {
   const base = { setting: 'icu', age: 60, sex: 'male', heightCm: 175, weightKg: 75, icuDay: 5, swallow: 'unsafe', gi: 'ok', shock: 'none', kidney: 'normal' };
-  const day4 = recommend({ ...base, icuDay: '4', feeding: 'ongoing' }).plan.today;
-  const day2 = recommend({ ...base, icuDay: '2', feeding: 'ongoing' }).plan.today;
+  const day4 = recommend({ ...base, icuDay: '4', feeding: 'ongoing', feedingDays:4 }).plan.today;
+  const day2 = recommend({ ...base, icuDay: '2', feeding: 'ongoing', feedingDays:2 }).plan.today;
   assert.ok(day4.kcalTarget > day2.kcalTarget);
   assert.ok(day4.proteinTarget > 0);
 });

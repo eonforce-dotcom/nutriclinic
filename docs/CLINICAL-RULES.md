@@ -1,6 +1,6 @@
 # NutriClinic staged recommender — clinical rules
 
-Version 1.10.0 · rules dated 2026-11-07 · Dr. Gökay Duman (Neurology)
+Version 1.11.0 · rules dated 2026-11-20 · Dr. Gökay Duman (Neurology)
 
 NutriClinic supports clinical decisions and does not replace them. Every recommendation is reviewed at the bedside
 together with its inputs and sources.
@@ -11,11 +11,58 @@ From whatever data are entered, NutriClinic gives:
 
 - the feeding route;
 - the formula class by content (no brands);
-- the daily amount, with the pump rate or the number and size of feeds;
-- protein-module and powder grams;
+- the phase-target daily amount, with the target pump rate or target number and size of feeds;
+- a separate clinician-reviewable initiation/advancement plan and first-day delivered amount for its illustrative schedule;
+- a protein gap and complete-formula review before any separate modular-protein choice; complete-feed powder grams remain label-based;
 - the supplements that are indicated, with calculated doses.
 
 It also gives a day-by-day progression table and the monitoring to do.
+
+### Initiation and protein-gap correction (20 November 2026)
+
+The hourly rate derived from a daily allocation is a **phase target**, not an instruction to start at
+that rate. `plan.initiation` separates the target from initiation. A new, continuous
+EN course with low refeeding risk, no prolonged fasting, confirmed suitable gut and no shock gets a
+numerical local example. It has twelve-hour review periods, reaches the phase target within an
+illustrative 48–72-hour window, and requires clinical approval at every step. It never schedules an
+automatic increase. This draft appears directly from the existing inputs, without a new manual
+checkbox gate. When feeding status alone is blank, the existing cautious first-step assumption is
+explicitly retained for a new-start proposal; the recorded answer stays unknown. Already running,
+well-tolerated feeds instead use the continuation pathway and are not reset. The first 24-hour
+volume, calories and protein are added from the actual example
+periods; they are not the full target rate multiplied by 24. Rates are rounded down within both
+the energy and protein allocations for each existing phase.
+
+The proposal is displayed by default without a mandatory manual confirmation checkbox. Bedside
+review remains part of intended use. If feeding status is blank, the existing first-step assumption
+is retained for a cautious new-start proposal and is explicitly exposed; the recorded input remains
+unknown. Selecting ongoing, tolerated feeding gives continuation guidance rather than a restart.
+
+This is a local protocol illustration, not an ESPEN-validated twelve-hour increment. Existing ICU
+acute-phase and NICE refeeding daily ceilings are unchanged. High/extreme/unknown refeeding risk,
+more than five days of low intake, low electrolytes or refeeding hypophosphataemia suppress the
+ordinary numerical example and require an individual plan. Delayed EN has no starting order;
+controlled/unknown shock also requires separate review. Ongoing feeds are not reset automatically.
+Intermittent feeding requires its own clinician-defined starting feed volume and frequency rather
+than a continuous-pump timetable. Stable ward, seriously ill ward and ICU contexts may legitimately
+use different advancement periods; reaching full nutrition by 48–72 hours is never a forced deadline.
+
+For EN and oral supplements, a calculated protein gap now asks the team first to review a complete
+formula's protein-to-energy ratio, label, volume/fluid limit, tolerance, renal status and current
+phase target. It does not raise the protein target or feed volume simply to close a numerical gap.
+`proteinGap` and `proteinReview` expose this assessment. Legacy `moduleProtein`/`moduleGrams` fields
+remain zero for older consumers: a module is an optional **separate clinician choice**, not an
+automatically prescribed powder dose. Complete powdered formula is a different product class and
+its label/dilution calculations remain available. No universal outcome superiority of a higher-
+protein formula over a modular supplement is claimed; TARGET Protein and PRECISe do not support
+routine maximum-protein escalation in all ICU patients.
+
+Evidence: NICE CG32 sections 1.4.4–1.4.8; ESPEN ICU 2023 recommendations on progressive feeding,
+phase targets, delayed EN and refeeding; ASPEN Safe Practices 2017 (separate target and advancement
+orders); ASPEN refeeding consensus 2020 (high-risk twelve-hour laboratory monitoring is distinct
+from feed escalation); TARGET Protein (2025), PRECISe (2024). The source/access review is retained
+locally in `work/clinical-review-20261120/enteral-evidence.json`. Technical regression tests are
+software checks and do not establish clinical outcomes.
 
 It never stops because data are missing. Instead it uses the most cautious documented assumption, says which one it
 used, and lists the missing data, ordered by how much each would change the answer. While a field is empty, the
@@ -100,7 +147,7 @@ the code and the full texts before it was fixed or declined.
 | Refeeding hypophosphataemia during feeding | 48 hours at the starting level, then the ramp | ESPEN-ICU-2023 R56–R57 |
 | Propofol and dextrose | subtracted from the formula: propofol 1.1 kcal/mL, dextrose 3.4 kcal/g | ESPEN-ICU-2023 |
 
-Pump rates are rounded down on cautious days, so that a ceiling is never exceeded.
+Pump rates and intermittent feed volumes are rounded down for every phase target; energy ceilings are not rounded up in the display. Feeding duration is an explicit input and is not inferred from ICU stay.
 
 ## Protein
 
@@ -122,14 +169,10 @@ estimate, in every phase (R22, "progressively"). Because of this, one formula cl
 protein never falls when the energy cap rises after the early phase. Routine doses above 1.3 g/kg are not used: EFFORT
 Protein, PRECISe and TARGET Protein found no benefit, and EFFORT Protein found harm in AKI.
 
-**Anabolic/catabolic state.** It is calculated from 24-hour urine urea nitrogen (UUN) and the protein received in the
-same 24 hours.
-
-- Nitrogen balance = protein/6.25 − (UUN + 4).
-- If the balance is negative, kidneys are known to be normal, and in the ICU it is day 5 or later: protein is raised
-  to replace the measured loss, (UUN + 4) × 6.25. The ceiling is 1.5 g/kg, or 2.0 g/kg in major trauma
-  (ESPEN-ICU-2023 trauma commentary 1.5–2) and 2.0 g/kg of ideal weight in obesity (ESPEN-ICU-2023 R51–R52).
-- The balance is not interpreted in kidney failure.
+**Approximate nitrogen balance.** Protein/6.25 − (UUN + 4) is descriptive only.
+The same complete 24-hour intake/collection and additional losses affect applicability. It is not
+a definitive anabolic/catabolic diagnosis and does not automatically raise the clinical protein target.
+It is not interpreted in kidney failure.
 
 ## Route
 
@@ -154,7 +197,7 @@ same 24 hours.
    - If intake plus 3 servings stays below 75% of the target (70% in kidney failure, ESPEN-KIDNEY-2024 R5), tube
      feeding covers the rest (R41; ESPEN-POLY-2024 R25).
    - With a refeeding risk, the cautious target is a ceiling: servings are rounded down, with no minimum.
-   - A remaining protein gap of ≥ 5 g is covered with protein powder.
+   - A remaining protein gap is displayed and complete-formula alternatives are compared; no powder dose is automatically added.
 5. **Cannot eat, or swallowing not assessed**: enteral tube feeding.
    - ICU: early, gastric, continuous by pump (R4, R5, R9, R10).
    - Very high aspiration risk: post-pyloric (R12, R43).
@@ -174,7 +217,7 @@ does not exceed the need by more than 10%:
 | Standard | 4.0 g |
 | Low protein and low electrolyte (2.0 kcal/mL) | 1.5 g |
 
-A protein module covers the rest.
+Any remaining protein gap is reported; the automatic recipe does not add a protein module.
 
 - Fluid restriction: energy-dense 1.5 kcal/mL, or the low-protein dense class if little protein is needed.
 - Diarrhoea, constipation, or ward EN from age 65: fibre-containing formula (ESPEN-HEN-2022 R40–R41;
@@ -446,3 +489,18 @@ phosphate rules, lower limits, import, reference flags, SOFA-2, the audit fixes 
 - PEG planning;
 - CRP;
 - that every cited source exists.
+
+## Approved 20 November safety corrections and catalog
+
+- PN amino-acid energy is part of the same PN energy budget; unmet protein targets remain visible when external calories exhaust that budget. An energy-limited amino-acid ceiling is not a balanced bag prescription.
+- Refeeding risk is separate from severe malnutrition. The early-PN exception uses documented severe malnutrition or GLIM stage2, not fasting alone.
+- FOIS/IDDSI describe intake function/consistency and cannot supply oral-feeding safety. Explicit clinical safety findings and red flags remain decisive.
+- Prokinetic alternatives remain visible, with renal, neurologic, QT and interaction criteria; no unconditional repeated metoclopramide dose is assigned across kidney states.
+- Adult severe electrolyte flags (phosphate<0.3, potassium<2.5, magnesium<0.4 mmol/L) require urgent reassessment and defer starting/increasing. These flags are not a universal IV replacement order. NICE/ASPEN approaches differ for low levels; severe deficits do not inherit an unqualified no-correction statement.
+- The ward total-fluid reference remains numeric. An additional-water amount needs known formula water, assessed other fluids, restriction and renal context. Zero other fluid is an explicit input, not the default. A supplied total-fluid limit also constrains formula volume after other fluids.
+- Physically incompatible label energy/protein is rejected. Exact product identities retain source/market/package metadata; unknown water is not filled from a class average.
+- The manufacturer catalog is a bounded verified-reference set (22 entries, five manufacturers), not an exhaustive global registry. Composition ranking is mathematical fit to existing phase targets, not proof of brand superiority. Source-verified products from different markets are not silently paired by automatic selection.
+- Two-product amounts refer to separately administered products. Each initiation interval shows its allocated amounts; no physical mixing compatibility is implied.
+- Numeric results for missing critical facts are visibly conditional per the user's chosen policy. Known contraindications are not treated as missing values.
+
+Primary source/access records are held in the local maintenance review. The published code contains explicit manufacturer source URLs and checked dates. No new application npm/pip dependency, install hook or remote calculation service is added.

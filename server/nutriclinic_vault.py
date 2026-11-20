@@ -153,6 +153,10 @@ def scrub(data):
         for group, items in product.items():
             if group == 'form' and items == 'powder':
                 kept['form'] = 'powder'
+            elif group == 'catalog' and isinstance(items, dict):
+                good = {k:v for k,v in items.items() if k in {'firstId','secondId','firstMl','secondMl','mode','market','limitMl'} and _number(v) and 0 <= v <= 99999}
+                if good:
+                    kept['catalog'] = good
             elif group in ('en', 'ons', 'module', 'powder') and isinstance(items, dict):
                 good = {k: v for k, v in items.items() if isinstance(k, str) and KEY.fullmatch(k) and (
                     _number(v) or (isinstance(v, str) and (v == '' or DECIMAL.fullmatch(v))) or (group, k, v) in (('ons', 'unit', 'mL'), ('ons', 'unit', 'g')))}
@@ -189,6 +193,10 @@ def clean_data(data):
         raise SiteError(400, 'product')
     for group, items in product.items():
         if group == 'form' and items == 'powder':
+            continue
+        if group == 'catalog':
+            if not isinstance(items, dict) or not set(items) <= {'firstId','secondId','firstMl','secondMl','mode','market','limitMl'} or not all(_number(v) and 0 <= v <= 99999 for v in items.values()):
+                raise SiteError(400, 'product')
             continue
         if group not in ('en', 'ons', 'module', 'powder') or not isinstance(items, dict) or len(items) > 20 or not all(
                 isinstance(k, str) and KEY.fullmatch(k) and (_number(v) or (isinstance(v, str) and (v == '' or DECIMAL.fullmatch(v))) or (group, k, v) in (('ons', 'unit', 'mL'), ('ons', 'unit', 'g')))

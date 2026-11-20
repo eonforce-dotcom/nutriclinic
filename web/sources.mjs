@@ -2,6 +2,24 @@
 // recommendation numbers and doses were read from the official full texts.
 // SPDX-License-Identifier: AGPL-3.0-only
 export const SOURCES = {
+  'aspen-refeeding-2020': {
+    short:{tr:'ASPEN 2020 · Refeeding',en:'ASPEN 2020 · Refeeding'},
+    cite:'da Silva JSV, et al. ASPEN Consensus Recommendations for Refeeding Syndrome. Nutr Clin Pract. 2020;35:178-195.',
+    doi:'10.1002/ncp.10474',
+    used:{tr:'Ciddi elektrolit eksikliğinde başlama/artırmayı erteleme; NICE ile protokol farkı. 12 saatlik laboratuvar izlemi, otomatik hız artışı değildir.',en:'Delay starting/increasing with severe electrolyte deficits; distinguish NICE protocol. Twelve-hour laboratory monitoring does not mandate automatic rate increases.'},
+  },
+  'electrolyte-red-flags': {
+    short:{tr:'Elektrolit · erişkin alarm eşikleri',en:'Electrolytes · adult red flags'},
+    cite:'NHS Lanarkshire, Hypophosphataemia in Primary and Secondary Care; Queensland Health, HYPO-electrolyte disturbances. Accessed 2026-11-20.',
+    url:'https://www.health.qld.gov.au/clinical-practice/guidelines-procedures/medicines/safety/electrolyte-disturbances/hypo',
+    used:{tr:'K <2,5 ve Mg <0,4 mmol/L alarmı; NHS fosfat <0,3 mmol/L. Bunlar replasman dozu veya tüm refeeding tanısı değildir.',en:'K <2.5 and Mg <0.4 mmol/L red flags; NHS phosphate <0.3 mmol/L. These are not replacement doses or a complete refeeding diagnosis.'},
+  },
+  'metoclopramide-label-2026': {
+    short:{tr:'Metoklopramid · resmi ürün bilgisi',en:'Metoclopramide · official label'},
+    cite:'FDA. Metoclopramide injection prescribing information (017862s64lbl), 2026.',
+    url:'https://www.accessdata.fda.gov/drugsatfda_docs/label/2026/017862s64lbl.pdf',
+    used:{tr:'Tekrarlı dozda böbrek işlevine göre azaltma; sabit dozu tüm hastalara uygulamama.',en:'Renal dose reduction for repeated treatment; avoid a fixed dose for every patient.'},
+  },
   'espen-icu-2023': {
     short: { tr: 'ESPEN 2023 · Yoğun bakım', en: 'ESPEN 2023 · ICU' },
     cite: 'Singer P, Blaser AR, Berger MM, et al. ESPEN practical and partially revised guideline: Clinical nutrition in the intensive care unit. Clin Nutr. 2023;42(9):1671-1689.',

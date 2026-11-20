@@ -2,14 +2,14 @@ cff-version: 1.2.0
 message: "If you use NutriClinic in research or teaching, please cite it as below. Citation is requested; it is not an additional condition of the AGPL-3.0-only license."
 type: software
 title: "NutriClinic: staged nutrition recommendation"
-abstract: "Staged, guideline-based nutrition recommendation for adult ICU and ward patients: feeding route, formula class by content, amount, rate or feeds, protein module, and indicated supplements with calculated doses. Missing data are listed with their effect; the recommendation becomes patient-specific as data are completed. Supports clinical decisions and does not replace them."
+abstract: "Staged, guideline-based nutrition recommendation for adult ICU and ward patients: feeding route, formula class by content, amount, rate or feeds, source-referenced formula recipes, and indicated supplements with calculated doses. Missing data are listed with their effect; the recommendation becomes patient-specific as data are completed. Supports clinical decisions and does not replace them."
 authors:
   - family-names: Duman
     given-names: "Gökay"
     affiliation: "Neurology"
     orcid: "https://orcid.org/0000-0003-3782-1665"
-version: "1.10.0"
-date-released: "2026-11-07"
+version: "1.11.0"
+date-released: "2026-11-20"
 license: AGPL-3.0-only
 url: "https://sahnoroloji.org/nutriclinic/"
 repository-code: "https://github.com/eonforce-dotcom/nutriclinic"

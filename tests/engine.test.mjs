@@ -42,15 +42,15 @@ test('A2. ICU week 1 with low refeeding risk: below 70% (65%), protein 1.3 g/kg 
   assert.deepEqual(rows.map((x) => Math.round(x.kcalTarget)), [700, 875, 1138, 1138, 1138, 1138, 1138]);
   assert.deepEqual(rows.map((x) => Math.round(x.proteinTarget)), [56, 70, 91, 91, 91, 91, 91]);
   assert.ok(rows.every((x) => x.cls === 'en-very-high-protein'));
-  assert.equal(rows[3].rate, 38);
-  near(rows[3].formulaProtein, 91.2, 0.01, 'day-4 formula protein');
-  const later = recommend({ ...icuLow, icuDay: 5, feeding: 'ongoing' });
+  assert.equal(rows[3].rate, 37);
+  near(rows[3].formulaProtein, 88.8, 0.01, 'day-4 formula protein');
+  const later = recommend({ ...icuLow, icuDay: 5, feeding: 'ongoing', feedingDays: 5 });
   assert.equal(later.product.changeFrom.day, 8);
   assert.equal(later.product.changeFrom.cls, 'en-high-protein');
 });
 
 test('A3. ICU day 8 without calorimetry goes to 100% (25 kcal/kg)', () => {
-  const r = recommend({ ...icuLow, icuDay: 8, feeding: 'ongoing' });
+  const r = recommend({ ...icuLow, icuDay: 8, feeding: 'ongoing', feedingDays: 8 });
   near(r.plan.today.kcalTarget, 1750, 0.01);
   assert.equal(r.plan.today.cls, 'en-high-protein');
 });
@@ -61,7 +61,7 @@ test('A4. indirect calorimetry: ≤70% to day 3, 85% day 4, 100% from day 5', ()
 });
 
 test('B. obese ICU patient: adjusted weight (IBW + 25% of excess), 1.3 g/kg adjusted, very-high-protein formula', () => {
-  const r = recommend({ ...icuBase, sex: 'female', heightCm: 165, weightKg: 120, icuDay: 5, feeding: 'ongoing' });
+  const r = recommend({ ...icuBase, sex: 'female', heightCm: 165, weightKg: 120, icuDay: 5, feeding: 'ongoing', feedingDays: 5 });
   const m = r.metrics;
   near(m.bmi, 44.08, 0.01);
   near(m.ibw, 56.97, 0.01);
@@ -73,22 +73,23 @@ test('B. obese ICU patient: adjusted weight (IBW + 25% of excess), 1.3 g/kg adju
   assert.equal(r.plan.today.rate, 39, 'rounded down while the refeeding risk is undetermined');
 });
 
-test('C. CRRT: usual weight, 1.5 g/kg, module, thiamine continues during KRT', () => {
-  const r = recommend({ ...icuBase, heightCm: 180, weightKg: 80, usualWeightKg: 75, icuDay: 6, feeding: 'ongoing', kidney: 'crrt' });
+test('C. CRRT: usual weight, 1.5 g/kg, formula review for the gap, thiamine continues during KRT', () => {
+  const r = recommend({ ...icuBase, heightCm: 180, weightKg: 80, usualWeightKg: 75, icuDay: 6, feeding: 'ongoing', feedingDays: 6, kidney: 'crrt' });
   assert.equal(r.metrics.proteinWeightKind, 'usual');
   near(r.plan.today.proteinTarget, 112.5, 0.01);
   near(r.plan.today.kcalTarget, 1218.75, 0.01);
   assert.equal(r.plan.today.cls, 'en-very-high-protein');
   assert.equal(r.plan.today.rate, 40);
-  assert.equal(r.plan.today.moduleProtein, 17);
-  assert.equal(r.plan.today.moduleGrams, 18);
+  assert.equal(r.plan.today.moduleProtein, 0);
+  assert.equal(r.plan.today.moduleGrams, 0);
+  near(r.plan.today.proteinGap, 16.5, 0.01);
   assert.equal(r.nitrogen.reason, 'missing');
   assert.ok(r.sources.includes('espen-kidney-2024'));
   assert.match(supp(r, 'thiamine').dose.tr, /Sürekli KRT boyunca 100 mg\/gün/);
 });
 
 test('C2. AKI without usual weight or height: protein uses current weight and says so; AKI starts at 1.0 g/kg', () => {
-  const r = recommend({ ...icuLow, heightCm: null, kidney: 'aki', icuDay: 6, feeding: 'ongoing' });
+  const r = recommend({ ...icuLow, heightCm: null, kidney: 'aki', icuDay: 6, feeding: 'ongoing', feedingDays: 6 });
   assert.equal(r.metrics.proteinWeightKind, 'actual');
   assert.match(missing(r, 'usualWeightKg').text.tr, /güncel kiloyla/);
   near(r.plan.today.proteinTarget, 70, 0.01);
@@ -138,10 +139,11 @@ test('F. ward, eats 10%: ONS cannot reach 75%, tube feeding for the rest with fi
   assert.equal(r.route.supplementalToOral, true);
   const t = r.plan.today;
   assert.equal(t.cls, 'en-standard');
-  assert.equal(t.rate, 56);
-  assert.equal(t.moduleProtein, 6);
+  assert.equal(t.rate, 55);
+  assert.equal(t.moduleProtein, 0);
+  near(t.proteinGap, 6.6, 0.01);
   assert.equal(r.product.fiber, true);
-  near(r.plan.fluid.formulaWater, 1128.96, 0.01);
+  near(r.plan.fluid.formulaWater, 1108.8, 0.01);
   near(r.plan.fluid.min, 1650, 0.01);
 });
 
@@ -171,7 +173,7 @@ test('G. burns >20% TBSA: zinc 30–35 mg IV and enteral glutamine 0.3–0.5 g/k
 test('G2. no glutamine for a general ICU patient (ESPEN R28), for PN, or for trauma after day 5', () => {
   assert.equal(supp(recommend(icuBase), 'glutamine'), undefined);
   assert.equal(supp(recommend({ ...icuBase, burnsTbsa: 30, gi: 'contraindicated', icuDay: 4 }), 'glutamine'), undefined);
-  assert.equal(supp(recommend({ ...icuBase, trauma: true, icuDay: 6, feeding: 'ongoing' }), 'glutamine'), undefined);
+  assert.equal(supp(recommend({ ...icuBase, trauma: true, icuDay: 6, feeding: 'ongoing', feedingDays: 6 }), 'glutamine'), undefined);
   assert.match(supp(recommend({ ...icuBase, trauma: true, icuDay: 3 }), 'glutamine').dose.tr, /^14–21 g\/gün/);
 });
 
@@ -186,7 +188,7 @@ test('H. gut unusable: PN from day 3 unless severely malnourished; daily IV micr
   near(r.plan.today.lipidMaxG, 105, 0.01);
   assert.match(supp(r, 'mvte').dose.tr, /IV multivitamin/);
   assert.equal(recommend({ ...icuBase, gi: 'contraindicated', icuDay: 1, weightLossPct: 12 }).route.kind, 'pn-later', 'moderate weight loss is not severe');
-  assert.equal(recommend({ ...icuBase, gi: 'contraindicated', icuDay: 1, weightLossPct: 16 }).route.kind, 'pn', 'early progressive PN in severe malnutrition (R7)');
+  assert.equal(recommend({ ...icuBase, gi: 'contraindicated', icuDay: 1, weightLossPct: 16, severeMalnutritionConfirmed: 'yes' }).route.kind, 'pn', 'early progressive PN in severe malnutrition (R7)');
 });
 
 test('H2. uncontrolled shock outranks an unusable gut: no feeding now, and the restart plan is parenteral', () => {
@@ -235,10 +237,10 @@ test('I. uncontrolled shock delays EN; the low-dose restart scales protein with 
   near(unknown.plan.today.kcalTarget, 350, 0.01, 'unknown shock: low dose as a precaution');
 });
 
-test('I2. high gastric residual: weight-based erythromycin; a GI bleed outranks it and gets no prokinetic advice', () => {
+test('I2. high gastric residual: conditional prokinetic options; a GI bleed outranks it and gets no prokinetic advice', () => {
   const r = recommend({ ...icuBase, highGrv: true });
   assert.equal(r.route.reason, 'grv');
-  assert.ok(r.notes.some((n) => /210–490 mg\/gün/.test(n.text.tr)));
+  assert.ok(r.notes.some((n) => /eritromisin/.test(n.text.tr) && /böbrek/.test(n.text.tr)));
   const bleed = recommend({ ...icuBase, highGrv: true, giBleed: true });
   assert.equal(bleed.route.reason, 'giBleed');
   assert.ok(!bleed.notes.some((n) => /eritromisin/.test(n.text.tr)));
@@ -275,26 +277,26 @@ test('K3. weight above 100 kg without height: capped at 100 kg and flagged criti
   assert.equal(kidney.metrics.proteinWeight, 100, 'usual weight is capped too without height');
 });
 
-test('L. catabolic (negative nitrogen balance) after day 4: protein replaces losses, capped at 1.5 g/kg', () => {
+test('L. approximate nitrogen balance does not change the clinical protein target', () => {
   const nb = nitrogenBalance(normalize({ uun: 18, uunProtein: 80, kidney: 'normal' }).p);
   near(nb.nb, -9.2, 0.001);
-  assert.equal(nb.status, 'catabolic');
-  near(nb.replacementProtein, 137.5, 0.001);
-  const r = recommend({ ...icuLow, icuDay: 6, feeding: 'ongoing', uun: 18, uunProtein: 80 });
-  near(r.plan.today.proteinTarget, 105, 0.01);
-  assert.ok(r.plan.today.proteinWhy.includes('catabolic'));
-  const early = recommend({ ...icuLow, icuDay: 2, feeding: 'ongoing', uun: 18, uunProtein: 80 });
+  assert.equal(nb.status, 'estimate');
+  assert.equal(nb.raisesProteinTarget, false);
+  const r = recommend({ ...icuLow, icuDay: 6, feeding: 'ongoing', feedingDays: 6, uun: 18, uunProtein: 80 });
+  near(r.plan.today.proteinTarget, 91, 0.01);
+  assert.ok(!r.plan.today.proteinWhy.includes('catabolic'));
+  const early = recommend({ ...icuLow, icuDay: 2, feeding: 'ongoing', feedingDays: 2, uun: 18, uunProtein: 80 });
   near(early.plan.today.proteinTarget, (0.5 / 0.65) * 91, 0.01, 'no escalation before day 5');
-  const balanced = recommend({ ...icuLow, icuDay: 6, feeding: 'ongoing', uun: 8, uunProtein: 90 });
-  assert.equal(balanced.nitrogen.status, 'balanced');
+  const balanced = recommend({ ...icuLow, icuDay: 6, feeding: 'ongoing', feedingDays: 6, uun: 8, uunProtein: 90 });
+  assert.equal(balanced.nitrogen.status, 'estimate');
   near(balanced.plan.today.proteinTarget, 91, 0.01);
-  const kidneyUnknown = recommend({ ...icuLow, kidney: null, icuDay: 6, feeding: 'ongoing', uun: 18, uunProtein: 80 });
+  const kidneyUnknown = recommend({ ...icuLow, kidney: null, icuDay: 6, feeding: 'ongoing', feedingDays: 6, uun: 18, uunProtein: 80 });
   near(kidneyUnknown.plan.today.proteinTarget, 70, 0.01, 'no escalation and 1.0 g/kg while kidney status is unknown');
 });
 
-test('L1. major trauma with a large measured loss: protein up to 2.0 g/kg', () => {
-  const r = recommend({ ...icuLow, trauma: true, icuDay: 6, feeding: 'ongoing', uun: 25, uunProtein: 80 });
-  near(r.plan.today.proteinTarget, 140, 0.01);
+test('L1. major trauma retains its clinical target without escalation from UUN', () => {
+  const r = recommend({ ...icuLow, trauma: true, icuDay: 6, feeding: 'ongoing', feedingDays: 6, uun: 25, uunProtein: 80 });
+  near(r.plan.today.proteinTarget, 105, 0.01);
 });
 
 test('L2. nitrogen balance is not interpreted in kidney failure', () => {
@@ -308,10 +310,10 @@ test('M. Wernicke suspicion overrides other thiamine doses', () => {
 });
 
 test('N. propofol calories are subtracted from the formula', () => {
-  const r = recommend({ ...icuLow, icuDay: 8, feeding: 'ongoing', propofolMlH: 10 });
+  const r = recommend({ ...icuLow, icuDay: 8, feeding: 'ongoing', feedingDays: 8, propofolMlH: 10 });
   near(r.nonNutritional.propofolKcal, 264, 0.01);
   near(r.plan.today.kcalTarget, 1750, 0.01);
-  assert.equal(r.plan.today.rate, Math.round((1750 - 264) / 1.25 / 24));
+  assert.equal(r.plan.today.rate, Math.floor((1750 - 264) / 1.25 / 24));
 });
 
 test('O. vitamin D below 20 ng/mL: no ICU dose (R36), ward 4000–5000 IU/day for 2 months', () => {
@@ -341,19 +343,20 @@ test('Q. unknown swallowing is not assumed safe', () => {
 });
 
 test('R. entered label values replace the defaults', () => {
-  const r = recommend({ ...icuLow, icuDay: 8, feeding: 'ongoing', product: { en: { kcalPerMl: 1.5, proteinPer100: 7.5 } } });
+  const r = recommend({ ...icuLow, icuDay: 8, feeding: 'ongoing', feedingDays: 8, product: { en: { kcalPerMl: 1.5, proteinPer100: 7.5 } } });
   assert.equal(r.plan.today.cls, 'en-label');
-  assert.equal(r.plan.today.rate, Math.round(1750 / 1.5 / 24));
+  assert.equal(r.plan.today.rate, Math.floor(1750 / 1.5 / 24));
 });
 
 test('R2. powder: protein and grams come from the powder label and its dilution', () => {
-  const r = recommend({ ...icuLow, icuDay: 8, feeding: 'ongoing', product: { form: 'powder' } });
+  const r = recommend({ ...icuLow, icuDay: 8, feeding: 'ongoing', feedingDays: 8, product: { form: 'powder' } });
   const t = r.plan.today;
   assert.equal(t.cls, 'en-powder');
-  assert.equal(t.rate, 73);
-  near(t.formulaProtein, 1752 * (1 / 4.5) * 17 / 100, 0.01);
-  assert.equal(t.moduleProtein, 25);
-  assert.equal(t.powderGrams, 389);
+  assert.equal(t.rate, 72);
+  near(t.formulaProtein, 1728 * (1 / 4.5) * 17 / 100, 0.01);
+  assert.equal(t.moduleProtein, 0);
+  near(t.proteinGap, 25.7, 0.11);
+  assert.equal(t.powderGrams, 384);
 });
 
 test('S. every cited source id exists in the source list', () => {
@@ -370,19 +373,20 @@ test('T. body metrics: unknown sex uses the female formula; ward adjusts only fr
 });
 
 test('U. kidney status unknown: ICU protein 1.0 g/kg; ward 1.0 g/kg; no ward fluid plan', () => {
-  near(recommend({ ...icuLow, kidney: null, icuDay: 6, feeding: 'ongoing' }).plan.today.proteinTarget, 70, 0.01);
+  near(recommend({ ...icuLow, kidney: null, icuDay: 6, feeding: 'ongoing', feedingDays: 6 }).plan.today.proteinTarget, 70, 0.01);
   const ward = recommend({ ...wardBase, kidney: null, swallow: 'unsafe' });
   near(ward.plan.today.proteinTarget, 55, 0.01);
-  assert.equal(ward.plan.fluid, null);
+  assert.equal(ward.plan.fluid.extraMin, null);
 });
 
-test('V. ward AKI: low-protein formula plus module instead of overfeeding protein', () => {
+test('V. ward AKI: preserve renal protein target and review a formula gap without automatic modular dosing', () => {
   const r = recommend({ ...wardBase, sex: 'male', heightCm: 175, weightKg: 70, swallow: 'unsafe', kidney: 'aki' });
   const t = r.plan.today;
   near(t.proteinTarget, 56, 0.01);
   assert.equal(t.cls, 'en-low-protein');
   assert.equal(t.rate, 39);
-  assert.equal(t.moduleProtein, 28);
+  assert.equal(t.moduleProtein, 0);
+  near(t.proteinGap, 27.9, 0.01);
   assert.equal(r.warnings.length, 0);
 });
 
@@ -402,7 +406,7 @@ test('X. very high aspiration risk: post-pyloric access; dysphagia with that ris
 });
 
 test('Y. refeeding hypophosphataemia during feeding: energy held at the start level for 48 h', () => {
-  const r = recommend({ ...icuLow, icuDay: 6, feeding: 'ongoing', hypoPhosphate: true });
+  const r = recommend({ ...icuLow, icuDay: 6, feeding: 'ongoing', feedingDays: 6, hypoPhosphate: true });
   const kcal = r.plan.rows.map((x) => Math.round(x.kcalTarget));
   // Days 6–7 at 10 kcal/kg; day 8 (cap now 100%) one step up: 0.40 + 0.60 × 1/4 = 0.55 × 1750.
   assert.deepEqual(kcal.slice(0, 3), [700, 700, 963]);

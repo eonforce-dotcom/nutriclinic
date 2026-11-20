@@ -34,16 +34,16 @@ export const IDDSI_DRINK = {
 
 // ---------------------------------------------------------------------------------------------
 // Swallowing: the most cautious of the entered findings. Ranking: unsafe < modified < safe.
-// FOIS 1–3 tube dependent, 4–6 oral with restrictions, 7 unrestricted (fois-2005); any IDDSI level other
-// than regular food with thin drinks means a texture-modified diet (iddsi-2017); impaired alertness and
-// unsafe signs during swallowing mean no oral intake until assessed (ueg-esnm-2025).
+// FOIS describes intake function; IDDSI describes consistency. Neither establishes current swallowing
+// safety. They may restrict an explicit oral-safety decision, but cannot supply that decision.
+// Tube dependence, impaired alertness and unsafe signs retain their cautious restrictions.
 const SWALLOW_RANK = { unsafe: 0, modified: 1, safe: 2 };
 export function swallowStatus(p) {
   const found = [];
   if (p.swallow) found.push({ value: p.swallow, from: 'entered' });
-  if (p.fois !== null) found.push({ value: p.fois <= 3 ? 'unsafe' : p.fois <= 6 ? 'modified' : 'safe', from: 'fois' });
-  if ((p.iddsiFluid !== null && p.iddsiFluid >= 1) || (p.iddsiFood !== null && p.iddsiFood <= 6)) found.push({ value: 'modified', from: 'iddsi' });
-  else if (p.iddsiFluid === 0 && p.iddsiFood === 7) found.push({ value: 'safe', from: 'iddsi' });
+  if (p.fois !== null && p.fois <= 3) found.push({ value: 'unsafe', from: 'fois' });
+  else if (p.swallow && p.fois !== null && p.fois <= 6) found.push({ value: 'modified', from: 'fois' });
+  if (p.swallow && ((p.iddsiFluid !== null && p.iddsiFluid >= 1) || (p.iddsiFood !== null && p.iddsiFood <= 6))) found.push({ value: 'modified', from: 'iddsi' });
   if (p.impairedAlertness === true) found.push({ value: 'unsafe', from: 'alertness' });
   if (p.unsafeSigns === true) found.push({ value: 'unsafe', from: 'signs' });
   if (!found.length) return { value: null, from: null, conflict: false, found };
